@@ -166,9 +166,15 @@ const getProfile = async (id: string) => {
 
   return result;
 };
+const getSingleUserById=async(id:string)=>{
+   const user=await User.findById(id)
+   return user
+
+}
 
 export const AuthService = {
   loginUser,
   enterOtp,
   getProfile,
+  getSingleUserById
 };

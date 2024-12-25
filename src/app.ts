@@ -8,12 +8,12 @@ import { StatusCodes } from "http-status-codes";
 import passport from "passport";
 import { socialLoginRoutes } from "./modules/socialLogin/socialLogin.route";
 import session from "express-session";
-import config from "./config";
+
 const app: Application = express();
 
 app.use(cors({
   
-    origin: "http://localhost:3000", 
+    origin: ["http://localhost:3000","https://luminoor-frontend.vercel.app"], 
 
   
 }));
