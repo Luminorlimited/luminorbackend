@@ -140,8 +140,13 @@ const getProfile = (id) => __awaiter(void 0, void 0, void 0, function* () {
     }
     return result;
 });
+const getSingleUserById = (id) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = yield auth_model_1.User.findById(id);
+    return user;
+});
 exports.AuthService = {
     loginUser,
     enterOtp,
     getProfile,
+    getSingleUserById
 };

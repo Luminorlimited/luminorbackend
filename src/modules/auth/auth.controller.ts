@@ -54,11 +54,28 @@ console.log(user,"check user")
   });
 });
 
-
+const getSingleUserById= catchAsync(async (req: Request, res: Response) => {
+  const user=req.user as any
+  
+  
+  console.log(user,"check user")
+    // res.cookie("token", result.accessToken, { httpOnly: true });
+    const result=await AuthService.getSingleUserById(req.params.id)
+    
+    sendResponse(res, {
+      statusCode: StatusCodes.OK,
+      success: true,
+      message: "single user  get successfully",
+      data: result,
+    });
+  });
+  
 
 
 export const AuthController = {
   loginUser,
   enterOtp,
-  getProfile
+  getProfile,
+  getSingleUserById
+  
 };

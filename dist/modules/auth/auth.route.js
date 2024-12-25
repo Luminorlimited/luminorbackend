@@ -13,3 +13,4 @@ exports.AuthRoute = router;
 router.post("/signIn", auth_controller_1.AuthController.loginUser);
 router.get("/get-profile", (0, auth_1.default)(user_1.ENUM_USER_ROLE.CLIENT, user_1.ENUM_USER_ROLE.RETIREPROFESSIONAL), auth_controller_1.AuthController.getProfile);
 router.post("/otp-enter", auth_controller_1.AuthController.enterOtp);
+router.get("/get-single-user/:id", auth_controller_1.AuthController.getSingleUserById);
