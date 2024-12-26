@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.corsOptions = void 0;
 const cors_1 = __importDefault(require("cors"));
 const express_1 = __importDefault(require("express"));
 const path_1 = __importDefault(require("path"));
@@ -14,9 +15,18 @@ const passport_1 = __importDefault(require("passport"));
 const socialLogin_route_1 = require("./modules/socialLogin/socialLogin.route");
 const express_session_1 = __importDefault(require("express-session"));
 const app = (0, express_1.default)();
-app.use((0, cors_1.default)({
-    origin: ["http://localhost:3000", "https://luminoor-frontend.vercel.app"],
-}));
+exports.corsOptions = {
+    origin: [
+        // "https://tasneem-social-frontend.netlify.app",
+        "http://localhost:3000",
+        "http://192.168.11.130:3000",
+        "https://allen8797-frontend.vercel.app"
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+};
+app.use((0, cors_1.default)(exports.corsOptions));
 app.use((0, cookie_parser_1.default)());
 //parser
 app.use(express_1.default.json());

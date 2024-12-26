@@ -11,12 +11,18 @@ import session from "express-session";
 
 const app: Application = express();
 
-app.use(cors({
-  
-    origin: ["http://localhost:3000","https://luminoor-frontend.vercel.app"], 
-
-  
-}));
+export const corsOptions = {
+  origin: [
+    // "https://tasneem-social-frontend.netlify.app",
+    "http://localhost:3000",
+    "http://192.168.11.130:3000",
+    "https://allen8797-frontend.vercel.app"
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+};
+app.use(cors(corsOptions))
 app.use(cookieParser());
 
 //parser

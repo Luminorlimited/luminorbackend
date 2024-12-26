@@ -208,55 +208,55 @@ const createPaymentIntentService = async (payload: { amount: number }) => {
     dpmCheckerLink: `https://dashboard.stripe.com/settings/payment_methods/review?transaction_id=${paymentIntent.id}`,
   };
 };
-const createPayment = async (data: {
-  paymentMethodTypes: Stripe.Checkout.SessionCreateParams.PaymentMethodType[];
-  currency: string;
-  successUrl: string;
-  cancelUrl: string;
-  product: any;
-  client_reference_id: string;
+// const createPayment = async (data: {
+//   paymentMethodTypes: Stripe.Checkout.SessionCreateParams.PaymentMethodType[];
+//   currency: string;
+//   successUrl: string;
+//   cancelUrl: string;
+//   product: any;
+//   client_reference_id: string;
  
-  customerEmail: string;
-}) => {
-  // Serialize product data
-  const serializedProducts = JSON.stringify(data.product);
+//   customerEmail: string;
+// }) => {
+//   // Serialize product data
+//   const serializedProducts = JSON.stringify(data.product);
 
-  // Serialize billing and shipping addresses
-
-
-
-  const lineItems = data.product.map((product: any) => ({
-    price_data: {
-      currency: data.currency,
-      product_data: {
-        name: product.id,
-      },
-      unit_amount: product.mainPrice * 100, // Stripe expects amount in cents
-    },
-    quantity: product.quantity,
-  }));
+//   // Serialize billing and shipping addresses
 
 
-  const session = await stripe.checkout.sessions.create({
-    payment_method_types: data.paymentMethodTypes,
-    line_items: lineItems,
-    mode: "payment",
-    success_url: data.successUrl,
-    cancel_url: data.cancelUrl,
+
+//   const lineItems = data.product.map((product: any) => ({
+//     price_data: {
+//       currency: data.currency,
+//       product_data: {
+//         name: product.id,
+//       },
+//       unit_amount: product.mainPrice * 100, // Stripe expects amount in cents
+//     },
+//     quantity: product.quantity,
+//   }));
+
+
+//   const session = await stripe.checkout.sessions.create({
+//     payment_method_types: data.paymentMethodTypes,
+//     line_items: lineItems,
+//     mode: "payment",
+//     success_url: data.successUrl,
+//     cancel_url: data.cancelUrl,
   
-    client_reference_id: data.client_reference_id,
-    // customer:customer.id,
+//     client_reference_id: data.client_reference_id,
+//     // customer:customer.id,
 
-    metadata: {
+//     metadata: {
    
-      customer_product: serializedProducts,
+//       customer_product: serializedProducts,
      
-    },
-  });
+//     },
+//   });
 
 
-  return session;
-};
+//   return session;
+// };
 
 export const StripeServices = {
   saveCardWithCustomerInfoIntoStripe,
@@ -267,5 +267,5 @@ export const StripeServices = {
   deleteCardFromCustomer,
   refundPaymentToCustomer,
   createPaymentIntentService,
-  createPayment
+  
 };
