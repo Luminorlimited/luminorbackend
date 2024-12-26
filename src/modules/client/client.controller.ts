@@ -9,9 +9,7 @@ import { ClientService } from "./client.service";
 import { StatusCodes } from "http-status-codes";
 
 import { uploadFileToSpace } from "../../utilitis/uploadTos3";
-import { jwtHelpers } from "../../helpers/jwtHelpers";
-import config from "../../config";
-import { Secret } from "jsonwebtoken";
+
 
 const createClient = catchAsync(async (req: Request, res: Response) => {
   const data = req.body;
