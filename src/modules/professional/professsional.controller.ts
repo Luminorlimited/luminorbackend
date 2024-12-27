@@ -144,9 +144,22 @@ const getRetireProfessionalsByLocation = catchAsync(
   }
 );
 
+const getRetireProfessionalById = catchAsync( async (req:Request,res:Response) =>{
+  const {professionalId} = req.params
+  const result = await RetireProfessionalService.getRetireProfessionalById(professionalId)
+  sendResponse<IProfessional>(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: "Retire professional   retrived successfully",
+    data: result,
+  });
+}
+)
+
 export const RetireProfessionalController = {
   createProfessional,
   updateSingleRetireProfessional,
   getRetireProfessionals,
   getRetireProfessionalsByLocation,
+  getRetireProfessionalById
 };

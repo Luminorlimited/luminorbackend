@@ -17,7 +17,7 @@ export type IUser = {
   otpExpiry?:Date,
   identifier?:string,
   customerId?:string
-
+  client?: mongoose.Schema.Types.ObjectId
 };
 
 export type IUserExistReturn = {

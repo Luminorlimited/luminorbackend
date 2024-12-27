@@ -248,7 +248,7 @@ const updateSingleClient = async (
 };
 
 const getClientById = async (id: string): Promise<IClient | null> => {
-  const result = await Client.findById(id);
+  const result = await Client.findById(id).populate('client');
   return result;
 };
 export const ClientService = {
