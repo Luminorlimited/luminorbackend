@@ -280,9 +280,16 @@ const getRetireProfessionalsByLocation = async (
   
 };
 
+const getRetireProfessionalById = async (professionalId:string): Promise<IProfessional | null> =>{
+    const result = await RetireProfessional.findById(professionalId).populate('retireProfessional')
+    return result;
+  };
+
+
 export const RetireProfessionalService = {
   createProfessional,
   updateSingleRetireProfessional,
   getRetireProfessionals,
-  getRetireProfessionalsByLocation
+  getRetireProfessionalsByLocation,
+  getRetireProfessionalById
 };

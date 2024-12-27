@@ -32,3 +32,4 @@ router.patch(
 router.get("/", RetireProfessionalController.getRetireProfessionals);
 
 router.get("/location", RetireProfessionalController.getRetireProfessionalsByLocation)
+router.get("/:professionalId", RetireProfessionalController.getRetireProfessionals);
