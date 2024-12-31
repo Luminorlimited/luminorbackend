@@ -220,9 +220,14 @@ const getRetireProfessionalsByLocation = (long, lat, min, max) => __awaiter(void
     });
     return result;
 });
+const getRetireProfessionalById = (professionalId) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield professional_model_1.RetireProfessional.findById(professionalId).populate('retireProfessional');
+    return result;
+});
 exports.RetireProfessionalService = {
     createProfessional,
     updateSingleRetireProfessional: exports.updateSingleRetireProfessional,
     getRetireProfessionals,
-    getRetireProfessionalsByLocation
+    getRetireProfessionalsByLocation,
+    getRetireProfessionalById
 };

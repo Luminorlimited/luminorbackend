@@ -231,7 +231,7 @@ const updateSingleClient = (id, auth, clientPayload) => __awaiter(void 0, void 0
     }
 });
 const getClientById = (id) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield client_model_1.Client.findById(id);
+    const result = yield client_model_1.Client.findById(id).populate('client');
     return result;
 });
 exports.ClientService = {

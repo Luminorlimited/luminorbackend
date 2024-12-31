@@ -18,3 +18,4 @@ router.post("/signUp", multer_1.multerUpload.single("cvOrCoverLetter"), parseJso
 router.patch("/profile/:id", multer_1.multerUpload.any(), parseJson_1.parseBodyData, (0, auth_1.default)(user_1.ENUM_USER_ROLE.RETIREPROFESSIONAL), professsional_controller_1.RetireProfessionalController.updateSingleRetireProfessional);
 router.get("/", professsional_controller_1.RetireProfessionalController.getRetireProfessionals);
 router.get("/location", professsional_controller_1.RetireProfessionalController.getRetireProfessionalsByLocation);
+router.get("/:professionalId", professsional_controller_1.RetireProfessionalController.getRetireProfessionalById);

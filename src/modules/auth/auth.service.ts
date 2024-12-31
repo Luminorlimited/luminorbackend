@@ -167,8 +167,21 @@ const getProfile = async (id: string) => {
   return result;
 };
 const getSingleUserById=async(id:string)=>{
+  console.log(id,"check id")
    const user=await User.findById(id)
-   return user
+   console.log(user,"check user")
+   if(!user){
+    throw new ApiError(StatusCodes.BAD_REQUEST,"User not found")
+   }
+  let result
+    if(user?.role===ENUM_USER_ROLE.RETIREPROFESSIONAL){
+      console.log("i am in client ")
+      result =await  RetireProfessional.findOne({retireProfessional:user._id}).populate("retireProfessional")
+    }
+    else if(user?.role===ENUM_USER_ROLE.CLIENT){
+      result =await  Client.findOne({client:user._id}).populate("client")
+    }
+   return result
 
 }
 
