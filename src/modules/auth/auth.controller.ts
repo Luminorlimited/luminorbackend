@@ -55,10 +55,10 @@ console.log(user,"check user")
 });
 
 const getSingleUserById= catchAsync(async (req: Request, res: Response) => {
-  const user=req.user as any
   
   
-  console.log(user,"check user")
+  
+  // console.log(user,"check user")
     // res.cookie("token", result.accessToken, { httpOnly: true });
     const result=await AuthService.getSingleUserById(req.params.id)
     
