@@ -1,3 +1,5 @@
+import { Client } from "../client/client.model";
+import { RetireProfessional } from "../professional/professional.model";
 import { IMessage } from "./messages.interface";
 import { Message } from "./messages.model";
 
@@ -16,57 +18,57 @@ const getMessages = async (senderId: string, recipientId: string) => {
   return messages;
 };
 const getConversationLists = async (user: any) => {
-  const conversations = await Message.aggregate([
-    { $match: { $or: [{ sender: user.email }, { recipient: user.email }] } },
-    {
-      $group: {
-        _id: {
-          participant: {
-            $cond: [
-              { $ne: ["$sender", user.email] },
-              "$sender",
-              "$recipient",
-            ],
-          },
-        },
-        lastInteraction: { $max: "$createdAt" },
-      },
-    },
-    { $sort: { lastInteraction: -1 } },
-    {
-      $lookup: {
-        from: "RetireProfessionals",
-        localField: "_id.participant",
-        foreignField: "retireProfessional",
-        as: "retireProfessionalDetails"
-      }
-    },
-    {
-      $lookup: {
-        from: "Clients",
-        localField: "_id.participant",
-        foreignField: "client",
-        as: "clientDetails"
-      }
-    },
-    { $unwind: { path: "$retireProfessionalDetails", preserveNullAndEmptyArrays: true } },
-    { $unwind: { path: "$clientDetails", preserveNullAndEmptyArrays: true } },
-    {
-      $project: {
-        _id: 0,
-        participant: {
-          $cond: {
-            if: { $gt: [{ $size: "$retireProfessionalDetails" }, 0] },
-            then: "$retireProfessionalDetails",
-            else: "$clientDetails"
-          }
-        },
-        lastInteraction: 1,
-      },
-    },
-  ]);
+  console.log(user, "check user");
+  const retireProfessional = await RetireProfessional.findOne(
+    { relevantQualification: user.id },
+    { _id: 1 }
+  ).lean();
 
-  return conversations;
+  const client = await Client.findOne(
+    { client: user.id },
+    { _id: 1 }
+  ).lean();
+
+  if (!retireProfessional && !client) {
+    throw new Error("User not found in RetireProfessional or Client collections.");
+  }
+
+  const userId = retireProfessional ? retireProfessional._id : client._id;
+  console.log(userId,"check user id")
+
+  const messages = await Message.find({
+    $or: [{ sender: user.email }, { recipient: user.email }],
+  })
+    // .populate({
+    //   path: "sender",
+    //   model: "RetireProfessional",
+    //   select: "name email",
+    //   match: { _id: { $ne: userId } }, 
+    // })
+    // .populate({
+    //   path: "recipient",
+    //   model: "Client",
+    //   select: "name email", 
+    //   match: { _id: { $ne: userId } },
+    // })
+    // .lean();
+    console.log(messages,"check messages")
+
+
+  const conversations = messages.map((message:any) => {
+    const participant =
+      message.sender && message.sender.email !== user.email
+        ? message.sender
+        : message.recipient;
+
+    return {
+      _id: message._id,
+      participant,
+      lastInteraction: message.createdAt,
+    };
+  });
+
+  return messages;
 };
 
 export const MessageService = {
