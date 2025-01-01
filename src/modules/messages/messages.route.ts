@@ -3,6 +3,7 @@ import { MessageController } from "./messages.controller";
 
 import validateRequest from "../../middlewares/validateRequest";
 import { MessageValidation } from "./messages.validation";
+import auth from "../../middlewares/auth";
 
 const router = express.Router();
 
@@ -18,3 +19,5 @@ router.get(
 
   MessageController.getMessages
 );
+
+router.get("/get-convirsation-list",auth(),MessageController.getConversationLists)

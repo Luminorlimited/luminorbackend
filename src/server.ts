@@ -28,38 +28,50 @@ const users: { [key: string]: string } = {};
 
 io.on("connection", (socket) => {
   // Register the user with their email and socket ID
-  socket.on("register", (email: string) => {
+  socket.on("register", (data: any) => {
+    const { email } = JSON.parse(data);
+    console.log(email);
+
     users[email] = socket.id;
+    console.log(users[email]);
   });
 
   // Private messaging between users
-  socket.on("privateMessage", async ({ toEmail, message, timestamp }) => {
+  socket.on("privateMessage", async (data: any) => {
+    console.log(users);
+    const { toEmail, message, fromEmail } = JSON.parse(data);
     const toSocketId = users[toEmail];
-    const senderEmail = Object.keys(users).find(
-      (key) => users[key] === socket.id
-    );
+    console.log(toSocketId);
 
-    if (!senderEmail) {
+    const fromSocketId = users[fromEmail];
+
+    if (!fromEmail) {
       return;
     }
 
     try {
       const savedMessage = await Message.create({
-        sender: senderEmail,
+        sender: fromEmail,
         message: message,
         recipient: toEmail,
       });
 
       if (toSocketId) {
         socket.to(toSocketId).emit("privateMessage", {
-          from: senderEmail,
-          message,
-          timestamp,
+          from: fromSocketId,
+          message: savedMessage,
+          
         });
       }
     } catch (error) {}
   });
+  const message = {
+    toEmail: "b@mail.com",
+    message: "Hello, this is a test message",
+    fromEmail: "a@mail.com",
 
+  };
+  socket.emit("privateMessage", JSON.stringify(message))
   // Notification event
   socket.on(
     "notification",
@@ -139,7 +151,10 @@ io.on("connection", (socket) => {
 async function bootstrap() {
   try {
     // Connect to MongoDB
-    await mongoose.connect("mongodb+srv://luminor:BYcHOYLQI2eiZ9IU@cluster0.v0ciw.mongodb.net/luminor?retryWrites=true&w=majority&appName=Cluster0" as string, options);
+    await mongoose.connect(
+      "mongodb+srv://luminor:BYcHOYLQI2eiZ9IU@cluster0.v0ciw.mongodb.net/luminor?retryWrites=true&w=majority&appName=Cluster0" as string,
+      options
+    );
     console.log(config.database_url, "check data base url");
     console.log("Connected to MongoDB successfully.");
 
