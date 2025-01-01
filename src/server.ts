@@ -7,6 +7,7 @@ import { Message } from "./modules/messages/messages.model";
 import { Notification } from "./modules/notification/notification.model";
 import { ENUM_NOTIFICATION_STATUS } from "./enums/notificationStatus";
 import { NotificationCreateResponse } from "./modules/notification/notification.interface";
+import { error } from "console";
 
 const options = {
   autoIndex: true,
@@ -15,7 +16,14 @@ const options = {
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: `${config.front_end_url}`,
+    origin: [
+  
+      "http://localhost:3000",
+   
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
   },
   transports: ["polling", "websocket"],
   pingInterval: 25000,
@@ -46,7 +54,7 @@ io.on("connection", (socket) => {
     const fromSocketId = users[fromEmail];
 
     if (!fromEmail) {
-      return;
+      socket.send(JSON.stringify({error:"email is required"}))
     }
 
     try {
@@ -75,7 +83,7 @@ io.on("connection", (socket) => {
   // Notification event
   socket.on(
     "notification",
-    async ({ toEmail, message, timestamp, _id, type }) => {
+    async ({ toEmail, message, timestamp,  type }) => {
       const toSocketId = users[toEmail];
       const senderEmail = Object.keys(users).find(
         (key) => users[key] === socket.id
@@ -119,7 +127,6 @@ io.on("connection", (socket) => {
     }
   );
 
-  // WebRTC Signaling: Handling offer, answer, and ICE candidates
   socket.on("sendOffer", (offer: any, toEmail: string) => {
     const toSocketId = users[toEmail];
     if (toSocketId) {
@@ -127,13 +134,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("sendAnswer", (answer: any, toSocketId: string) => {
-    socket.to(toSocketId).emit("receiveAnswer", answer);
-  });
-
-  socket.on("sendCandidate", (candidate: any, toSocketId: string) => {
-    socket.to(toSocketId).emit("receiveCandidate", candidate);
-  });
+  
 
   // Handle disconnection of users
   socket.on("disconnect", (reason) => {
