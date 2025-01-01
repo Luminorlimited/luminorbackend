@@ -141,8 +141,21 @@ const getProfile = (id) => __awaiter(void 0, void 0, void 0, function* () {
     return result;
 });
 const getSingleUserById = (id) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log(id, "check id");
     const user = yield auth_model_1.User.findById(id);
-    return user;
+    console.log(user, "check user");
+    if (!user) {
+        throw new handleApiError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "User not found");
+    }
+    let result;
+    if ((user === null || user === void 0 ? void 0 : user.role) === user_1.ENUM_USER_ROLE.RETIREPROFESSIONAL) {
+        console.log("i am in client ");
+        result = yield professional_model_1.RetireProfessional.findOne({ retireProfessional: user._id }).populate("retireProfessional");
+    }
+    else if ((user === null || user === void 0 ? void 0 : user.role) === user_1.ENUM_USER_ROLE.CLIENT) {
+        result = yield client_model_1.Client.findOne({ client: user._id }).populate("client");
+    }
+    return result;
 });
 exports.AuthService = {
     loginUser,
