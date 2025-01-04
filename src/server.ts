@@ -73,13 +73,13 @@ io.on("connection", (socket) => {
       }
     } catch (error) {}
   });
-  const message = {
-    toEmail: "b@mail.com",
-    message: "Hello, this is a test message",
-    fromEmail: "a@mail.com",
+  // const message = {
+  //   toEmail: "b@mail.com",
+  //   message: "Hello, this is a test message",
+  //   fromEmail: "a@mail.com",
 
-  };
-  socket.emit("privateMessage", JSON.stringify(message))
+  // };
+  // socket.emit("privateMessage", JSON.stringify(message))
   // Notification event
   socket.on(
     "notification",

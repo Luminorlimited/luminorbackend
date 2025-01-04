@@ -1,3 +1,5 @@
+import { ENUM_USER_ROLE } from "../../enums/user";
+import { User } from "../auth/auth.model";
 import { Client } from "../client/client.model";
 import { RetireProfessional } from "../professional/professional.model";
 import { IMessage } from "./messages.interface";
@@ -18,57 +20,61 @@ const getMessages = async (senderId: string, recipientId: string) => {
   return messages;
 };
 const getConversationLists = async (user: any) => {
-  console.log(user, "check user");
-  const retireProfessional = await RetireProfessional.findOne(
-    { relevantQualification: user.id },
-    { _id: 1 }
-  ).lean();
+  try {
+    console.log(user.email, "check email");
 
-  const client = await Client.findOne(
-    { client: user.id },
-    { _id: 1 }
-  ).lean();
+    // Fetch all messages where the user is the sender or recipient
+    const messages = await Message.find({
+      $or: [
+        { sender: { $regex: `^${user.email}$`, $options: "i" } },
+        { recipient: { $regex: `^${user.email}$`, $options: "i" } },
+      ],
+    });
 
-  if (!retireProfessional && !client) {
-    throw new Error("User not found in RetireProfessional or Client collections.");
+    console.log(messages, "check messages");
+
+    // Extract unique email addresses from the messages
+    const emails = new Set<string>();
+    messages.forEach((msg) => {
+      emails.add(msg.sender);
+      emails.add(msg.recipient);
+    });
+    emails.delete(user.email); // Exclude the current user's email
+
+    console.log(emails, "check emails");
+
+    // Fetch users corresponding to the emails
+    const users = await User.find({ email: { $in: Array.from(emails) } }).select("email name role");
+
+    console.log(users, "check users");
+
+    // Prepare user details
+    const userDetails = await Promise.all(
+      users.map(async (user) => {
+        // Fetch profile URL based on the user's role
+        let profileUrl = null;
+
+        if (user.role === ENUM_USER_ROLE.CLIENT) {
+          const client = await Client.findOne({ client: user._id }).select("profileUrl");
+          profileUrl = client?.profileUrl || null;
+        } else if (user.role === ENUM_USER_ROLE.RETIREPROFESSIONAL) {
+          const retireProfessional = await RetireProfessional.findOne({ retireProfessional: user._id }).select("profileUrl");
+          profileUrl = retireProfessional?.profileUrl || null;
+        }
+
+        return {
+          email: user.email,
+          name: `${user.name.firstName} ${user.name.lastName}`,
+          profileUrl,
+        };
+      })
+    );
+
+    return userDetails;
+  } catch (error) {
+    console.error("Error fetching conversation list:", error);
+    throw error;
   }
-
-  const userId = retireProfessional ? retireProfessional._id : client._id;
-  console.log(userId,"check user id")
-
-  const messages = await Message.find({
-    $or: [{ sender: user.email }, { recipient: user.email }],
-  })
-    // .populate({
-    //   path: "sender",
-    //   model: "RetireProfessional",
-    //   select: "name email",
-    //   match: { _id: { $ne: userId } }, 
-    // })
-    // .populate({
-    //   path: "recipient",
-    //   model: "Client",
-    //   select: "name email", 
-    //   match: { _id: { $ne: userId } },
-    // })
-    // .lean();
-    console.log(messages,"check messages")
-
-
-  const conversations = messages.map((message:any) => {
-    const participant =
-      message.sender && message.sender.email !== user.email
-        ? message.sender
-        : message.recipient;
-
-    return {
-      _id: message._id,
-      participant,
-      lastInteraction: message.createdAt,
-    };
-  });
-
-  return messages;
 };
 
 export const MessageService = {

@@ -3,6 +3,7 @@ import { IMessage } from "./messages.interface";
 
 const messageSchema = new Schema<IMessage>(
   {
+   
     sender: {
       type: String,
       required: true,
