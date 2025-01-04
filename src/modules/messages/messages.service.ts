@@ -10,20 +10,58 @@ const createMessage = async (payload: IMessage) => {
   return result;
 };
 const getMessages = async (senderId: string, recipientId: string) => {
+  console.log(senderId, recipientId);
+
   const messages = await Message.find({
     $or: [
       { sender: senderId, recipient: recipientId },
       { sender: recipientId, recipient: senderId },
+      { sender: { $regex: `^${senderId}$`, $options: "i" }},
+      { sender: { $regex: `^${recipientId}$`, $options: "i" }},
+      { recipient: { $regex: `^${senderId}$`, $options: "i" }},
+      { recipient: { $regex: `^${recipientId}$`, $options: "i" }},
     ],
   }).sort({ createdAt: 1 });
 
-  return messages;
+  console.log(messages, "check messages");
+
+  const emails = new Set<string>();
+  messages.forEach((msg) => {
+    emails.add(msg.sender);
+    emails.add(msg.recipient);
+  });
+
+  const users = await User.find({ email: { $in: Array.from(emails) } }).select("email name role");
+
+  const userDetails = await Promise.all(
+    users.map(async (user) => {
+      let profileUrl = null;
+
+      if (user.role === ENUM_USER_ROLE.CLIENT) {
+        const client = await Client.findOne({ client: user._id }).select("profileUrl");
+        profileUrl = client?.profileUrl || null;
+      } else if (user.role === ENUM_USER_ROLE.RETIREPROFESSIONAL) {
+        const retireProfessional = await RetireProfessional.findOne({ retireProfessional: user._id }).select("profileUrl");
+        profileUrl = retireProfessional?.profileUrl || null;
+      }
+
+      return {
+        email: user.email,
+        name: `${user.name.firstName} ${user.name.lastName}`,
+        profileUrl,
+        messages: messages,
+      };
+    })
+  );
+
+  return userDetails;
 };
+
 const getConversationLists = async (user: any) => {
   try {
-    console.log(user.email, "check email");
+    // console.log(user.email, "check email");
 
-    // Fetch all messages where the user is the sender or recipient
+
     const messages = await Message.find({
       $or: [
         { sender: { $regex: `^${user.email}$`, $options: "i" } },
@@ -33,25 +71,24 @@ const getConversationLists = async (user: any) => {
 
     console.log(messages, "check messages");
 
-    // Extract unique email addresses from the messages
+
     const emails = new Set<string>();
     messages.forEach((msg) => {
       emails.add(msg.sender);
       emails.add(msg.recipient);
     });
-    emails.delete(user.email); // Exclude the current user's email
+    emails.delete(user.email); 
 
     console.log(emails, "check emails");
 
-    // Fetch users corresponding to the emails
+    
     const users = await User.find({ email: { $in: Array.from(emails) } }).select("email name role");
 
     console.log(users, "check users");
 
-    // Prepare user details
     const userDetails = await Promise.all(
       users.map(async (user) => {
-        // Fetch profile URL based on the user's role
+        
         let profileUrl = null;
 
         if (user.role === ENUM_USER_ROLE.CLIENT) {
