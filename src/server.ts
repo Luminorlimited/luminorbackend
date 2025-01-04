@@ -7,7 +7,7 @@ import { Message } from "./modules/messages/messages.model";
 import { Notification } from "./modules/notification/notification.model";
 import { ENUM_NOTIFICATION_STATUS } from "./enums/notificationStatus";
 import { NotificationCreateResponse } from "./modules/notification/notification.interface";
-import { error } from "console";
+
 
 const options = {
   autoIndex: true,
@@ -83,20 +83,19 @@ io.on("connection", (socket) => {
   // Notification event
   socket.on(
     "notification",
-    async ({ toEmail, message, timestamp,  type }) => {
+    async ({ toEmail, message, fromEmail, type }) => {
       const toSocketId = users[toEmail];
-      const senderEmail = Object.keys(users).find(
-        (key) => users[key] === socket.id
-      );
+     
+      const fromSocketId = users[fromEmail];
 
-      if (!senderEmail) {
-        return;
+      if (!fromEmail) {
+        socket.send(JSON.stringify({error:"email is required"}))
       }
 
       try {
         const notification = await Notification.create({
           recipient: toEmail,
-          sender: senderEmail,
+          sender: fromEmail,
           message: message,
           status: ENUM_NOTIFICATION_STATUS.UNSEEN,
           type: type,
@@ -114,10 +113,10 @@ io.on("connection", (socket) => {
         const notificationId = notificationData._id;
         if (toSocketId) {
           socket.to(toSocketId).emit("notification", {
-            from: senderEmail,
+            from: fromSocketId,
             message,
-            timestamp,
-            _id: notificationId,
+           
+           
             type: type,
           });
         }
