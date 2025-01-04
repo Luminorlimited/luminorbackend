@@ -19,7 +19,7 @@ const auth = (...roles: string[]) => {
   ) => {
     try {
       const token = req.headers.authorization;
-      console.log(token,"check token")
+      // console.log(token,"check token")
   
       if (!token) {
         throw new ApiError(StatusCodes.UNAUTHORIZED, "You are not authorized!");
@@ -29,7 +29,7 @@ const auth = (...roles: string[]) => {
         token,
         config.jwt.secret as Secret
       );
-   console.log(verifiedUser,"check verified user")
+  //  console.log(verifiedUser,"check verified user")
       const user = await User.findOne({
        
           _id: verifiedUser.id,
