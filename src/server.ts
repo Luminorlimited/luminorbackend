@@ -17,9 +17,9 @@ const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
     origin: [
-  
+
       "http://localhost:3000",
-   
+
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -54,7 +54,7 @@ io.on("connection", (socket) => {
     const fromSocketId = users[fromEmail];
 
     if (!fromEmail) {
-      socket.send(JSON.stringify({error:"email is required"}))
+      socket.send(JSON.stringify({ error: "email is required" }))
     }
 
     try {
@@ -66,12 +66,15 @@ io.on("connection", (socket) => {
 
       if (toSocketId) {
         socket.to(toSocketId).emit("privateMessage", {
-          from: fromSocketId,
           message: savedMessage,
-          
+
         });
+        socket.emit("privateMessage", {
+          message: savedMessage,
+
+        })
       }
-    } catch (error) {}
+    } catch (error) { }
   });
   // const message = {
   //   toEmail: "b@mail.com",
@@ -85,11 +88,11 @@ io.on("connection", (socket) => {
     "notification",
     async ({ toEmail, message, fromEmail, type }) => {
       const toSocketId = users[toEmail];
-     
+
       const fromSocketId = users[fromEmail];
 
       if (!fromEmail) {
-        socket.send(JSON.stringify({error:"email is required"}))
+        socket.send(JSON.stringify({ error: "email is required" }))
       }
 
       try {
@@ -115,8 +118,8 @@ io.on("connection", (socket) => {
           socket.to(toSocketId).emit("notification", {
             from: fromSocketId,
             message,
-           
-           
+
+
             type: type,
           });
         }
@@ -133,7 +136,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  
+
 
   // Handle disconnection of users
   socket.on("disconnect", (reason) => {
@@ -145,7 +148,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("error", (error) => {});
+  socket.on("error", (error) => { });
 });
 
 async function bootstrap() {
