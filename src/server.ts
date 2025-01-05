@@ -67,7 +67,6 @@ io.on("connection", (socket) => {
       if (toSocketId) {
         socket.to(toSocketId).emit("privateMessage", {
           message: savedMessage,
-
         });
       }
       socket.emit("privateMessage", {
