@@ -7,6 +7,9 @@ import { Message } from "./modules/messages/messages.model";
 import { Notification } from "./modules/notification/notification.model";
 import { ENUM_NOTIFICATION_STATUS } from "./enums/notificationStatus";
 import { NotificationCreateResponse } from "./modules/notification/notification.interface";
+import { calculateTotalPrice } from "./utilitis/calculateTotalPrice";
+import { generateOfferPDF } from "./utilitis/generateOfferPdf";
+import { Offer } from "./modules/offers/offer.model";
 
 
 const options = {
@@ -128,11 +131,25 @@ io.on("connection", (socket) => {
     }
   );
 
-  socket.on("sendOffer", (offer: any, toEmail: string) => {
+  socket.on("sendOffer",async (data:any) => {
+    const {toEmail,offer,fromEmail}=JSON.parse(data)
     const toSocketId = users[toEmail];
-    if (toSocketId) {
-      socket.to(toSocketId).emit("receiveOffer", offer, socket.id);
+    try {
+       offer.totalPrice = calculateTotalPrice(data);
+        const offerPDFPath = await generateOfferPDF(data);
+        offer.orderAgreementPDF=offerPDFPath
+          const newOffer = await Offer.create(offer);
+          if (toSocketId) {
+            socket.to(toSocketId).emit("sendOffer", {
+              from:fromEmail,
+              offer:newOffer
+            });
+          }
+    } catch (error) {
+      socket.emit("sendoffer error ", "Failed to create effor");
     }
+   
+   
   });
 
 
