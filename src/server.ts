@@ -47,7 +47,7 @@ io.on("connection", (socket) => {
   // Private messaging between users
   socket.on("privateMessage", async (data: any) => {
     console.log(users);
-    const { toEmail, message, fromEmail } = JSON.parse(data);
+    const { toEmail, message, fromEmail ,media} = JSON.parse(data);
     const toSocketId = users[toEmail];
     console.log(toSocketId);
 
@@ -60,7 +60,8 @@ io.on("connection", (socket) => {
     try {
       const savedMessage = await Message.create({
         sender: fromEmail,
-        message: message,
+        message: message || null,
+        medai:media || null,
         recipient: toEmail,
       });
 

@@ -3,6 +3,6 @@ export type IMessage = {
   
     recipient: string;
   
-    message: string;
+    message?: string;
     media?:string
   };
