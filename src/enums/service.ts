@@ -8,10 +8,17 @@ export enum ENUM_SERVICE_PREFERENCE {
     LEGAL_AND_FINANCIAL_SERVICES="legal_and_financial_services"
   }
   
-
-  export enum INDUSTRIES{
-
-    TECH="tech",
-    MARKETING="marketing",
-    FINANCE="finance"
+  export enum INDUSTRIES {
+    TECH = "tech",
+    MARKETING = "marketing",
+    FINANCE = "finance",
+    EDUCATION = "education",
+    ECOMMERCE = "ecommerce",
+    REAL_ESTATE = "realestate",
+    ENTERTAINMENT = "entertainment",
+    TRAVEL = "travel",
+    AUTOMOTIVE = "automotive",
+    MANUFACTURING = "manufacturing",
+    FOOD = "food",
+    FASHION = "fashion"
   }
