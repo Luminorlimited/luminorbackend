@@ -16,7 +16,7 @@ const messageSchema = new Schema<IMessage>(
 
     message: {
       type: String,
-      required: true,
+      defaul: null,
     },
     media:{
       type:String,
