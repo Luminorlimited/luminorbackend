@@ -69,11 +69,10 @@ io.on("connection", (socket) => {
           message: savedMessage,
 
         });
-        socket.emit("privateMessage", {
-          message: savedMessage,
-
-        })
       }
+      socket.emit("privateMessage", {
+        message: savedMessage,
+      })
     } catch (error) { }
   });
   // const message = {
