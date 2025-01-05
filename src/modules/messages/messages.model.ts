@@ -18,7 +18,12 @@ const messageSchema = new Schema<IMessage>(
       type: String,
       required: true,
     },
+    media:{
+      type:String,
+      default:null
+    }
   },
+  
   {
     timestamps: true,
     versionKey:false

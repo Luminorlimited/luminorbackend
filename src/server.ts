@@ -51,7 +51,7 @@ io.on("connection", (socket) => {
     const toSocketId = users[toEmail];
     console.log(toSocketId);
 
-    const fromSocketId = users[fromEmail];
+    // const fromSocketId = users[fromEmail];
 
     if (!fromEmail) {
       socket.send(JSON.stringify({ error: "email is required" }))
@@ -87,7 +87,7 @@ io.on("connection", (socket) => {
     async ({ toEmail, message, fromEmail, type }) => {
       const toSocketId = users[toEmail];
 
-      const fromSocketId = users[fromEmail];
+      // const fromSocketId = users[fromEmail];
 
       if (!fromEmail) {
         socket.send(JSON.stringify({ error: "email is required" }))
@@ -102,19 +102,19 @@ io.on("connection", (socket) => {
           type: type,
         });
 
-        const notificationData = notification.toObject();
+      
 
         const notificationResponse: NotificationCreateResponse = {
           success: true,
           statusCode: 200,
           message: "Notification saved successfully",
-          data: notificationData,
+          data: notification.toObject(),
         };
 
-        const notificationId = notificationData._id;
+        // const notificationId = notificationData._id;
         if (toSocketId) {
           socket.to(toSocketId).emit("notification", {
-            from: fromSocketId,
+            from: fromEmail,
             message,
 
 
