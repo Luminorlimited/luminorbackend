@@ -67,7 +67,7 @@ const getConversationLists = async (user: any) => {
         { sender: { $regex: `^${user.email}$`, $options: "i" } },
         { recipient: { $regex: `^${user.email}$`, $options: "i" } },
       ],
-    });
+    }).sort({ createdAt: -1 });;
 
     console.log(messages, "check messages");
 
