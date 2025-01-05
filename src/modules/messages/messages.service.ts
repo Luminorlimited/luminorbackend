@@ -49,12 +49,12 @@ const getMessages = async (senderId: string, recipientId: string) => {
         email: user.email,
         name: `${user.name.firstName} ${user.name.lastName}`,
         profileUrl,
-        messages: messages,
+        
       };
     })
   );
 
-  return userDetails;
+  return {userDetails,messages};
 };
 
 const getConversationLists = async (user: any) => {
