@@ -4,4 +4,5 @@ export type IMessage = {
     recipient: string;
   
     message: string;
+    media?:string
   };
