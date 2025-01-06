@@ -11,6 +11,7 @@ import { calculateTotalPrice } from "./utilitis/calculateTotalPrice";
 import { generateOfferPDF } from "./utilitis/generateOfferPdf";
 import { Offer } from "./modules/offers/offer.model";
 import { uploadFileToSpace } from "./utilitis/uploadTos3";
+import { Nimble } from "aws-sdk";
 
 const options = {
   autoIndex: true,
@@ -46,9 +47,9 @@ io.on("connection", (socket) => {
   // Private messaging between users
   socket.on("privateMessage", async (data: any) => {
     console.log(users);
-    const { toEmail, message, fromEmail, media } = JSON.parse(data);
+    const { toEmail, message=null, fromEmail, media } = JSON.parse(data);
     const toSocketId = users[toEmail];
-    console.log(toSocketId);
+    // console.log(toSocketId);
 
     // const fromSocketId = users[fromEmail];
 
@@ -60,11 +61,11 @@ io.on("connection", (socket) => {
       let mediaUrl=null;
       if (media) {
         let mediaBuffer = Buffer.from(media, "base64");
-        mediaUrl = await uploadFileToSpace(mediaBuffer, "privateMessageImage");
+        mediaUrl = await uploadFileToSpace(mediaBuffer, "privateMessageFile");
       }
       const savedMessage = await Message.create({
         sender: fromEmail,
-        message: message || null,
+        message: message,
         medai: mediaUrl ,
         recipient: toEmail,
       });

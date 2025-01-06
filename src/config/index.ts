@@ -44,4 +44,9 @@ export default {
     paypalClientId: process.env.PAYPAL_CLIENT_ID,
     paypalSecretId: process.env.PAYPAL_SECRET_ID,
   },
+  zoom:{
+    zoomClientId:process.env.ZOOM_CLIENT_ID,
+    zoomClientSecret:process.env.ZOOM_CLIENT_SECRET,
+    zoomAccountId:process.env.ZOOM_ACCOUNT_ID
+  }
 };
