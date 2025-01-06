@@ -1,6 +1,5 @@
 import express from "express";
 
-
 import { ClientRoute } from "../modules/client/client.route";
 import { AuthRoute } from "../modules/auth/auth.route";
 import { OfferRoute } from "../modules/offers/offer.route";
@@ -11,6 +10,7 @@ import { NotificationRoutes } from "../modules/notification/notification.route";
 import { StripeRoutes } from "../modules/stipe/stripe.route";
 import { socialLoginRoutes } from "../modules/socialLogin/socialLogin.route";
 import { paypalRoute } from "../modules/paypal/paypal.route";
+import { zoomRoutes } from "../modules/zoom/zoom.route";
 
 const router = express.Router();
 
@@ -20,20 +20,20 @@ const moduleRoutes = [
     route: ClientRoute,
   },
   {
-    path:"/retireProfessional",
-    route:RetireProfessionalRoute
+    path: "/retireProfessional",
+    route: RetireProfessionalRoute,
   },
   {
-    path:"/auth",
-    route:AuthRoute
+    path: "/auth",
+    route: AuthRoute,
   },
   {
-    path:"/offer",
-    route:OfferRoute
+    path: "/offer",
+    route: OfferRoute,
   },
   {
-    path:"/review",
-    route:ReviewRoute
+    path: "/review",
+    route: ReviewRoute,
   },
   {
     path: "/messages",
@@ -46,12 +46,12 @@ const moduleRoutes = [
   {
     path: "/stripe",
     route: StripeRoutes,
-},
-{
-  path:"/paypal",
-  route:paypalRoute
-}
-  
+  },
+  {
+    path: "/paypal",
+    route: paypalRoute,
+  },
+  { path: "/zoom", route: zoomRoutes },
 ];
 
 moduleRoutes.forEach((route) => router.use(route.path, route.route));
