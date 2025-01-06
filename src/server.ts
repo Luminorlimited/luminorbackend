@@ -10,7 +10,7 @@ import { NotificationCreateResponse } from "./modules/notification/notification.
 import { calculateTotalPrice } from "./utilitis/calculateTotalPrice";
 import { generateOfferPDF } from "./utilitis/generateOfferPdf";
 import { Offer } from "./modules/offers/offer.model";
-
+import { uploadFileToSpace } from "./utilitis/uploadTos3";
 
 const options = {
   autoIndex: true,
@@ -19,11 +19,7 @@ const options = {
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: [
-
-      "http://localhost:3000",
-
-    ],
+    origin: ["http://localhost:3000"],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
@@ -50,21 +46,26 @@ io.on("connection", (socket) => {
   // Private messaging between users
   socket.on("privateMessage", async (data: any) => {
     console.log(users);
-    const { toEmail, message, fromEmail ,media} = JSON.parse(data);
+    const { toEmail, message, fromEmail, media } = JSON.parse(data);
     const toSocketId = users[toEmail];
     console.log(toSocketId);
 
     // const fromSocketId = users[fromEmail];
 
     if (!fromEmail) {
-      socket.send(JSON.stringify({ error: "email is required" }))
+      socket.send(JSON.stringify({ error: "email is required" }));
     }
 
     try {
+      let mediaUrl=null;
+      if (media) {
+        let mediaBuffer = Buffer.from(media, "base64");
+        mediaUrl = await uploadFileToSpace(mediaBuffer, "privateMessageImage");
+      }
       const savedMessage = await Message.create({
         sender: fromEmail,
         message: message || null,
-        medai:media || null,
+        medai: mediaUrl ,
         recipient: toEmail,
       });
 
@@ -75,8 +76,8 @@ io.on("connection", (socket) => {
       }
       socket.emit("privateMessage", {
         message: savedMessage,
-      })
-    } catch (error) { }
+      });
+    } catch (error) {}
   });
   // const message = {
   //   toEmail: "b@mail.com",
@@ -86,73 +87,63 @@ io.on("connection", (socket) => {
   // };
   // socket.emit("privateMessage", JSON.stringify(message))
   // Notification event
-  socket.on(
-    "notification",
-    async ({ toEmail, message, fromEmail, type }) => {
-      const toSocketId = users[toEmail];
+  socket.on("notification", async ({ toEmail, message, fromEmail, type }) => {
+    const toSocketId = users[toEmail];
 
-      // const fromSocketId = users[fromEmail];
+    // const fromSocketId = users[fromEmail];
 
-      if (!fromEmail) {
-        socket.send(JSON.stringify({ error: "email is required" }))
-      }
+    if (!fromEmail) {
+      socket.send(JSON.stringify({ error: "email is required" }));
+    }
 
-      try {
-        const notification = await Notification.create({
-          recipient: toEmail,
-          sender: fromEmail,
-          message: message,
-          status: ENUM_NOTIFICATION_STATUS.UNSEEN,
+    try {
+      const notification = await Notification.create({
+        recipient: toEmail,
+        sender: fromEmail,
+        message: message,
+        status: ENUM_NOTIFICATION_STATUS.UNSEEN,
+        type: type,
+      });
+
+      const notificationResponse: NotificationCreateResponse = {
+        success: true,
+        statusCode: 200,
+        message: "Notification saved successfully",
+        data: notification.toObject(),
+      };
+
+      // const notificationId = notificationData._id;
+      if (toSocketId) {
+        socket.to(toSocketId).emit("notification", {
+          from: fromEmail,
+          message,
+
           type: type,
         });
-
-      
-
-        const notificationResponse: NotificationCreateResponse = {
-          success: true,
-          statusCode: 200,
-          message: "Notification saved successfully",
-          data: notification.toObject(),
-        };
-
-        // const notificationId = notificationData._id;
-        if (toSocketId) {
-          socket.to(toSocketId).emit("notification", {
-            from: fromEmail,
-            message,
-
-
-            type: type,
-          });
-        }
-      } catch (error) {
-        socket.emit("notificationError", "Failed to create notification");
       }
+    } catch (error) {
+      socket.emit("notificationError", "Failed to create notification");
     }
-  );
+  });
 
-  socket.on("sendOffer",async (data:any) => {
-    const {toEmail,offer,fromEmail}=JSON.parse(data)
+  socket.on("sendOffer", async (data: any) => {
+    const { toEmail, offer, fromEmail } = JSON.parse(data);
     const toSocketId = users[toEmail];
     try {
-       offer.totalPrice = calculateTotalPrice(data);
-        const offerPDFPath = await generateOfferPDF(data);
-        offer.orderAgreementPDF=offerPDFPath
-          const newOffer = await Offer.create(offer);
-          if (toSocketId) {
-            socket.to(toSocketId).emit("sendOffer", {
-              from:fromEmail,
-              offer:newOffer
-            });
-          }
+      offer.totalPrice = calculateTotalPrice(data);
+      const offerPDFPath = await generateOfferPDF(data);
+      offer.orderAgreementPDF = offerPDFPath;
+      const newOffer = await Offer.create(offer);
+      if (toSocketId) {
+        socket.to(toSocketId).emit("sendOffer", {
+          from: fromEmail,
+          offer: newOffer,
+        });
+      }
     } catch (error) {
       socket.emit("sendoffer error ", "Failed to create effor");
     }
-   
-   
   });
-
-
 
   // Handle disconnection of users
   socket.on("disconnect", (reason) => {
@@ -164,7 +155,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("error", (error) => { });
+  socket.on("error", (error) => {});
 });
 
 async function bootstrap() {
