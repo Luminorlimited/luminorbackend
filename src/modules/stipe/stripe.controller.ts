@@ -1,9 +1,16 @@
 
+import { StatusCodes } from "http-status-codes";
 import catchAsync from "../../shared/catchAsync";
 import sendResponse from "../../shared/sendResponse";
 import { StripeServices } from "./stripe.service";
+import config from "../../config";
+import Stripe from "stripe";
+import { RetireProfessional } from "../professional/professional.model";
+import { RetireProfessionalService } from "../professional/professional.service";
 
-// create a new customer with card
+const stripe = new Stripe(config.stripe.secretKey as string, {
+  apiVersion: "2024-11-20.acacia",
+});
 const saveCardWithCustomerInfo = catchAsync(async (req: any, res: any) => {
   const userId = req.user.id;
   const result = await StripeServices.saveCardWithCustomerInfoIntoStripe(
@@ -111,6 +118,60 @@ const createPaymentIntent = catchAsync(async (req: any, res: any) => {
     data: result,
   });
 });
+const handleWebHook = catchAsync(async (req: any, res: any) => {
+  const sig = req.headers['stripe-signature'] as string;
+
+  if (!sig) {
+    return sendResponse(res, {
+      statusCode: StatusCodes.BAD_REQUEST,
+      success: false,
+      message: 'Missing Stripe signature header.',
+      data: null,
+    });
+  }
+
+  let event: Stripe.Event;
+
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig, config.stripe.webhookSecret as string);
+  } catch (err) {
+    console.error("Webhook signature verification failed.", err);
+    return res.status(400).send("Webhook Error");
+  }
+
+  // Handle the event types
+  switch (event.type) {
+    case 'account.updated':
+      const account = event.data.object;
+      console.log(account, "Account updated payload");
+      if (account.charges_enabled && account.details_submitted && account.payouts_enabled) {
+        console.log('Onboarding completed successfully for account:', account.id);
+        await RetireProfessionalService.updateProfessionalStripeAccount(account);
+      } else {
+        console.log('Onboarding incomplete for account:', account.id);
+      }
+      break;
+
+    case 'capability.updated':
+      console.log('Capability updated event received. Handle accordingly.');
+      break;
+
+    case 'financial_connections.account.created':
+      console.log('Financial connections account created event received. Handle accordingly.');
+      break;
+
+    case 'account.application.authorized':
+      const authorizedAccount = event.data.object;
+      console.log('Application authorized for account:', authorizedAccount.id);
+      // Add your logic to handle this event
+      break;
+
+    default:
+      console.log(`Unhandled event type: ${event.type}`);
+  }
+
+  res.status(200).send('Event received');
+});
 
 export const StripeController = {
   saveCardWithCustomerInfo,
@@ -121,4 +182,5 @@ export const StripeController = {
   deleteCardFromCustomer,
   refundPaymentToCustomer,
   createPaymentIntent,
+  handleWebHook
 };

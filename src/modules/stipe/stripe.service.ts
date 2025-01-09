@@ -258,6 +258,9 @@ const createPaymentIntentService = async (payload: { amount: number }) => {
 //   return session;
 // };
 
+const handleAccountUpdated=async(event:any)=>{
+ console.log(event,"check even from handle account updated")
+}
 export const StripeServices = {
   saveCardWithCustomerInfoIntoStripe,
   authorizedPaymentWithSaveCardFromStripe,
@@ -267,5 +270,6 @@ export const StripeServices = {
   deleteCardFromCustomer,
   refundPaymentToCustomer,
   createPaymentIntentService,
+  handleAccountUpdated
   
 };

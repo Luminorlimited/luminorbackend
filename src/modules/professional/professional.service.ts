@@ -16,7 +16,10 @@ import { jwtHelpers } from "../../helpers/jwtHelpers";
 import { Secret } from "jsonwebtoken";
 import config from "../../config";
 import { IFilters } from "../../interfaces/filter";
-
+import Stripe from "stripe";
+const stripe = new Stripe(config.stripe.secretKey as string, {
+  apiVersion: "2024-11-20.acacia",
+});
 const createProfessional = async (
   user: IUser,
   professionalData: IProfessional,
@@ -26,8 +29,26 @@ const createProfessional = async (
   try {
     session.startTransaction();
 
-    // Map service preferences to industries
+    const account= await stripe.accounts.create({
+      type: 'express', 
+      country: 'US', 
+      email: user.email,
+    });
+    // console.log(account,"check account")
+    const accountLink = await stripe.accountLinks.create({
+      account: account.id,
+      refresh_url: 'https://your-platform.com/reauth',
+      return_url: 'https://your-platform.com/return',
+      type: 'account_onboarding',
+    });
+   
 
+    if(user.stripe){
+      console.log(user.stripe,"check stripe")
+      user.stripe.onboardingUrl = accountLink.url;
+    }
+      
+   
     const newUser = await User.create([user], { session });
     const userId = newUser[0]._id;
     let fileUrl;
@@ -39,10 +60,11 @@ const createProfessional = async (
       ...professionalData,
       retireProfessional: userId,
       cvOrCoverLetter: fileUrl,
-      // Add the mapped industries here
+  
     };
 
     await RetireProfessional.create([newProfessionalData], { session });
+   
 
     await session.commitTransaction();
     session.endSession();
@@ -59,8 +81,9 @@ const createProfessional = async (
       accessToken,
       user: newUser,
       retireProfessinal: newProfessionalData,
+      stripe:accountLink
     };
-    // return newProfessional[0].populate("retireProfessional");
+   
   } catch (error: any) {
     await session.abortTransaction();
     session.endSession();
@@ -285,11 +308,18 @@ const getRetireProfessionalById = async (professionalId:string): Promise<IProfes
     return result;
   };
 
+const updateProfessionalStripeAccount=async(payload:any)=>{
+    await User.findOneAndUpdate(
+      { email: payload.email },
+      { $set: { "stripe.customerId": payload.id, "stripe.isOnboardingSucess": true } }
+    )
 
+}
 export const RetireProfessionalService = {
   createProfessional,
   updateSingleRetireProfessional,
   getRetireProfessionals,
   getRetireProfessionalsByLocation,
-  getRetireProfessionalById
+  getRetireProfessionalById,
+  updateProfessionalStripeAccount
 };

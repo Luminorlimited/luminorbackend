@@ -10,14 +10,19 @@ import { StatusCodes } from "http-status-codes";
 
 import { uploadFileToSpace } from "../../utilitis/uploadTos3";
 
-
 const createClient = catchAsync(async (req: Request, res: Response) => {
   const data = req.body;
-
+  // console.log(data, "check data");
   const { name, email, role, password, ...others } = data;
 
   const result = await ClientService.createClient(
-    { name, email, role, password },
+    {
+      name,
+      email,
+      role,
+      stripe:{onboardingUrl:"",customerId:"",isOnboardingSucess:false},
+      password,
+    },
     others
   );
   // console.log(jwtHelpers.verifyToken(result, config.jwt.secret as Secret));
@@ -67,47 +72,42 @@ const updateSingleClient = catchAsync(async (req: Request, res: Response) => {
   let profileImageUrl;
   const { name, ...clientProfile } = data;
   const { workSample, profileImage, ...others } = clientProfile;
-  let updatedProfile={...others}
+  let updatedProfile = { ...others };
   // console.log(req.body);
   const files = req.files as Express.Multer.File[]; // Get all files uploaded
   const fileMap: { [key: string]: Express.Multer.File } = {};
- if(files.length){
-  files.forEach((file) => {
-    fileMap[file.fieldname] = file;
-  });
+  if (files.length) {
+    files.forEach((file) => {
+      fileMap[file.fieldname] = file;
+    });
 
+    // console.log(req.body, "check body");
+    // console.log(file, "check file");
 
-  // console.log(req.body, "check body");
-  // console.log(file, "check file");
+    if (fileMap["projectUrl"]) {
+      projectUrl = await uploadFileToSpace(
+        fileMap["projectUrl"],
+        "project-samples"
+      );
+    }
 
-  if (fileMap["projectUrl"]) {
-    projectUrl = await uploadFileToSpace(
-      fileMap["projectUrl"],
-      "project-samples"
-    );
+    if (fileMap["profileUrl"]) {
+      profileImageUrl = await uploadFileToSpace(
+        fileMap["profileUrl"],
+        "profileUrl"
+      );
+    }
+    updatedProfile = {
+      ...others,
+      projectUrl: projectUrl,
+      profileUrl: profileImageUrl,
+    };
   }
-
-  if (fileMap["profileUrl"]) {
-    profileImageUrl = await uploadFileToSpace(
-      fileMap["profileUrl"],
-      "profileUrl"
-    );
-  }
-   updatedProfile = {
-    ...others,
-    projectUrl: projectUrl,
-    profileUrl: profileImageUrl,
-  };
-
- }
-
 
   // console.log(req.user, "check user");
 
- 
-
   // Include uploaded file URLs in the update payload
- 
+
   const auth = { name };
 
   const result = await ClientService.updateSingleClient(

@@ -8,6 +8,7 @@ import { StatusCodes } from "http-status-codes";
 import passport from "passport";
 import { socialLoginRoutes } from "./modules/socialLogin/socialLogin.route";
 import session from "express-session";
+import { StripeController } from "./modules/stipe/stripe.controller";
 
 const app: Application = express();
 
@@ -25,7 +26,11 @@ export const corsOptions = {
 };
 app.use(cors(corsOptions))
 app.use(cookieParser());
-
+app.use(
+  "/api/v1/stripe/payment-webhook",
+  express.raw({ type: "application/json" }),
+  StripeController.handleWebHook
+);
 //parser
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
