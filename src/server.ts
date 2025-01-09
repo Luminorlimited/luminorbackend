@@ -44,7 +44,7 @@ io.on("connection", (socket) => {
     console.log(users[email]);
   });
 
-  // Private messaging between users
+  // Private messaging between users6
   socket.on("privateMessage", async (data: any) => {
     console.log(users);
     const { toEmail, message=null, fromEmail, media } = JSON.parse(data);

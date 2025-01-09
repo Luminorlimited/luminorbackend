@@ -47,6 +47,13 @@ export default {
   zoom:{
     zoomClientId:process.env.ZOOM_CLIENT_ID,
     zoomClientSecret:process.env.ZOOM_CLIENT_SECRET,
-    zoomAccountId:process.env.ZOOM_ACCOUNT_ID
+    zoomAccountId:process.env.ZOOM_ACCOUNT_ID,
+    zooomDevelopmentClientId:process.env.ZOOM_DEVELOPMENT_CLIENT_ID,
+    zoomDevelopmentClientSecret:process.env.ZOOM_DEVELOPMENT_CLIENT_SECRET
+  },
+  stripe:{
+    secretKey:process.env.STRIPE_SECRET_KEY,
+    publishableKey:process.env.STRIPE_PUBLISHABLE_KEY,
+    webhookSecret:process.env.STRIPE_WEBHOOK_SECRET_KEY
   }
 };

@@ -10,7 +10,7 @@ const createOffer = async (offer: IOffer) => {
   return newOffer;
 };
 const getOffersByProfessional = async (id: string) => {
-  const offer = await Offer.find({ clientId: id });
+  const offer = await Offer.find({ clientEmail: id });
 
   return offer;
 };

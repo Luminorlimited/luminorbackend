@@ -16,7 +16,11 @@ export type IUser = {
   otp?:string;
   otpExpiry?:Date,
   identifier?:string,
-  customerId?:string
+  stripe? :{
+     customerId:string,
+     onboardingUrl:string,
+     isOnboardingSucess:boolean
+  }
   client?: mongoose.Schema.Types.ObjectId
 };
 

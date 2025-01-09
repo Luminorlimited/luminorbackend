@@ -10,11 +10,12 @@ import { IProfessional } from "./professional.interface";
 
 import { uploadFileToSpace } from "../../utilitis/uploadTos3";
 
+
 const createProfessional = catchAsync(async (req: Request, res: Response) => {
   const file = req.file as unknown as Express.Multer.File;
   let fileUrl;
 
-  console.log(fileUrl, "check url");
+  // console.log(fileUrl, "check url");
   const { name, email, role, password, ...others } = req.body;
 
   const user = {
@@ -22,6 +23,7 @@ const createProfessional = catchAsync(async (req: Request, res: Response) => {
     email,
     role,
     password,
+   
   };
   const professionalData = {
     ...others,

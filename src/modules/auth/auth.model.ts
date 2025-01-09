@@ -24,9 +24,19 @@ const userSchema = new mongoose.Schema<IUser>({
   password: { type: String, required: true,select:false},
   googleId: { type: String, default: null },
   facebookId: { type: String, defaul: null },
-  customerId: {
-    type: String,
-    default: null,
+  stripe:{
+    customerId:{
+      type:String,
+      default:null
+    },
+    onboardingUrl:{
+      type:String,
+      default:null
+    },
+  isOnboardingSucess:{
+    type:Boolean,
+    default:false
+  }
   },
 
   otp: { type: String },

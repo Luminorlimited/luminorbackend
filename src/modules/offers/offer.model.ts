@@ -32,8 +32,8 @@ const offerSchema = new mongoose.Schema<IOffer>({
   orderAgreementPDF: { type: String, required: true }, 
   milestones: [milestoneSchema],
   totalPrice: { type: Number, required: true },
-  professionalId: { type: mongoose.Schema.Types.ObjectId, ref: 'RetireProfessional', required: true },
-  clientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Client', required: true },
+  professionalEmail: { type: String, required: true },
+  clientEmail: { type: String,  required: true },
 
   isAccepted: { type: Boolean, default: false },
 },{timestamps:true});

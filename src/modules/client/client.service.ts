@@ -14,7 +14,10 @@ import { jwtHelpers } from "../../helpers/jwtHelpers";
 import config from "../../config";
 import { Secret } from "jsonwebtoken";
 import { IFilters } from "../../interfaces/filter";
-
+import Stripe from "stripe";
+const stripe = new Stripe(config.stripe.secretKey as string, {
+  apiVersion: "2024-11-20.acacia",
+});
 const createClient = async (user: IUser, clientData: IClient) => {
   const isUserExist = await User.findOne({ email: user.email });
   if (isUserExist) {
@@ -27,18 +30,27 @@ const createClient = async (user: IUser, clientData: IClient) => {
 
     session.startTransaction();
 
-    // Create a User account
+    const customer = await stripe.customers.create({
+      email: user.email,
+      name: user.name.firstName + " " + user.name.lastName
+    });
+    // console.log(account,"check account")
+  
+   
+   
+    if(user.stripe){
+      user.stripe.customerId = customer.id;
+    }
+      
+    
     const newUser = await User.create([user], { session });
-    // console.log("User created:", newUser[0]._id);
 
-    // Create a Client account linked to the User
     const newClientData = { ...clientData, client: newUser[0]._id };
     const newClient = await Client.create([newClientData], { session });
-    // console.log("Client created:", newClient[0]._id);
 
-    // Commit the transaction
+  
     await session.commitTransaction();
-    // console.log("Transaction committed");
+
     const accessToken = jwtHelpers.createToken(
       {
         id: newUser[0]._id,
@@ -49,15 +61,13 @@ const createClient = async (user: IUser, clientData: IClient) => {
       config.jwt.expires_in as string
     );
     return { accessToken, user: newUser, clientData: clientData };
-    // return (await newClient[0].populate("client")).toObject();
-  } catch (error: any) {
-    // console.error("Transaction failed:", error);
 
-    // Rollback transaction
+  } catch (error: any) {
+ 
     await session.abortTransaction();
     session.endSession();
 
-    // Handle duplicate key error
+
     if (error.code === 11000) {
       throw new ApiError(400, "Duplicate email not allowed");
     }
@@ -65,7 +75,7 @@ const createClient = async (user: IUser, clientData: IClient) => {
     throw new ApiError(400, error.message || "An error occurred");
   } finally {
     session.endSession();
-    // console.log("Session ended");
+
   }
 };
 
