@@ -9,137 +9,137 @@ import { TStripeSaveWithCustomerInfo } from "./stripe.interface";
 
 // Initialize Stripe with your secret API key
 const stripe = new Stripe(config.stripe_key as string, {
-//   apiVersion: "2024-06-20",
-apiVersion: "2024-11-20.acacia",
+  //   apiVersion: "2024-06-20",
+  apiVersion: "2024-11-20.acacia",
 });
 
 // Step 1: Create a Customer and Save the Card
-const saveCardWithCustomerInfoIntoStripe = async (
-  payload: TStripeSaveWithCustomerInfo,
-  userId: string
-) => {
-  try {
-    const { user, paymentMethodId, address } = payload;
+// const saveCardWithCustomerInfoIntoStripe = async (
+//   payload: TStripeSaveWithCustomerInfo,
+//   userId: string
+// ) => {
+//   try {
+//     const { user, paymentMethodId, address } = payload;
 
-    // Create a new Stripe customer
-    const customer = await stripe.customers.create({
-      name: user.name,
-      email: user.email,
-      address: {
-        city: address.city,
-        postal_code: address.postal_code,
-        country: address.country,
-      },
-    });
+//     // Create a new Stripe customer
+//     const customer = await stripe.customers.create({
+//       name: user.name,
+//       email: user.email,
+//       address: {
+//         city: address.city,
+//         postal_code: address.postal_code,
+//         country: address.country,
+//       },
+//     });
 
-    // Attach PaymentMethod to the Customer
-    await stripe.paymentMethods.attach(paymentMethodId, {
-      customer: customer.id,
-    });
+//     // Attach PaymentMethod to the Customer
+//     await stripe.paymentMethods.attach(paymentMethodId, {
+//       customer: customer.id,
+//     });
 
-    // Set PaymentMethod as Default
-    await stripe.customers.update(customer.id, {
-      invoice_settings: {
-        default_payment_method: paymentMethodId,
-      },
-    });
+//     // Set PaymentMethod as Default
+//     await stripe.customers.update(customer.id, {
+//       invoice_settings: {
+//         default_payment_method: paymentMethodId,
+//       },
+//     });
 
-    // update profile with customerId
-    await User.findByIdAndUpdate(
-      {
-        _id: userId,
-      },
-      {
-        customerId: customer.id,
-      }
-    );
+//     // update profile with customerId
+//     await User.findByIdAndUpdate(
+//       {
+//         _id: userId,
+//       },
+//       {
+//         customerId: customer.id,
+//       }
+//     );
 
-    return {
-      customerId: customer.id,
-      paymentMethodId: paymentMethodId,
-    };
-  } catch (error: any) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, error.message);
-  }
-};
+//     return {
+//       customerId: customer.id,
+//       paymentMethodId: paymentMethodId,
+//     };
+//   } catch (error: any) {
+//     throw new ApiError(StatusCodes.BAD_REQUEST, error.message);
+//   }
+// };
 
 // Step 2: Authorize the Payment Using Saved Card
-const authorizedPaymentWithSaveCardFromStripe = async (payload: {
-  customerId: string;
-  amount: number;
-  paymentMethodId: string;
-}) => {
-  try {
-    const { customerId, amount, paymentMethodId } = payload;
+// const authorizedPaymentWithSaveCardFromStripe = async (payload: {
+//   customerId: string;
+//   amount: number;
+//   paymentMethodId: string;
+// }) => {
+//   try {
+//     const { customerId, amount, paymentMethodId } = payload;
 
-    if (!isValidAmount(amount)) {
-      throw new ApiError(
-        StatusCodes.BAD_REQUEST,
-        `Amount '${amount}' is not a valid amount`
-      );
-    }
+//     if (!isValidAmount(amount)) {
+//       throw new ApiError(
+//         StatusCodes.BAD_REQUEST,
+//         `Amount '${amount}' is not a valid amount`
+//       );
+//     }
 
-    // Create a PaymentIntent with the specified PaymentMethod
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: amount * 100, // Convert to cents
-      currency: "usd",
-      customer: customerId,
-      payment_method: paymentMethodId,
-      off_session: true,
-      confirm: true,
-      capture_method: "manual", // Authorize the payment without capturing
-    });
+//     // Create a PaymentIntent with the specified PaymentMethod
+//     const paymentIntent = await stripe.paymentIntents.create({
+//       amount: amount * 100, // Convert to cents
+//       currency: "usd",
+//       customer: customerId,
+//       payment_method: paymentMethodId,
+//       off_session: true,
+//       confirm: true,
+//       capture_method: "manual", // Authorize the payment without capturing
+//     });
 
-    return paymentIntent;
-  } catch (error: any) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, error.message);
-  }
-};
+//     return paymentIntent;
+//   } catch (error: any) {
+//     throw new ApiError(StatusCodes.BAD_REQUEST, error.message);
+//   }
+// };
 
 // Step 3: Capture the Payment
-const capturePaymentRequestToStripe = async (payload: {
-  paymentIntentId: string;
-}) => {
-  try {
-    const { paymentIntentId } = payload;
+// const capturePaymentRequestToStripe = async (payload: {
+//   paymentIntentId: string;
+// }) => {
+//   try {
+//     const { paymentIntentId } = payload;
 
-    // Capture the authorized payment using the PaymentIntent ID
-    const paymentIntent = await stripe.paymentIntents.capture(paymentIntentId);
+//     // Capture the authorized payment using the PaymentIntent ID
+//     const paymentIntent = await stripe.paymentIntents.capture(paymentIntentId);
 
-    return paymentIntent;
-  } catch (error: any) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, error.message);
-  }
-};
+//     return paymentIntent;
+//   } catch (error: any) {
+//     throw new ApiError(StatusCodes.BAD_REQUEST, error.message);
+//   }
+// };
 
 // New Route: Save a New Card for Existing Customer
-const saveNewCardWithExistingCustomerIntoStripe = async (payload: {
-  customerId: string;
-  paymentMethodId: string;
-}) => {
-  try {
-    const { customerId, paymentMethodId } = payload;
+// const saveNewCardWithExistingCustomerIntoStripe = async (payload: {
+//   customerId: string;
+//   paymentMethodId: string;
+// }) => {
+//   try {
+//     const { customerId, paymentMethodId } = payload;
 
-    // Attach the new PaymentMethod to the existing Customer
-    await stripe.paymentMethods.attach(paymentMethodId, {
-      customer: customerId,
-    });
+//     // Attach the new PaymentMethod to the existing Customer
+//     await stripe.paymentMethods.attach(paymentMethodId, {
+//       customer: customerId,
+//     });
 
-    // Optionally, set the new PaymentMethod as the default
-    await stripe.customers.update(customerId, {
-      invoice_settings: {
-        default_payment_method: paymentMethodId,
-      },
-    });
+//     // Optionally, set the new PaymentMethod as the default
+//     await stripe.customers.update(customerId, {
+//       invoice_settings: {
+//         default_payment_method: paymentMethodId,
+//       },
+//     });
 
-    return {
-      customerId: customerId,
-      paymentMethodId: paymentMethodId,
-    };
-  } catch (error: any) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, error.message);
-  }
-};
+//     return {
+//       customerId: customerId,
+//       paymentMethodId: paymentMethodId,
+//     };
+//   } catch (error: any) {
+//     throw new ApiError(StatusCodes.BAD_REQUEST, error.message);
+//   }
+// };
 
 const getCustomerSavedCardsFromStripe = async (customerId: string) => {
   try {
@@ -182,7 +182,7 @@ const refundPaymentToCustomer = async (payload: {
 };
 
 // Service function for creating a PaymentIntent
-const createPaymentIntentService = async (payload: { amount: number }) => {
+const createPaymentIntentService = async (payload: any) => {
   if (!payload.amount) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "Amount is required");
   }
@@ -194,13 +194,23 @@ const createPaymentIntentService = async (payload: { amount: number }) => {
     );
   }
 
+  const platformFee = (payload.amount * 20) / 100;
+  const retireProfessionalAmount = payload.amount - platformFee;
   // Create a PaymentIntent with Stripe
   const paymentIntent = await stripe.paymentIntents.create({
     amount: payload?.amount,
     currency: "usd",
-    automatic_payment_methods: {
-      enabled: true, // Enable automatic payment methods like cards, Apple Pay, Google Pay
+    customer: payload.customerId,
+    payment_method: payload.paymentMethodId,
+    confirm: true,
+    setup_future_usage: payload.session,
+    transfer_data: {
+      destination: payload.retireProfessionalId,
+      amount: retireProfessionalAmount * 100,
     },
+    // automatic_payment_methods: {
+    //   enabled: true, // Enable automatic payment methods like cards, Apple Pay, Google Pay
+    // },
   });
 
   return {
@@ -208,68 +218,18 @@ const createPaymentIntentService = async (payload: { amount: number }) => {
     dpmCheckerLink: `https://dashboard.stripe.com/settings/payment_methods/review?transaction_id=${paymentIntent.id}`,
   };
 };
-// const createPayment = async (data: {
-//   paymentMethodTypes: Stripe.Checkout.SessionCreateParams.PaymentMethodType[];
-//   currency: string;
-//   successUrl: string;
-//   cancelUrl: string;
-//   product: any;
-//   client_reference_id: string;
- 
-//   customerEmail: string;
-// }) => {
-//   // Serialize product data
-//   const serializedProducts = JSON.stringify(data.product);
 
-//   // Serialize billing and shipping addresses
-
-
-
-//   const lineItems = data.product.map((product: any) => ({
-//     price_data: {
-//       currency: data.currency,
-//       product_data: {
-//         name: product.id,
-//       },
-//       unit_amount: product.mainPrice * 100, // Stripe expects amount in cents
-//     },
-//     quantity: product.quantity,
-//   }));
-
-
-//   const session = await stripe.checkout.sessions.create({
-//     payment_method_types: data.paymentMethodTypes,
-//     line_items: lineItems,
-//     mode: "payment",
-//     success_url: data.successUrl,
-//     cancel_url: data.cancelUrl,
-  
-//     client_reference_id: data.client_reference_id,
-//     // customer:customer.id,
-
-//     metadata: {
-   
-//       customer_product: serializedProducts,
-     
-//     },
-//   });
-
-
-//   return session;
-// };
-
-const handleAccountUpdated=async(event:any)=>{
- console.log(event,"check even from handle account updated")
-}
+const handleAccountUpdated = async (event: any) => {
+  console.log(event, "check even from handle account updated");
+};
 export const StripeServices = {
-  saveCardWithCustomerInfoIntoStripe,
-  authorizedPaymentWithSaveCardFromStripe,
-  capturePaymentRequestToStripe,
-  saveNewCardWithExistingCustomerIntoStripe,
+  // saveCardWithCustomerInfoIntoStripe,
+  // authorizedPaymentWithSaveCardFromStripe,
+  // capturePaymentRequestToStripe,
+  // saveNewCardWithExistingCustomerIntoStripe,
   getCustomerSavedCardsFromStripe,
   deleteCardFromCustomer,
   refundPaymentToCustomer,
   createPaymentIntentService,
-  handleAccountUpdated
-  
+  handleAccountUpdated,
 };

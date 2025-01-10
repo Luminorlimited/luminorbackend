@@ -13,33 +13,33 @@ import auth from "../../middlewares/auth";
 const router = express.Router();
 
 // create a new customer with card
-router.post(
-  "/save-card",
-  auth(),
-  validateRequest(TStripeSaveWithCustomerInfoPayloadSchema),
-  StripeController.saveCardWithCustomerInfo
-);
+// router.post(
+//   "/save-card",
+//   auth(),
+//   validateRequest(TStripeSaveWithCustomerInfoPayloadSchema),
+//   StripeController.saveCardWithCustomerInfo
+// );
 
 // Authorize the customer with the amount and send payment request
-router.post(
-  "/authorize-payment",
-  validateRequest(AuthorizedPaymentPayloadSchema),
-  StripeController.authorizedPaymentWithSaveCard
-);
+// router.post(
+//   "/authorize-payment",
+//   validateRequest(AuthorizedPaymentPayloadSchema),
+//   StripeController.authorizedPaymentWithSaveCard
+// );
 
 // Capture the payment request and deduct the amount
-router.post(
-  "/capture-payment",
-  validateRequest(capturedPaymentPayloadSchema),
-  StripeController.capturePaymentRequest
-);
+// router.post(
+//   "/capture-payment",
+//   validateRequest(capturedPaymentPayloadSchema),
+//   StripeController.capturePaymentRequest
+// );
 
 // Save new card to existing customer
-router.post(
-  "/save-new-card",
-  validateRequest(saveNewCardWithExistingCustomerPayloadSchema),
-  StripeController.saveNewCardWithExistingCustomer
-);
+// router.post(
+//   "/save-new-card",
+//   validateRequest(saveNewCardWithExistingCustomerPayloadSchema),
+//   StripeController.saveNewCardWithExistingCustomer
+// );
 
 // Get all save cards for customer
 router.get("/get-cards/:customerId", StripeController.getCustomerSavedCards);
@@ -51,11 +51,11 @@ router.delete(
 );
 
 // Refund payment to customer
-router.post(
-  "/refund-payment",
-  validateRequest(refundPaymentPayloadSchema),
-  StripeController.refundPaymentToCustomer
-);
+// router.post(
+//   "/refund-payment",
+//   validateRequest(refundPaymentPayloadSchema),
+//   StripeController.refundPaymentToCustomer
+// );
 
 router.post("/create-payment-intent", StripeController.createPaymentIntent);
 

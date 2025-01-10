@@ -3,7 +3,6 @@ import { IMessage } from "./messages.interface";
 
 const messageSchema = new Schema<IMessage>(
   {
-   
     sender: {
       type: String,
       required: true,
@@ -18,15 +17,19 @@ const messageSchema = new Schema<IMessage>(
       type: String,
       defaul: null,
     },
-    media:{
-      type:String,
-      default:null
-    }
+    media: {
+      type: String,
+      default: null,
+    },
+    meetingLink: {
+      type: String,
+      default: null,
+    },
   },
-  
+
   {
     timestamps: true,
-    versionKey:false
+    versionKey: false,
   }
 );
 

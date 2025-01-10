@@ -1,4 +1,3 @@
-
 import { StatusCodes } from "http-status-codes";
 import catchAsync from "../../shared/catchAsync";
 import sendResponse from "../../shared/sendResponse";
@@ -11,61 +10,61 @@ import { RetireProfessionalService } from "../professional/professional.service"
 const stripe = new Stripe(config.stripe.secretKey as string, {
   apiVersion: "2024-11-20.acacia",
 });
-const saveCardWithCustomerInfo = catchAsync(async (req: any, res: any) => {
-  const userId = req.user.id;
-  const result = await StripeServices.saveCardWithCustomerInfoIntoStripe(
-    req.body,
-    userId
-  );
+// const saveCardWithCustomerInfo = catchAsync(async (req: any, res: any) => {
+//   const userId = req.user.id;
+//   const result = await StripeServices.saveCardWithCustomerInfoIntoStripe(
+//     req.body,
+//     userId
+//   );
 
-  sendResponse(res, {
-    statusCode: 200,
-    success: true,
-    message: "Create customer and save card successfully",
-    data: result,
-  });
-});
+//   sendResponse(res, {
+//     statusCode: 200,
+//     success: true,
+//     message: "Create customer and save card successfully",
+//     data: result,
+//   });
+// });
 
 // Authorize the customer with the amount and send payment request
-const authorizedPaymentWithSaveCard = catchAsync(async (req: any, res: any) => {
-  const result = await StripeServices.authorizedPaymentWithSaveCardFromStripe(
-    req.body
-  );
+// const authorizedPaymentWithSaveCard = catchAsync(async (req: any, res: any) => {
+//   const result = await StripeServices.authorizedPaymentWithSaveCardFromStripe(
+//     req.body
+//   );
 
-  sendResponse(res, {
-    statusCode: 200,
-    success: true,
-    message: "Authorized customer and payment request successfully",
-    data: result,
-  });
-});
+//   sendResponse(res, {
+//     statusCode: 200,
+//     success: true,
+//     message: "Authorized customer and payment request successfully",
+//     data: result,
+//   });
+// });
 
 // Capture the payment request and deduct the amount
-const capturePaymentRequest = catchAsync(async (req: any, res: any) => {
-  const result = await StripeServices.capturePaymentRequestToStripe(req.body);
+// const capturePaymentRequest = catchAsync(async (req: any, res: any) => {
+//   const result = await StripeServices.capturePaymentRequestToStripe(req.body);
 
-  sendResponse(res, {
-    statusCode: 200,
-    success: true,
-    message: "Capture payment request and payment deduct successfully",
-    data: result,
-  });
-});
+//   sendResponse(res, {
+//     statusCode: 200,
+//     success: true,
+//     message: "Capture payment request and payment deduct successfully",
+//     data: result,
+//   });
+// });
 
 // Save new card to existing customer
-const saveNewCardWithExistingCustomer = catchAsync(
-  async (req: any, res: any) => {
-    const result =
-      await StripeServices.saveNewCardWithExistingCustomerIntoStripe(req.body);
+// const saveNewCardWithExistingCustomer = catchAsync(
+//   async (req: any, res: any) => {
+//     const result =
+//       await StripeServices.saveNewCardWithExistingCustomerIntoStripe(req.body);
 
-    sendResponse(res, {
-      statusCode: 200,
-      success: true,
-      message: "New card save successfully",
-      data: result,
-    });
-  }
-);
+//     sendResponse(res, {
+//       statusCode: 200,
+//       success: true,
+//       message: "New card save successfully",
+//       data: result,
+//     });
+//   }
+// );
 
 // Get all save cards for customer
 const getCustomerSavedCards = catchAsync(async (req: any, res: any) => {
@@ -119,13 +118,13 @@ const createPaymentIntent = catchAsync(async (req: any, res: any) => {
   });
 });
 const handleWebHook = catchAsync(async (req: any, res: any) => {
-  const sig = req.headers['stripe-signature'] as string;
+  const sig = req.headers["stripe-signature"] as string;
 
   if (!sig) {
     return sendResponse(res, {
       statusCode: StatusCodes.BAD_REQUEST,
       success: false,
-      message: 'Missing Stripe signature header.',
+      message: "Missing Stripe signature header.",
       data: null,
     });
   }
@@ -133,7 +132,11 @@ const handleWebHook = catchAsync(async (req: any, res: any) => {
   let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(req.body, sig, config.stripe.webhookSecret as string);
+    event = stripe.webhooks.constructEvent(
+      req.body,
+      sig,
+      config.stripe.webhookSecret as string
+    );
   } catch (err) {
     console.error("Webhook signature verification failed.", err);
     return res.status(400).send("Webhook Error");
@@ -141,46 +144,66 @@ const handleWebHook = catchAsync(async (req: any, res: any) => {
 
   // Handle the event types
   switch (event.type) {
-    case 'account.updated':
+    case "account.updated":
       const account = event.data.object;
       console.log(account, "Account updated payload");
-      if (account.charges_enabled && account.details_submitted && account.payouts_enabled) {
-        console.log('Onboarding completed successfully for account:', account.id);
-        await RetireProfessionalService.updateProfessionalStripeAccount(account);
+      if (
+        account.charges_enabled &&
+        account.details_submitted &&
+        account.payouts_enabled
+      ) {
+        console.log(
+          "Onboarding completed successfully for account:",
+          account.id
+        );
+        await RetireProfessionalService.updateProfessionalStripeAccount(
+          account
+        );
       } else {
-        console.log('Onboarding incomplete for account:', account.id);
+        console.log("Onboarding incomplete for account:", account.id);
       }
       break;
 
-    case 'capability.updated':
-      console.log('Capability updated event received. Handle accordingly.');
+    case "capability.updated":
+      console.log("Capability updated event received. Handle accordingly.");
       break;
 
-    case 'financial_connections.account.created':
-      console.log('Financial connections account created event received. Handle accordingly.');
+    case "financial_connections.account.created":
+      console.log(
+        "Financial connections account created event received. Handle accordingly."
+      );
       break;
 
-    case 'account.application.authorized':
+    case "account.application.authorized":
       const authorizedAccount = event.data.object;
-      console.log('Application authorized for account:', authorizedAccount.id);
+      console.log("Application authorized for account:", authorizedAccount.id);
       // Add your logic to handle this event
       break;
+
+    case "customer.created":
+      const customer = event.data.object;
+      console.log("New customer created:", customer.id);
+
+      break;
+    case "account.external_account.created":
+      const externalAccount = event.data.object;
+      console.log("External account created:", externalAccount);
 
     default:
       console.log(`Unhandled event type: ${event.type}`);
   }
 
-  res.status(200).send('Event received');
+  res.status(200).send("Event received");
 });
 
 export const StripeController = {
-  saveCardWithCustomerInfo,
-  authorizedPaymentWithSaveCard,
-  capturePaymentRequest,
-  saveNewCardWithExistingCustomer,
+  // saveCardWithCustomerInfo,
+  // authorizedPaymentWithSaveCard,
+  // capturePaymentRequest,
+  // saveNewCardWithExistingCustomer,
   getCustomerSavedCards,
   deleteCardFromCustomer,
   refundPaymentToCustomer,
   createPaymentIntent,
-  handleWebHook
+  handleWebHook,
 };

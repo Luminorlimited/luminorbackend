@@ -4,23 +4,19 @@ import sendResponse from "../../shared/sendResponse";
 import { StatusCodes } from "http-status-codes";
 import { zoomService } from "./zoom.service";
 
-
-
-
 const createZoomLInk = catchAsync(async (req: Request, res: Response) => {
+  const result = await zoomService.createZoomMeeting();
 
-   const result=await zoomService.createZoomMeeting()
-  
-    sendResponse(res, {
-      success: true,
-      statusCode: StatusCodes.OK,
-  
-      message: "your review post successfully",
-     
-      data: result,
-    });
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+
+    message: "zoom meeting create  successfully",
+
+    data: result,
   });
+});
 
-  export const ZoomController={
-    createZoomLInk
-  }
+export const ZoomController = {
+  createZoomLInk,
+};
