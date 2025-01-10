@@ -10,7 +10,6 @@ import { IProfessional } from "./professional.interface";
 
 import { uploadFileToSpace } from "../../utilitis/uploadTos3";
 
-
 const createProfessional = catchAsync(async (req: Request, res: Response) => {
   const file = req.file as unknown as Express.Multer.File;
   let fileUrl;
@@ -23,7 +22,7 @@ const createProfessional = catchAsync(async (req: Request, res: Response) => {
     email,
     role,
     password,
-   
+    stripe: { onboardingUrl: "", customerId: "", isOnboardingSucess: false },
   };
   const professionalData = {
     ...others,
@@ -146,22 +145,25 @@ const getRetireProfessionalsByLocation = catchAsync(
   }
 );
 
-const getRetireProfessionalById = catchAsync( async (req:Request,res:Response) =>{
-  const {professionalId} = req.params
-  const result = await RetireProfessionalService.getRetireProfessionalById(professionalId)
-  sendResponse<IProfessional>(res, {
-    success: true,
-    statusCode: StatusCodes.OK,
-    message: "Retire professional   retrived successfully",
-    data: result,
-  });
-}
-)
+const getRetireProfessionalById = catchAsync(
+  async (req: Request, res: Response) => {
+    const { professionalId } = req.params;
+    const result = await RetireProfessionalService.getRetireProfessionalById(
+      professionalId
+    );
+    sendResponse<IProfessional>(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: "Retire professional   retrived successfully",
+      data: result,
+    });
+  }
+);
 
 export const RetireProfessionalController = {
   createProfessional,
   updateSingleRetireProfessional,
   getRetireProfessionals,
   getRetireProfessionalsByLocation,
-  getRetireProfessionalById
+  getRetireProfessionalById,
 };

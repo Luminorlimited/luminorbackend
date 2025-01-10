@@ -29,26 +29,25 @@ const createProfessional = async (
   try {
     session.startTransaction();
 
-    const account= await stripe.accounts.create({
-      type: 'express', 
-      country: 'US', 
+    const account = await stripe.accounts.create({
+      type: "express",
+      country: "US",
       email: user.email,
     });
     // console.log(account,"check account")
     const accountLink = await stripe.accountLinks.create({
       account: account.id,
-      refresh_url: 'https://your-platform.com/reauth',
-      return_url: 'https://your-platform.com/return',
-      type: 'account_onboarding',
+      refresh_url: "https://your-platform.com/reauth",
+      return_url: "https://your-platform.com/return",
+      type: "account_onboarding",
     });
-   
 
-    if(user.stripe){
-      console.log(user.stripe,"check stripe")
+    if (user.stripe) {
+      console.log(user.stripe, "check stripe");
       user.stripe.onboardingUrl = accountLink.url;
+      user.stripe.customerId = account.id;
     }
-      
-   
+
     const newUser = await User.create([user], { session });
     const userId = newUser[0]._id;
     let fileUrl;
@@ -60,11 +59,9 @@ const createProfessional = async (
       ...professionalData,
       retireProfessional: userId,
       cvOrCoverLetter: fileUrl,
-  
     };
 
     await RetireProfessional.create([newProfessionalData], { session });
-   
 
     await session.commitTransaction();
     session.endSession();
@@ -81,9 +78,8 @@ const createProfessional = async (
       accessToken,
       user: newUser,
       retireProfessinal: newProfessionalData,
-      stripe:accountLink
+      stripe: accountLink,
     };
-   
   } catch (error: any) {
     await session.abortTransaction();
     session.endSession();
@@ -107,12 +103,11 @@ export const updateSingleRetireProfessional = async (
       throw new ApiError(404, "Professional account not found");
     }
 
-
     const updatedRetireProfessional = await RetireProfessional.findOneAndUpdate(
       { retireProfessional: professionalAccount._id },
       retireProfessionalPayload,
       {
-        new: true, 
+        new: true,
         session,
       }
     );
@@ -122,7 +117,6 @@ export const updateSingleRetireProfessional = async (
     }
     // console.log(auth,"check auth");
 
-  
     const updatedUser = await User.findByIdAndUpdate(id, auth, {
       new: true, // return the updated document
       session,
@@ -132,15 +126,11 @@ export const updateSingleRetireProfessional = async (
       throw new ApiError(404, "User not found");
     }
 
-
     await session.commitTransaction();
     session.endSession();
 
-
-
     return updatedRetireProfessional.populate("retireProfessional");
   } catch (error: any) {
-    
     await session.abortTransaction();
     session.endSession();
     throw new ApiError(400, error.message || "Error updating client");
@@ -207,13 +197,13 @@ const getRetireProfessionals = async (
       filtersData.location
     );
 
-    console.log(longitude,latitude,minDistance,maxDistance)
+    console.log(longitude, latitude, minDistance, maxDistance);
 
     aggregationPipeline.push({
       $geoNear: {
         near: {
           type: "Point",
-          coordinates: [ latitude,longitude],
+          coordinates: [latitude, longitude],
         },
         distanceField: "distance",
         spherical: true,
@@ -281,45 +271,48 @@ const getRetireProfessionalsByLocation = async (
   min: number,
   max: number
 ) => {
+  const result = await RetireProfessional.find({
+    location: {
+      $near: {
+        $maxDistance: max, // in meters
+        $minDistance: min,
 
-
- 
-    const result = await RetireProfessional.find({
-      location: {
-        $near: {
-          $maxDistance: max, // in meters
-          $minDistance:min,
-       
-          $geometry: {
-            type: "Point",
-            coordinates: [lat, long],
-          },
+        $geometry: {
+          type: "Point",
+          coordinates: [lat, long],
         },
       },
-    });
+    },
+  });
 
-
-    return result;
-  
+  return result;
 };
 
-const getRetireProfessionalById = async (professionalId:string): Promise<IProfessional | null> =>{
-    const result = await RetireProfessional.findById(professionalId).populate('retireProfessional')
-    return result;
-  };
+const getRetireProfessionalById = async (
+  professionalId: string
+): Promise<IProfessional | null> => {
+  const result = await RetireProfessional.findById(professionalId).populate(
+    "retireProfessional"
+  );
+  return result;
+};
 
-const updateProfessionalStripeAccount=async(payload:any)=>{
-    await User.findOneAndUpdate(
-      { email: payload.email },
-      { $set: { "stripe.customerId": payload.id, "stripe.isOnboardingSucess": true } }
-    )
-
-}
+const updateProfessionalStripeAccount = async (payload: any) => {
+  await User.findOneAndUpdate(
+    { email: payload.email },
+    {
+      $set: {
+        "stripe.customerId": payload.id,
+        "stripe.isOnboardingSucess": true,
+      },
+    }
+  );
+};
 export const RetireProfessionalService = {
   createProfessional,
   updateSingleRetireProfessional,
   getRetireProfessionals,
   getRetireProfessionalsByLocation,
   getRetireProfessionalById,
-  updateProfessionalStripeAccount
+  updateProfessionalStripeAccount,
 };

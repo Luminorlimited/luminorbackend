@@ -32,23 +32,20 @@ const createClient = async (user: IUser, clientData: IClient) => {
 
     const customer = await stripe.customers.create({
       email: user.email,
-      name: user.name.firstName + " " + user.name.lastName
+      name: user.name.firstName + " " + user.name.lastName,
     });
     // console.log(account,"check account")
-  
-   
-   
-    if(user.stripe){
+    console.log(customer, "check customer");
+
+    if (user.stripe) {
       user.stripe.customerId = customer.id;
     }
-      
-    
+
     const newUser = await User.create([user], { session });
 
     const newClientData = { ...clientData, client: newUser[0]._id };
     const newClient = await Client.create([newClientData], { session });
 
-  
     await session.commitTransaction();
 
     const accessToken = jwtHelpers.createToken(
@@ -61,12 +58,9 @@ const createClient = async (user: IUser, clientData: IClient) => {
       config.jwt.expires_in as string
     );
     return { accessToken, user: newUser, clientData: clientData };
-
   } catch (error: any) {
- 
     await session.abortTransaction();
     session.endSession();
-
 
     if (error.code === 11000) {
       throw new ApiError(400, "Duplicate email not allowed");
@@ -75,7 +69,6 @@ const createClient = async (user: IUser, clientData: IClient) => {
     throw new ApiError(400, error.message || "An error occurred");
   } finally {
     session.endSession();
-
   }
 };
 
@@ -258,7 +251,7 @@ const updateSingleClient = async (
 };
 
 const getClientById = async (id: string): Promise<IClient | null> => {
-  const result = await Client.findById(id).populate('client');
+  const result = await Client.findById(id).populate("client");
   return result;
 };
 export const ClientService = {

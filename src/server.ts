@@ -12,6 +12,7 @@ import { generateOfferPDF } from "./utilitis/generateOfferPdf";
 import { Offer } from "./modules/offers/offer.model";
 import { uploadFileToSpace } from "./utilitis/uploadTos3";
 import { Nimble } from "aws-sdk";
+import { zoomService } from "./modules/zoom/zoom.service";
 
 const options = {
   autoIndex: true,
@@ -47,7 +48,7 @@ io.on("connection", (socket) => {
   // Private messaging between users6
   socket.on("privateMessage", async (data: any) => {
     console.log(users);
-    const { toEmail, message=null, fromEmail, media } = JSON.parse(data);
+    const { toEmail, message = null, fromEmail, media } = JSON.parse(data);
     const toSocketId = users[toEmail];
     // console.log(toSocketId);
 
@@ -58,7 +59,7 @@ io.on("connection", (socket) => {
     }
 
     try {
-      let mediaUrl=null;
+      let mediaUrl = null;
       if (media) {
         let mediaBuffer = Buffer.from(media, "base64");
         mediaUrl = await uploadFileToSpace(mediaBuffer, "privateMessageFile");
@@ -66,7 +67,7 @@ io.on("connection", (socket) => {
       const savedMessage = await Message.create({
         sender: fromEmail,
         message: message,
-        medai: mediaUrl ,
+        medai: mediaUrl,
         recipient: toEmail,
       });
 
@@ -143,6 +144,39 @@ io.on("connection", (socket) => {
       }
     } catch (error) {
       socket.emit("sendoffer error ", "Failed to create effor");
+    }
+  });
+  socket.on("createZoomMeeting", async (data: any) => {
+    const { fromEmail, toEmail } = JSON.parse(data);
+    const toSocketId = users[toEmail];
+
+    try {
+      const meeting = await zoomService.createZoomMeeting();
+      if (!meeting || !meeting.start_url || !meeting.join_url) {
+        throw new Error("Invalid Zoom meeting data");
+      }
+      const { start_url, join_url } = meeting;
+
+      const savedMessage = await Message.create({
+        sender: fromEmail,
+        recipient: toEmail,
+        message: "Zoom meeting invitation",
+        media: null,
+        meetingLink: join_url,
+      });
+
+      if (toSocketId) {
+        socket.to(toSocketId).emit("zoomMeeting", {
+          from: fromEmail,
+          join_url,
+        });
+      }
+      socket.emit("zoomMeeting", {
+        start_url,
+      });
+    } catch (error) {
+      console.error("Error creating Zoom meeting:", error);
+      socket.emit("zoomMeetingError", "Failed to create Zoom meeting");
     }
   });
 
