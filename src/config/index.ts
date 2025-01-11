@@ -1,4 +1,5 @@
 /* eslint-disable no-undef */
+import braintree from "braintree";
 import dotenv from "dotenv";
 import path from "path";
 
@@ -55,5 +56,10 @@ export default {
     secretKey:process.env.STRIPE_SECRET_KEY,
     publishableKey:process.env.STRIPE_PUBLISHABLE_KEY,
     webhookSecret:process.env.STRIPE_WEBHOOK_SECRET_KEY
+  },
+  braintree:{
+    merchantId:process.env.BRAINTREE_MERCHANT_ID,
+    publicKey:process.env.BRAINTREE_PUBLIC_KEY,
+    privateKey:process.env.BRAITREE_PRIVATE_KEY
   }
 };
