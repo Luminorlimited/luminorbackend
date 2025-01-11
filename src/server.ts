@@ -42,7 +42,7 @@ io.on("connection", (socket) => {
     // console.log(email);
 
     users[email] = socket.id;
-    // console.log(users[email]);
+    console.log(users[email]);
   });
 
   // Private messaging between users6
@@ -131,17 +131,22 @@ io.on("connection", (socket) => {
   socket.on("sendOffer", async (data: any) => {
     const { toEmail, offer, fromEmail } = JSON.parse(data);
     const toSocketId = users[toEmail];
+    // console.log(data,"from send offer")
+    // console.log(offer,"check offer")
+    console.log(toSocketId,"check socket id to email")
     try {
-      offer.totalPrice = calculateTotalPrice(data);
-      const offerPDFPath = await generateOfferPDF(data);
+      offer.totalPrice = calculateTotalPrice(offer);
+      const offerPDFPath = await generateOfferPDF(offer);
       offer.orderAgreementPDF = offerPDFPath;
       const newOffer = await Offer.create(offer);
+      // console.log(newOffer,"check new offer")
       if (toSocketId) {
         socket.to(toSocketId).emit("sendOffer", {
           from: fromEmail,
           offer: newOffer,
         });
       }
+    
     } catch (error) {
       socket.emit("sendoffer error ", "Failed to create effor");
     }

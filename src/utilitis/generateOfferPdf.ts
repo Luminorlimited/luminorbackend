@@ -56,7 +56,7 @@ export const generateOfferPDF = async (offer: IOffer) => {
       writeStream.on("error", reject);
     });
 
-    console.log("PDF generated locally:", filePath);
+    // console.log("PDF generated locally:", filePath);
 
     // Upload the file to DigitalOcean Spaces
     const uploadedURL = await uploadFileToSpace(
@@ -68,7 +68,7 @@ export const generateOfferPDF = async (offer: IOffer) => {
       "offers"
     );
 
-    console.log("PDF uploaded to DigitalOcean Spaces:", uploadedURL);
+    // console.log("PDF uploaded to DigitalOcean Spaces:", uploadedURL);
 
     // Optionally delete the local file after uploading
     fs.unlinkSync(filePath);
