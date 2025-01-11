@@ -39,15 +39,15 @@ io.on("connection", (socket) => {
   // Register the user with their email and socket ID
   socket.on("register", (data: any) => {
     const { email } = JSON.parse(data);
-    console.log(email);
+    // console.log(email);
 
     users[email] = socket.id;
-    console.log(users[email]);
+    // console.log(users[email]);
   });
 
   // Private messaging between users6
   socket.on("privateMessage", async (data: any) => {
-    console.log(users);
+    // console.log(users);
     const { toEmail, message = null, fromEmail, media } = JSON.parse(data);
     const toSocketId = users[toEmail];
     // console.log(toSocketId);
@@ -148,6 +148,7 @@ io.on("connection", (socket) => {
   });
   socket.on("createZoomMeeting", async (data: any) => {
     const { fromEmail, toEmail } = JSON.parse(data);
+    console.log(data,"from zoom meeting")
     const toSocketId = users[toEmail];
 
     try {
@@ -166,12 +167,12 @@ io.on("connection", (socket) => {
       });
 
       if (toSocketId) {
-        socket.to(toSocketId).emit("zoomMeeting", {
+        socket.to(toSocketId).emit("createZoomMeeting", {
           from: fromEmail,
           join_url,
         });
       }
-      socket.emit("zoomMeeting", {
+      socket.emit("createZoomMeeting", {
         start_url,
       });
     } catch (error) {
@@ -200,7 +201,7 @@ async function bootstrap() {
       "mongodb+srv://luminor:BYcHOYLQI2eiZ9IU@cluster0.v0ciw.mongodb.net/luminor?retryWrites=true&w=majority&appName=Cluster0" as string,
       options
     );
-    console.log(config.database_url, "check data base url");
+    // console.log(config.database_url, "check data base url");
     console.log("Connected to MongoDB successfully.");
 
     // Start the server
