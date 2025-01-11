@@ -13,7 +13,7 @@ const createOffer = catchAsync(async (req: Request, res: Response) => {
   data.totalPrice = calculateTotalPrice(data);
   const offerPDFPath = await generateOfferPDF(data);
 
-  console.log(offerPDFPath, "check offerpdf path");
+  // console.log(offerPDFPath, "check offerpdf path");
 
   data.orderAgreementPDF = offerPDFPath;
 
