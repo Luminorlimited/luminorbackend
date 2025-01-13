@@ -34,11 +34,31 @@ const searchableField_1 = require("../../constants/searchableField");
 const uploadTos3_1 = require("../../utilitis/uploadTos3");
 const jwtHelpers_1 = require("../../helpers/jwtHelpers");
 const config_1 = __importDefault(require("../../config"));
+const stripe_1 = __importDefault(require("stripe"));
+const stripe = new stripe_1.default(config_1.default.stripe.secretKey, {
+    apiVersion: "2024-11-20.acacia",
+});
 const createProfessional = (user, professionalData, file) => __awaiter(void 0, void 0, void 0, function* () {
     const session = yield mongoose_1.default.startSession();
     try {
         session.startTransaction();
-        // Map service preferences to industries
+        const account = yield stripe.accounts.create({
+            type: "express",
+            country: "US",
+            email: user.email,
+        });
+        // console.log(account,"check account")
+        const accountLink = yield stripe.accountLinks.create({
+            account: account.id,
+            refresh_url: "https://your-platform.com/reauth",
+            return_url: "https://your-platform.com/return",
+            type: "account_onboarding",
+        });
+        if (user.stripe) {
+            console.log(user.stripe, "check stripe");
+            user.stripe.onboardingUrl = accountLink.url;
+            user.stripe.customerId = account.id;
+        }
         const newUser = yield auth_model_1.User.create([user], { session });
         const userId = newUser[0]._id;
         let fileUrl;
@@ -58,8 +78,8 @@ const createProfessional = (user, professionalData, file) => __awaiter(void 0, v
             accessToken,
             user: newUser,
             retireProfessinal: newProfessionalData,
+            stripe: accountLink,
         };
-        // return newProfessional[0].populate("retireProfessional");
     }
     catch (error) {
         yield session.abortTransaction();
@@ -221,13 +241,22 @@ const getRetireProfessionalsByLocation = (long, lat, min, max) => __awaiter(void
     return result;
 });
 const getRetireProfessionalById = (professionalId) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield professional_model_1.RetireProfessional.findById(professionalId).populate('retireProfessional');
+    const result = yield professional_model_1.RetireProfessional.findById(professionalId).populate("retireProfessional");
     return result;
+});
+const updateProfessionalStripeAccount = (payload) => __awaiter(void 0, void 0, void 0, function* () {
+    yield auth_model_1.User.findOneAndUpdate({ email: payload.email }, {
+        $set: {
+            "stripe.customerId": payload.id,
+            "stripe.isOnboardingSucess": true,
+        },
+    });
 });
 exports.RetireProfessionalService = {
     createProfessional,
     updateSingleRetireProfessional: exports.updateSingleRetireProfessional,
     getRetireProfessionals,
     getRetireProfessionalsByLocation,
-    getRetireProfessionalById
+    getRetireProfessionalById,
+    updateProfessionalStripeAccount,
 };

@@ -3,7 +3,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-/* eslint-disable no-undef */
 const dotenv_1 = __importDefault(require("dotenv"));
 const path_1 = __importDefault(require("path"));
 dotenv_1.default.config({ path: path_1.default.join(process.cwd(), ".env") });
@@ -46,4 +45,21 @@ exports.default = {
         paypalClientId: process.env.PAYPAL_CLIENT_ID,
         paypalSecretId: process.env.PAYPAL_SECRET_ID,
     },
+    zoom: {
+        zoomClientId: process.env.ZOOM_CLIENT_ID,
+        zoomClientSecret: process.env.ZOOM_CLIENT_SECRET,
+        zoomAccountId: process.env.ZOOM_ACCOUNT_ID,
+        zooomDevelopmentClientId: process.env.ZOOM_DEVELOPMENT_CLIENT_ID,
+        zoomDevelopmentClientSecret: process.env.ZOOM_DEVELOPMENT_CLIENT_SECRET
+    },
+    stripe: {
+        secretKey: process.env.STRIPE_SECRET_KEY,
+        publishableKey: process.env.STRIPE_PUBLISHABLE_KEY,
+        webhookSecret: process.env.STRIPE_WEBHOOK_SECRET_KEY
+    },
+    braintree: {
+        merchantId: process.env.BRAINTREE_MERCHANT_ID,
+        publicKey: process.env.BRAINTREE_PUBLIC_KEY,
+        privateKey: process.env.BRAITREE_PRIVATE_KEY
+    }
 };

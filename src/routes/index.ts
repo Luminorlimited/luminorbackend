@@ -11,6 +11,7 @@ import { StripeRoutes } from "../modules/stipe/stripe.route";
 import { paypalRoute } from "../modules/paypal/paypal.route";
 import { zoomRoutes } from "../modules/zoom/zoom.route";
 import { BrainTreeRoute } from "../modules/braintree/braintree.route";
+import { OrderRoute } from "../modules/order/order.route";
 
 const router = express.Router();
 
@@ -55,6 +56,10 @@ const moduleRoutes = [
   {
     path: "/braintree",
     route: BrainTreeRoute,
+  },
+  {
+    path: "/order",
+    route: OrderRoute,
   },
 ];
 

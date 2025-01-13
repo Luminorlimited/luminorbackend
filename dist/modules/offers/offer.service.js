@@ -18,7 +18,7 @@ const createOffer = (offer) => __awaiter(void 0, void 0, void 0, function* () {
     return newOffer;
 });
 const getOffersByProfessional = (id) => __awaiter(void 0, void 0, void 0, function* () {
-    const offer = yield offer_model_1.Offer.find({ clientId: id });
+    const offer = yield offer_model_1.Offer.find({ clientEmail: id });
     return offer;
 });
 const getSingleOffer = (id) => __awaiter(void 0, void 0, void 0, function* () {

@@ -14,6 +14,7 @@ const http_status_codes_1 = require("http-status-codes");
 const passport_1 = __importDefault(require("passport"));
 const socialLogin_route_1 = require("./modules/socialLogin/socialLogin.route");
 const express_session_1 = __importDefault(require("express-session"));
+const stripe_controller_1 = require("./modules/stipe/stripe.controller");
 const app = (0, express_1.default)();
 exports.corsOptions = {
     origin: [
@@ -21,7 +22,7 @@ exports.corsOptions = {
         "https://luminoor.vercel.app",
         "http://localhost:3000",
         "http://192.168.11.130:3000",
-        "https://allen8797-frontend.vercel.app"
+        "https://allen8797-frontend.vercel.app",
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -29,6 +30,7 @@ exports.corsOptions = {
 };
 app.use((0, cors_1.default)(exports.corsOptions));
 app.use((0, cookie_parser_1.default)());
+app.use("/api/v1/stripe/payment-webhook", express_1.default.raw({ type: "application/json" }), stripe_controller_1.StripeController.handleWebHook);
 //parser
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
@@ -43,6 +45,12 @@ app.get("/", (req, res) => {
     res.send({
         message: "Demos Server is Running",
     });
+});
+app.set("view engine", "ejs");
+// Set the correct path to the 'views' folder
+app.set("views", path_1.default.join(__dirname, "../views"));
+app.get("/payment", (req, res) => {
+    res.render("braintree"); // Assuming your file is named braintree.ejs
 });
 app.use(passport_1.default.initialize());
 app.use(passport_1.default.session());

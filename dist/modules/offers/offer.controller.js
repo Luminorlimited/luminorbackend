@@ -23,7 +23,7 @@ const createOffer = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, vo
     const data = req.body;
     data.totalPrice = (0, calculateTotalPrice_1.calculateTotalPrice)(data);
     const offerPDFPath = yield (0, generateOfferPdf_1.generateOfferPDF)(data);
-    console.log(offerPDFPath, "check offerpdf path");
+    // console.log(offerPDFPath, "check offerpdf path");
     data.orderAgreementPDF = offerPDFPath;
     const result = yield offer_service_1.OfferService.createOffer(data);
     (0, sendResponse_1.default)(res, {

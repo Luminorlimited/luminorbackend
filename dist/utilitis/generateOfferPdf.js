@@ -59,14 +59,14 @@ const generateOfferPDF = (offer) => __awaiter(void 0, void 0, void 0, function* 
             writeStream.on("finish", resolve);
             writeStream.on("error", reject);
         });
-        console.log("PDF generated locally:", filePath);
+        // console.log("PDF generated locally:", filePath);
         // Upload the file to DigitalOcean Spaces
         const uploadedURL = yield (0, uploadTos3_1.uploadFileToSpace)({
             buffer: fs_1.default.readFileSync(filePath),
             originalname: fileName,
             mimetype: "application/pdf",
         }, "offers");
-        console.log("PDF uploaded to DigitalOcean Spaces:", uploadedURL);
+        // console.log("PDF uploaded to DigitalOcean Spaces:", uploadedURL);
         // Optionally delete the local file after uploading
         fs_1.default.unlinkSync(filePath);
         return uploadedURL;

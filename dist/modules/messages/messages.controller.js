@@ -17,6 +17,7 @@ const http_status_codes_1 = require("http-status-codes");
 const catchAsync_1 = __importDefault(require("../../shared/catchAsync"));
 const sendResponse_1 = __importDefault(require("../../shared/sendResponse"));
 const messages_service_1 = require("./messages.service");
+const handleApiError_1 = __importDefault(require("../../errors/handleApiError"));
 const createMessage = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const createMessage = req.body;
     const result = yield messages_service_1.MessageService.createMessage(createMessage);
@@ -37,7 +38,21 @@ const getMessages = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, vo
         data: messages,
     });
 }));
+const getConversationLists = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    if (!req.user) {
+        throw new handleApiError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "header not found");
+    }
+    // console.log(req.user)
+    const list = yield messages_service_1.MessageService.getConversationLists(req.user);
+    (0, sendResponse_1.default)(res, {
+        success: true,
+        statusCode: http_status_codes_1.StatusCodes.OK,
+        message: "convirsation list  get   successfully",
+        data: list,
+    });
+}));
 exports.MessageController = {
     createMessage,
     getMessages,
+    getConversationLists,
 };
