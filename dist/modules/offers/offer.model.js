@@ -33,8 +33,8 @@ const offerSchema = new mongoose_1.default.Schema({
     orderAgreementPDF: { type: String, required: true },
     milestones: [milestoneSchema],
     totalPrice: { type: Number, required: true },
-    professionalId: { type: mongoose_1.default.Schema.Types.ObjectId, ref: 'RetireProfessional', required: true },
-    clientId: { type: mongoose_1.default.Schema.Types.ObjectId, ref: 'Client', required: true },
+    professionalEmail: { type: String, required: true },
+    clientEmail: { type: String, required: true },
     isAccepted: { type: Boolean, default: false },
 }, { timestamps: true });
 exports.Offer = mongoose_1.default.model('Offer', offerSchema);

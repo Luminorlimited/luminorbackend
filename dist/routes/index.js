@@ -14,6 +14,9 @@ const messages_route_1 = require("../modules/messages/messages.route");
 const notification_route_1 = require("../modules/notification/notification.route");
 const stripe_route_1 = require("../modules/stipe/stripe.route");
 const paypal_route_1 = require("../modules/paypal/paypal.route");
+const zoom_route_1 = require("../modules/zoom/zoom.route");
+const braintree_route_1 = require("../modules/braintree/braintree.route");
+const order_route_1 = require("../modules/order/order.route");
 const router = express_1.default.Router();
 const moduleRoutes = [
     {
@@ -22,19 +25,19 @@ const moduleRoutes = [
     },
     {
         path: "/retireProfessional",
-        route: professional_route_1.RetireProfessionalRoute
+        route: professional_route_1.RetireProfessionalRoute,
     },
     {
         path: "/auth",
-        route: auth_route_1.AuthRoute
+        route: auth_route_1.AuthRoute,
     },
     {
         path: "/offer",
-        route: offer_route_1.OfferRoute
+        route: offer_route_1.OfferRoute,
     },
     {
         path: "/review",
-        route: reviews_route_1.ReviewRoute
+        route: reviews_route_1.ReviewRoute,
     },
     {
         path: "/messages",
@@ -50,8 +53,17 @@ const moduleRoutes = [
     },
     {
         path: "/paypal",
-        route: paypal_route_1.paypalRoute
-    }
+        route: paypal_route_1.paypalRoute,
+    },
+    { path: "/zoom", route: zoom_route_1.zoomRoutes },
+    {
+        path: "/braintree",
+        route: braintree_route_1.BrainTreeRoute,
+    },
+    {
+        path: "/order",
+        route: order_route_1.OrderRoute,
+    },
 ];
 moduleRoutes.forEach((route) => router.use(route.path, route.route));
 exports.routes = router;

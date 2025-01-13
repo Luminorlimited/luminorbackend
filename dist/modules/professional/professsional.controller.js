@@ -35,13 +35,14 @@ const uploadTos3_1 = require("../../utilitis/uploadTos3");
 const createProfessional = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const file = req.file;
     let fileUrl;
-    console.log(fileUrl, "check url");
+    // console.log(fileUrl, "check url");
     const _a = req.body, { name, email, role, password } = _a, others = __rest(_a, ["name", "email", "role", "password"]);
     const user = {
         name,
         email,
         role,
         password,
+        stripe: { onboardingUrl: "", customerId: "", isOnboardingSucess: false },
     };
     const professionalData = Object.assign({}, others);
     const result = yield professional_service_1.RetireProfessionalService.createProfessional(user, professionalData, file);
@@ -124,5 +125,5 @@ exports.RetireProfessionalController = {
     updateSingleRetireProfessional,
     getRetireProfessionals,
     getRetireProfessionalsByLocation,
-    getRetireProfessionalById
+    getRetireProfessionalById,
 };

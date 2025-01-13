@@ -20,14 +20,14 @@ const createMessage = catchAsync(async (req: Request, res: Response) => {
   });
 });
 const getMessages = catchAsync(async (req: Request, res: Response) => {
-  const { user1, user2} = req.query;
+  const { user1, user2 } = req.query;
 
   const messages = await MessageService.getMessages(
     user1 as string,
     user2 as string
   );
 
-  sendResponse<IMessage[]>(res, {
+  sendResponse(res, {
     success: true,
     statusCode: StatusCodes.OK,
 
@@ -36,16 +36,13 @@ const getMessages = catchAsync(async (req: Request, res: Response) => {
   });
 });
 const getConversationLists = catchAsync(async (req: Request, res: Response) => {
-     if(!req.user  ){
-       throw new ApiError(StatusCodes.BAD_REQUEST,"header not found")
-     }
-   
-    // console.log(req.user)
-  
-     const list = await MessageService.getConversationLists(
-       req.user ,
-    
-    );
+  if (!req.user) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "header not found");
+  }
+
+  // console.log(req.user)
+
+  const list = await MessageService.getConversationLists(req.user);
 
   sendResponse(res, {
     success: true,
@@ -58,5 +55,5 @@ const getConversationLists = catchAsync(async (req: Request, res: Response) => {
 export const MessageController = {
   createMessage,
   getMessages,
-  getConversationLists
+  getConversationLists,
 };

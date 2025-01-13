@@ -13,10 +13,18 @@ const messageSchema = new mongoose_1.Schema({
     },
     message: {
         type: String,
-        required: true,
+        defaul: null,
+    },
+    media: {
+        type: String,
+        default: null,
+    },
+    meetingLink: {
+        type: String,
+        default: null,
     },
 }, {
     timestamps: true,
-    versionKey: false
+    versionKey: false,
 });
 exports.Message = (0, mongoose_1.model)("Message", messageSchema);

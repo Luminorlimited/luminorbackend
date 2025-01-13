@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Stripe Split Payment Test</title>
+    <script src="https://js.stripe.com/v3/"></script>
+  </head>
+  <body>
+    <h1>Stripe Split Payment Test</h1>
+    <form id="payment-form">
+      <div id="card-element"></div>
+      <button type="submit" id="submit">Pay</button>
+    </form>
+
+    <script>
+      // Initialize Stripe with your publishable key
+      const stripe = Stripe(
+        "pk_test_51QVuODAk94MRg2rW7rB7N7jPqZOF0PCch4lW0N2u8WyVp0agsTuEdzMQhBZa95Wb5FYRyr3wHnZYkiylgq2bLJxC00E6nrPgYn"
+      );
+
+      // Elements setup
+      const elements = stripe.elements();
+      const card = elements.create("card");
+      card.mount("#card-element");
+
+      // The client secret should be fetched from your server
+      const clientSecret = "your_client_secret_from_server";
+
+      // Handle form submission
+      document
+        .getElementById("payment-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const { error, paymentIntent } = await stripe.confirmCardPayment(
+            clientSecret,
+            {
+              payment_method: {
+                card: card,
+                billing_details: { name: "Test User" },
+              },
+            }
+          );
+
+          if (error) {
+            console.error("Payment failed:", error.message);
+          } else if (paymentIntent.status === "succeeded") {
+            alert("Payment succeeded!");
+          }
+        });
+    </script>
+  </body>
+</html>

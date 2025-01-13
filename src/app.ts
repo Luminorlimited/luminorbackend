@@ -18,13 +18,13 @@ export const corsOptions = {
     "https://luminoor.vercel.app",
     "http://localhost:3000",
     "http://192.168.11.130:3000",
-    "https://allen8797-frontend.vercel.app"
+    "https://allen8797-frontend.vercel.app",
   ],
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
 };
-app.use(cors(corsOptions))
+app.use(cors(corsOptions));
 app.use(cookieParser());
 app.use(
   "/api/v1/stripe/payment-webhook",
@@ -34,8 +34,6 @@ app.use(
 //parser
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-
 
 app.use(
   session({
@@ -52,6 +50,14 @@ app.get("/", (req: Request, res: Response) => {
     message: "Demos Server is Running",
   });
 });
+app.set("view engine", "ejs");
+
+// Set the correct path to the 'views' folder
+app.set("views", path.join(__dirname, "../views"));
+app.get("/payment", (req, res) => {
+  // res.render("braintree"); // Assuming your file is named braintree.ejs
+  res.render("stripe"); // Assuming your file is named braintree.ejs
+});
 
 app.use(passport.initialize());
 app.use(passport.session());
@@ -62,7 +68,6 @@ app.use("/api/v1", routes);
 
 app.use(globalErrorHandler);
 //global error handler
-
 
 app.use((req: Request, res: Response, next: NextFunction) => {
   res.status(StatusCodes.NOT_FOUND).json({

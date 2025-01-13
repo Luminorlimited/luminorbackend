@@ -34,8 +34,15 @@ const http_status_codes_1 = require("http-status-codes");
 const uploadTos3_1 = require("../../utilitis/uploadTos3");
 const createClient = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const data = req.body;
+    // console.log(data, "check data");
     const { name, email, role, password } = data, others = __rest(data, ["name", "email", "role", "password"]);
-    const result = yield client_service_1.ClientService.createClient({ name, email, role, password }, others);
+    const result = yield client_service_1.ClientService.createClient({
+        name,
+        email,
+        role,
+        stripe: { onboardingUrl: "", customerId: "", isOnboardingSucess: false },
+        password,
+    }, others);
     // console.log(jwtHelpers.verifyToken(result, config.jwt.secret as Secret));
     // console.log(data, "check data");
     (0, sendResponse_1.default)(res, {

@@ -33,6 +33,10 @@ const handleApiError_1 = __importDefault(require("../../errors/handleApiError"))
 const serviceMapping_1 = require("../../utilitis/serviceMapping");
 const jwtHelpers_1 = require("../../helpers/jwtHelpers");
 const config_1 = __importDefault(require("../../config"));
+const stripe_1 = __importDefault(require("stripe"));
+const stripe = new stripe_1.default(config_1.default.stripe.secretKey, {
+    apiVersion: "2024-11-20.acacia",
+});
 const createClient = (user, clientData) => __awaiter(void 0, void 0, void 0, function* () {
     const isUserExist = yield auth_model_1.User.findOne({ email: user.email });
     if (isUserExist) {
@@ -42,30 +46,29 @@ const createClient = (user, clientData) => __awaiter(void 0, void 0, void 0, fun
     try {
         // console.log("Transaction started");
         session.startTransaction();
-        // Create a User account
+        const customer = yield stripe.customers.create({
+            email: user.email,
+            name: user.name.firstName + " " + user.name.lastName,
+        });
+        // console.log(account,"check account")
+        console.log(customer, "check customer");
+        if (user.stripe) {
+            user.stripe.customerId = customer.id;
+        }
         const newUser = yield auth_model_1.User.create([user], { session });
-        // console.log("User created:", newUser[0]._id);
-        // Create a Client account linked to the User
         const newClientData = Object.assign(Object.assign({}, clientData), { client: newUser[0]._id });
         const newClient = yield client_model_1.Client.create([newClientData], { session });
-        // console.log("Client created:", newClient[0]._id);
-        // Commit the transaction
         yield session.commitTransaction();
-        // console.log("Transaction committed");
         const accessToken = jwtHelpers_1.jwtHelpers.createToken({
             id: newUser[0]._id,
             email: newUser[0].email,
             role: newUser[0].role,
         }, config_1.default.jwt.secret, config_1.default.jwt.expires_in);
         return { accessToken, user: newUser, clientData: clientData };
-        // return (await newClient[0].populate("client")).toObject();
     }
     catch (error) {
-        // console.error("Transaction failed:", error);
-        // Rollback transaction
         yield session.abortTransaction();
         session.endSession();
-        // Handle duplicate key error
         if (error.code === 11000) {
             throw new handleApiError_1.default(400, "Duplicate email not allowed");
         }
@@ -73,7 +76,6 @@ const createClient = (user, clientData) => __awaiter(void 0, void 0, void 0, fun
     }
     finally {
         session.endSession();
-        // console.log("Session ended");
     }
 });
 const getClients = (filters, paginationOptions) => __awaiter(void 0, void 0, void 0, function* () {
@@ -231,7 +233,7 @@ const updateSingleClient = (id, auth, clientPayload) => __awaiter(void 0, void 0
     }
 });
 const getClientById = (id) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield client_model_1.Client.findById(id).populate('client');
+    const result = yield client_model_1.Client.findById(id).populate("client");
     return result;
 });
 exports.ClientService = {
