@@ -8,3 +8,4 @@ router.post("/", OfferController.createOffer);
 router.get("/professional/:id", OfferController.getOffersByProfessional);
 
 router.get("/:id", OfferController.getSingleOffer);
+router.delete("/delete/:id", OfferController.deleteSingleOffer);
