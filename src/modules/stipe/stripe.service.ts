@@ -213,12 +213,8 @@ const createPaymentIntentService = async (payload: any) => {
     // },
   });
 
-  return {
-    clientSecret: paymentIntent.client_secret,
-    dpmCheckerLink: `https://dashboard.stripe.com/settings/payment_methods/review?transaction_id=${paymentIntent.id}`,
-  };
-};
-
+  return  paymentIntent
+}
 const handleAccountUpdated = async (event: any) => {
   console.log(event, "check even from handle account updated");
 };
