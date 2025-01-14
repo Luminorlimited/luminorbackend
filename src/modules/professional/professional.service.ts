@@ -298,6 +298,7 @@ const getRetireProfessionalById = async (
 };
 
 const updateProfessionalStripeAccount = async (payload: any) => {
+  console.log(payload,"check payload from updateprofessional account")
   await User.findOneAndUpdate(
     { email: payload.email },
     {

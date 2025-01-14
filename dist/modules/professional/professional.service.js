@@ -245,6 +245,7 @@ const getRetireProfessionalById = (professionalId) => __awaiter(void 0, void 0, 
     return result;
 });
 const updateProfessionalStripeAccount = (payload) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log(payload, "check payload from updateprofessional account");
     yield auth_model_1.User.findOneAndUpdate({ email: payload.email }, {
         $set: {
             "stripe.customerId": payload.id,

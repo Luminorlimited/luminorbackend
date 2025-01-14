@@ -182,7 +182,9 @@ const refundPaymentToCustomer = async (payload: {
 };
 
 // Service function for creating a PaymentIntent
-const createPaymentIntentService = async (payload: any) => {
+const createPaymentIntentService = async (payload:any) => {
+  console.log(payload, "check payload");
+
   if (!payload.amount) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "Amount is required");
   }
@@ -194,27 +196,41 @@ const createPaymentIntentService = async (payload: any) => {
     );
   }
 
-  const platformFee = (payload.amount * 20) / 100;
-  const retireProfessionalAmount = payload.amount - platformFee;
+  // Convert amount to cents
+  const totalAmount = Math.round(payload.amount * 100); // Convert to cents
+  const platformFee = Math.round((payload.amount * 20) / 100) * 100; // 20% fee
+  const retireProfessionalAmount = totalAmount - platformFee;
+
+  // Validate transfer amount
+  if (retireProfessionalAmount > totalAmount) {
+    throw new ApiError(
+      StatusCodes.BAD_REQUEST,
+      `Transfer amount (${retireProfessionalAmount}) exceeds total amount (${totalAmount}).`
+    );
+  }
+
   // Create a PaymentIntent with Stripe
   const paymentIntent = await stripe.paymentIntents.create({
-    amount: payload?.amount,
+    amount: totalAmount, // Total amount in cents
     currency: "usd",
     customer: payload.customerId,
     payment_method: payload.paymentMethodId,
     confirm: true,
     setup_future_usage: payload.session,
+    application_fee_amount: platformFee,
     transfer_data: {
       destination: payload.retireProfessionalId,
-      amount: retireProfessionalAmount * 100,
+      // amount: retireProfessionalAmount, // Transfer amount in cents
     },
-    // automatic_payment_methods: {
-    //   enabled: true, // Enable automatic payment methods like cards, Apple Pay, Google Pay
-    // },
+    automatic_payment_methods: {
+      enabled: true,
+      allow_redirects: "never", // Disallow redirect-based methods
+    },
   });
 
-  return  paymentIntent
-}
+  return paymentIntent;
+};
+
 const handleAccountUpdated = async (event: any) => {
   console.log(event, "check even from handle account updated");
 };

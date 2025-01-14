@@ -11,3 +11,4 @@ exports.OfferRoute = router;
 router.post("/", offer_controller_1.OfferController.createOffer);
 router.get("/professional/:id", offer_controller_1.OfferController.getOffersByProfessional);
 router.get("/:id", offer_controller_1.OfferController.getSingleOffer);
+router.delete("/delete/:id", offer_controller_1.OfferController.deleteSingleOffer);

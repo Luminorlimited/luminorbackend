@@ -11,18 +11,55 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OfferService = void 0;
 const calculateTotalPrice_1 = require("../../utilitis/calculateTotalPrice");
+const auth_model_1 = require("../auth/auth.model");
+const offer_interface_1 = require("./offer.interface");
 const offer_model_1 = require("./offer.model");
 const createOffer = (offer) => __awaiter(void 0, void 0, void 0, function* () {
-    offer.totalPrice = (0, calculateTotalPrice_1.calculateTotalPrice)(offer);
+    var _a, _b;
+    // Calculate the total price
+    const totalPrice = (0, calculateTotalPrice_1.calculateTotalPrice)(offer);
+    // Calculate the service fee (deduct 20%)
+    offer.serviceFee = offer.totalPrice * 0.2; // 80% of the total price after deduction
+    offer.totalPrice = totalPrice - (offer.totalPrice * 0.2);
+    // Calculate the total delivery time
+    if (offer.agreementType === offer_interface_1.AgreementType.FlatFee) {
+        offer.totalDeliveryTime = ((_a = offer.flatFee) === null || _a === void 0 ? void 0 : _a.delivery) || 0;
+    }
+    else if (offer.agreementType === offer_interface_1.AgreementType.HourlyFee) {
+        offer.totalDeliveryTime = ((_b = offer.hourlyFee) === null || _b === void 0 ? void 0 : _b.delivery) || 0;
+    }
+    else if (offer.agreementType === offer_interface_1.AgreementType.Milestone && offer.milestones) {
+        offer.totalDeliveryTime = offer === null || offer === void 0 ? void 0 : offer.milestones.reduce((total, milestone) => total + (milestone.delivery || 0), 0);
+    }
+    // Create a new offer document in the database
     const newOffer = yield offer_model_1.Offer.create(offer);
     return newOffer;
 });
-const getOffersByProfessional = (id) => __awaiter(void 0, void 0, void 0, function* () {
-    const offer = yield offer_model_1.Offer.find({ clientEmail: id });
-    return offer;
+// const getOffersByProfessional = async (email: string) => {
+//   const offer = await Offer.find({ clientEmail: email });
+//   return offer;
+// };
+const getOffersByProfessional = (email) => __awaiter(void 0, void 0, void 0, function* () {
+    const offers = yield offer_model_1.Offer.find({ clientEmail: email });
+    let totalDeliverTime;
+    const offersWithUserInfo = yield Promise.all(offers.map((offer) => __awaiter(void 0, void 0, void 0, function* () {
+        const professionalInfo = yield auth_model_1.User.findOne({ email: offer.professionalEmail }).select("name.firstName name.lastName email");
+        return Object.assign(Object.assign({}, offer.toObject()), { pofessionalInfo: professionalInfo || null });
+    })));
+    return {
+        success: true,
+        statusCode: 200,
+        message: "Retrieve Professional Offers successfully",
+        data: offersWithUserInfo,
+    };
 });
 const getSingleOffer = (id) => __awaiter(void 0, void 0, void 0, function* () {
     const offer = yield offer_model_1.Offer.findById(id);
+    console.log(offer, "offer");
+    return offer;
+});
+const deleteSingleOffer = (id) => __awaiter(void 0, void 0, void 0, function* () {
+    const offer = yield offer_model_1.Offer.findByIdAndDelete({ _id: id });
     console.log(offer, "offer");
     return offer;
 });
@@ -30,4 +67,5 @@ exports.OfferService = {
     createOffer,
     getOffersByProfessional,
     getSingleOffer,
+    deleteSingleOffer
 };
