@@ -31,6 +31,7 @@ const offerSchema = new mongoose.Schema<IOffer>(
     orderAgreementPDF: { type: String, required: true },
     milestones: [milestoneSchema],
     totalPrice: { type: Number, required: true },
+    totalReceive: { type: Number, required: true },
     professionalEmail: { type: String, required: true },
     clientEmail: { type: String, required: true },
     totalDeliveryTime: {
@@ -41,6 +42,7 @@ const offerSchema = new mongoose.Schema<IOffer>(
       type:Number,
       required:true
     },
+
 
 
     isAccepted: { type: Boolean, default: false },

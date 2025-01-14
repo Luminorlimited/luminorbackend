@@ -6,13 +6,15 @@ import { Offer } from "./offer.model";
 
 
   const createOffer = async (offer: IOffer) => {
-    // Calculate the total price
+  
     const totalPrice = calculateTotalPrice(offer);
   
-    // Calculate the service fee (deduct 20%)
-    offer.serviceFee = offer.totalPrice * 0.2; // 80% of the total price after deduction
-    offer.totalPrice=totalPrice-(offer.totalPrice * 0.2)
-    // Calculate the total delivery time
+ 
+    offer.serviceFee = offer.totalPrice * 0.2; 
+    offer.totalPrice=totalPrice
+    offer.totalReceive=totalPrice-(offer.totalPrice * 0.2)
+
+   
     if (offer.agreementType === AgreementType.FlatFee) {
       offer.totalDeliveryTime = offer.flatFee?.delivery || 0;
     } else if (offer.agreementType === AgreementType.HourlyFee) {
@@ -24,7 +26,7 @@ import { Offer } from "./offer.model";
       );
     }
   
-    // Create a new offer document in the database
+  
     const newOffer = await Offer.create(offer);
   
     return newOffer;
