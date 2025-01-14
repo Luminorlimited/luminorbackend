@@ -42,6 +42,10 @@ const userSchema = new mongoose.Schema<IUser>({
   otp: { type: String },
   otpExpiry: { type: Date },
   identifier: { type: String },
+  status: {
+    online: { type: Boolean, default: false },
+    lastActive: { type: Date, default: null },
+  },
 });
 userSchema.statics.isUserExist = async function (
   email: string
