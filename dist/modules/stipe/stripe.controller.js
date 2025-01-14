@@ -115,6 +115,7 @@ const createPaymentIntent = (0, catchAsync_1.default)((req, res) => __awaiter(vo
 }));
 const handleWebHook = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const sig = req.headers["stripe-signature"];
+    console.log(sig);
     if (!sig) {
         return (0, sendResponse_1.default)(res, {
             statusCode: http_status_codes_1.StatusCodes.BAD_REQUEST,
@@ -135,7 +136,7 @@ const handleWebHook = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, 
     switch (event.type) {
         case "account.updated":
             const account = event.data.object;
-            console.log(account, "Account updated payload");
+            console.log(account, "check account from webhook");
             if (account.charges_enabled &&
                 account.details_submitted &&
                 account.payouts_enabled) {

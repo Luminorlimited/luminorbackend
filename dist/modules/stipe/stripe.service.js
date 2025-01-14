@@ -172,34 +172,40 @@ const refundPaymentToCustomer = (payload) => __awaiter(void 0, void 0, void 0, f
 });
 // Service function for creating a PaymentIntent
 const createPaymentIntentService = (payload) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log(payload, "check payload");
     if (!payload.amount) {
         throw new handleApiError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "Amount is required");
     }
     if (!(0, isValidAmount_1.isValidAmount)(payload.amount)) {
         throw new handleApiError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, `Amount '${payload.amount}' is not a valid amount`);
     }
-    const platformFee = (payload.amount * 20) / 100;
-    const retireProfessionalAmount = payload.amount - platformFee;
+    // Convert amount to cents
+    const totalAmount = Math.round(payload.amount * 100); // Convert to cents
+    const platformFee = Math.round((payload.amount * 20) / 100) * 100; // 20% fee
+    const retireProfessionalAmount = totalAmount - platformFee;
+    // Validate transfer amount
+    if (retireProfessionalAmount > totalAmount) {
+        throw new handleApiError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, `Transfer amount (${retireProfessionalAmount}) exceeds total amount (${totalAmount}).`);
+    }
     // Create a PaymentIntent with Stripe
     const paymentIntent = yield stripe.paymentIntents.create({
-        amount: payload === null || payload === void 0 ? void 0 : payload.amount,
+        amount: totalAmount, // Total amount in cents
         currency: "usd",
         customer: payload.customerId,
         payment_method: payload.paymentMethodId,
         confirm: true,
         setup_future_usage: payload.session,
+        application_fee_amount: platformFee,
         transfer_data: {
             destination: payload.retireProfessionalId,
-            amount: retireProfessionalAmount * 100,
+            // amount: retireProfessionalAmount, // Transfer amount in cents
         },
-        // automatic_payment_methods: {
-        //   enabled: true, // Enable automatic payment methods like cards, Apple Pay, Google Pay
-        // },
+        automatic_payment_methods: {
+            enabled: true,
+            allow_redirects: "never", // Disallow redirect-based methods
+        },
     });
-    return {
-        clientSecret: paymentIntent.client_secret,
-        dpmCheckerLink: `https://dashboard.stripe.com/settings/payment_methods/review?transaction_id=${paymentIntent.id}`,
-    };
+    return paymentIntent;
 });
 const handleAccountUpdated = (event) => __awaiter(void 0, void 0, void 0, function* () {
     console.log(event, "check even from handle account updated");

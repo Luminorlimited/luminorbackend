@@ -170,6 +170,8 @@ io.on("connection", (socket) => {
         media: null,
         meetingLink: join_url,
       });
+      console.log(savedMessage,"check saved message")
+      console.log(toSocketId,"check socket io")
 
       if (toSocketId) {
         socket.to(toSocketId).emit("createZoomMeeting", {

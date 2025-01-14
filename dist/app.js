@@ -50,7 +50,8 @@ app.set("view engine", "ejs");
 // Set the correct path to the 'views' folder
 app.set("views", path_1.default.join(__dirname, "../views"));
 app.get("/payment", (req, res) => {
-    res.render("braintree"); // Assuming your file is named braintree.ejs
+    // res.render("braintree"); // Assuming your file is named braintree.ejs
+    res.render("stripe"); // Assuming your file is named braintree.ejs
 });
 app.use(passport_1.default.initialize());
 app.use(passport_1.default.session());

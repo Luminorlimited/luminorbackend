@@ -54,8 +54,20 @@ const getSingleOffer = (0, catchAsync_1.default)((req, res) => __awaiter(void 0,
         data: result,
     });
 }));
+const deleteSingleOffer = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const id = req.params.id;
+    console.log(id, "check params");
+    const result = yield offer_service_1.OfferService.deleteSingleOffer(id);
+    (0, sendResponse_1.default)(res, {
+        success: true,
+        statusCode: http_status_codes_1.StatusCodes.OK,
+        message: `delete  offer  successfully`,
+        data: result,
+    });
+}));
 exports.OfferController = {
     createOffer,
     getOffersByProfessional,
     getSingleOffer,
+    deleteSingleOffer
 };

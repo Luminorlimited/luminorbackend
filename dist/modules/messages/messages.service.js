@@ -52,6 +52,7 @@ const getMessages = (senderId, recipientId) => __awaiter(void 0, void 0, void 0,
             email: user.email,
             name: `${user.name.firstName} ${user.name.lastName}`,
             profileUrl,
+            userId: user._id
         };
     })));
     return { userDetails, messages };

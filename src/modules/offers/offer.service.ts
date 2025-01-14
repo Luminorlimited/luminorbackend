@@ -1,15 +1,37 @@
 import { calculateTotalPrice } from "../../utilitis/calculateTotalPrice";
 import { User } from "../auth/auth.model";
-import { IOffer } from "./offer.interface";
+import { AgreementType, IOffer } from "./offer.interface";
 import { Offer } from "./offer.model";
 
-const createOffer = async (offer: IOffer) => {
-  offer.totalPrice = calculateTotalPrice(offer);
 
-  const newOffer = await Offer.create(offer);
 
-  return newOffer;
-};
+  const createOffer = async (offer: IOffer) => {
+    // Calculate the total price
+    const totalPrice = calculateTotalPrice(offer);
+  
+    // Calculate the service fee (deduct 20%)
+    offer.serviceFee = offer.totalPrice * 0.2; // 80% of the total price after deduction
+    offer.totalPrice=totalPrice-(offer.totalPrice * 0.2)
+    // Calculate the total delivery time
+    if (offer.agreementType === AgreementType.FlatFee) {
+      offer.totalDeliveryTime = offer.flatFee?.delivery || 0;
+    } else if (offer.agreementType === AgreementType.HourlyFee) {
+      offer.totalDeliveryTime = offer.hourlyFee?.delivery || 0;
+    } else if (offer.agreementType ===AgreementType.Milestone && offer.milestones) {
+      offer.totalDeliveryTime = offer?.milestones.reduce(
+        (total, milestone) => total + (milestone.delivery || 0),
+        0
+      );
+    }
+  
+    // Create a new offer document in the database
+    const newOffer = await Offer.create(offer);
+  
+    return newOffer;
+  };
+
+ 
+
 // const getOffersByProfessional = async (email: string) => {
 //   const offer = await Offer.find({ clientEmail: email });
 
@@ -20,7 +42,7 @@ const createOffer = async (offer: IOffer) => {
 const getOffersByProfessional = async (email: string) => {
 
   const offers = await Offer.find({ clientEmail: email });
-
+  let totalDeliverTime;
 
   const offersWithUserInfo = await Promise.all(
     offers.map(async (offer) => {
@@ -31,6 +53,7 @@ const getOffersByProfessional = async (email: string) => {
       return {
         ...offer.toObject(),
         pofessionalInfo: professionalInfo || null, 
+        
       };
     })
   );

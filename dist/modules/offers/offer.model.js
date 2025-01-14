@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Offer = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
+const offer_interface_1 = require("./offer.interface");
 const milestoneSchema = new mongoose_1.default.Schema({
     title: { type: String },
     description: { type: String },
@@ -17,7 +18,7 @@ const offerSchema = new mongoose_1.default.Schema({
     description: { type: String, required: true },
     agreementType: {
         type: String,
-        enum: ['Flat Fee', 'Hourly Fee', 'Milestone'],
+        enum: Object.values(offer_interface_1.AgreementType),
         required: true,
     },
     flatFee: {
@@ -35,6 +36,14 @@ const offerSchema = new mongoose_1.default.Schema({
     totalPrice: { type: Number, required: true },
     professionalEmail: { type: String, required: true },
     clientEmail: { type: String, required: true },
+    totalDeliveryTime: {
+        type: Number,
+        required: true,
+    },
+    serviceFee: {
+        type: Number,
+        required: true
+    },
     isAccepted: { type: Boolean, default: false },
 }, { timestamps: true });
-exports.Offer = mongoose_1.default.model('Offer', offerSchema);
+exports.Offer = mongoose_1.default.model("Offer", offerSchema);

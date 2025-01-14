@@ -119,6 +119,7 @@ const createPaymentIntent = catchAsync(async (req: any, res: any) => {
 });
 const handleWebHook = catchAsync(async (req: any, res: any) => {
   const sig = req.headers["stripe-signature"] as string;
+  console.log(sig)
 
   if (!sig) {
     return sendResponse(res, {
@@ -146,7 +147,8 @@ const handleWebHook = catchAsync(async (req: any, res: any) => {
   switch (event.type) {
     case "account.updated":
       const account = event.data.object;
-      console.log(account, "Account updated payload");
+      console.log(account,"check account from webhook")
+  
       if (
         account.charges_enabled &&
         account.details_submitted &&
@@ -188,6 +190,7 @@ const handleWebHook = catchAsync(async (req: any, res: any) => {
     case "account.external_account.created":
       const externalAccount = event.data.object;
       console.log("External account created:", externalAccount);
+
 
     default:
       console.log(`Unhandled event type: ${event.type}`);
