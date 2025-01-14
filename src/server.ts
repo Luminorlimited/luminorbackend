@@ -13,6 +13,7 @@ import { Offer } from "./modules/offers/offer.model";
 import { uploadFileToSpace } from "./utilitis/uploadTos3";
 import { Nimble } from "aws-sdk";
 import { zoomService } from "./modules/zoom/zoom.service";
+import { OfferService } from "./modules/offers/offer.service";
 
 const options = {
   autoIndex: true,
@@ -138,7 +139,7 @@ io.on("connection", (socket) => {
       offer.totalPrice = calculateTotalPrice(offer);
       const offerPDFPath = await generateOfferPDF(offer);
       offer.orderAgreementPDF = offerPDFPath;
-      const newOffer = await Offer.create(offer);
+      const newOffer = await OfferService.createOffer(offer);
       // console.log(newOffer,"check new offer")
       if (toSocketId) {
         socket.to(toSocketId).emit("sendOffer", {
