@@ -24,6 +24,7 @@ export type IOffer = {
   orderAgreementPDF: string; // PDF file path or URL
   milestones?: IMilestone[]; // Array of milestone objects
   totalPrice: number;
+  totalReceive:number
   professionalEmail: String; // Refers to the RetireProfessional model
   clientEmail: String; // Refers to the Client model
   createdAt: Date;

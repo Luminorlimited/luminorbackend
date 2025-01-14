@@ -15,6 +15,7 @@ import { Nimble } from "aws-sdk";
 import { zoomService } from "./modules/zoom/zoom.service";
 import { OfferService } from "./modules/offers/offer.service";
 
+
 const options = {
   autoIndex: true,
 };
@@ -80,7 +81,7 @@ io.on("connection", (socket) => {
       socket.emit("privateMessage", {
         message: savedMessage,
       });
-    } catch (error) {}
+    } catch (error) { }
   });
   // const message = {
   //   toEmail: "b@mail.com",
@@ -134,12 +135,14 @@ io.on("connection", (socket) => {
     const toSocketId = users[toEmail];
     // console.log(data,"from send offer")
     // console.log(offer,"check offer")
-    console.log(toSocketId,"check socket id to email")
+    console.log(toSocketId, "check socket id to email")
     try {
       offer.totalPrice = calculateTotalPrice(offer);
       const offerPDFPath = await generateOfferPDF(offer);
       offer.orderAgreementPDF = offerPDFPath;
-      const newOffer = await OfferService.createOffer(offer);
+      const totalOffer = { ...offer, clientEmail: fromEmail, professionalEmail: toEmail }
+      const newOffer = OfferService.createOffer(totalOffer);
+     
       // console.log(newOffer,"check new offer")
       if (toSocketId) {
         socket.to(toSocketId).emit("sendOffer", {
@@ -147,14 +150,14 @@ io.on("connection", (socket) => {
           offer: newOffer,
         });
       }
-    
+
     } catch (error) {
       socket.emit("sendoffer error ", "Failed to create effor");
     }
   });
   socket.on("createZoomMeeting", async (data: any) => {
     const { fromEmail, toEmail } = JSON.parse(data);
-    console.log(data,"from zoom meeting")
+    console.log(data, "from zoom meeting")
     const toSocketId = users[toEmail];
 
     try {
@@ -171,8 +174,6 @@ io.on("connection", (socket) => {
         media: null,
         meetingLink: join_url,
       });
-      console.log(savedMessage,"check saved message")
-      console.log(toSocketId,"check socket io")
 
       if (toSocketId) {
         socket.to(toSocketId).emit("createZoomMeeting", {
@@ -199,7 +200,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("error", (error) => {});
+  socket.on("error", (error) => { });
 });
 
 async function bootstrap() {

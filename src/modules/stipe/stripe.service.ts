@@ -5,7 +5,7 @@ import config from "../../config";
 import ApiError from "../../errors/handleApiError";
 import { StatusCodes } from "http-status-codes";
 import { isValidAmount } from "../../utilitis/isValidAmount";
-import { TStripeSaveWithCustomerInfo } from "./stripe.interface";
+
 
 // Initialize Stripe with your secret API key
 const stripe = new Stripe(config.stripe_key as string, {
