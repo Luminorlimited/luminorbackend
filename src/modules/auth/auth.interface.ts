@@ -21,7 +21,13 @@ export type IUser = {
      onboardingUrl:string,
      isOnboardingSucess:boolean
   }
-  client?: mongoose.Schema.Types.ObjectId
+  client?: mongoose.Schema.Types.ObjectId,
+  status:{
+    online:boolean,
+    lastActive:Date
+
+  }
+
 };
 
 export type IUserExistReturn = {
