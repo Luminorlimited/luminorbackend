@@ -218,6 +218,7 @@ const createPaymentIntentService = async (payload:any) => {
     confirm: true,
     setup_future_usage: payload.session,
     application_fee_amount: platformFee,
+    
     transfer_data: {
       destination: payload.retireProfessionalId,
       // amount: retireProfessionalAmount, // Transfer amount in cents
