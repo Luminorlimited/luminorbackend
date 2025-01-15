@@ -7,16 +7,16 @@ const orderSchema = new mongoose.Schema<IOrder>({
     required: true,
   },
   orderFrom: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
+    type: String,
+
     required: true,
   },
   orderReciver: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
+    type: String,
+
     required: true,
   },
-  deliveryData: {
+  deliveryDate: {
     type: String,
     required: true,
   },
@@ -27,6 +27,10 @@ const orderSchema = new mongoose.Schema<IOrder>({
   project: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Offer",
+    required: true,
+  },
+  paymentIntentId: {
+    type: String,
     required: true,
   },
 });

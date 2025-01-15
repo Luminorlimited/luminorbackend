@@ -5,7 +5,9 @@ import config from "../../config";
 import ApiError from "../../errors/handleApiError";
 import { StatusCodes } from "http-status-codes";
 import { isValidAmount } from "../../utilitis/isValidAmount";
-
+import { Order } from "../order/order.model";
+import { OfferService } from "../offers/offer.service";
+import { genreateClientRequirementPdf } from "../../utilitis/generateClientRequirementPdf";
 
 // Initialize Stripe with your secret API key
 const stripe = new Stripe(config.stripe_key as string, {
@@ -182,7 +184,7 @@ const refundPaymentToCustomer = async (payload: {
 };
 
 // Service function for creating a PaymentIntent
-const createPaymentIntentService = async (payload:any) => {
+const createPaymentIntentService = async (payload: any) => {
   console.log(payload, "check payload");
 
   if (!payload.amount) {
@@ -216,25 +218,46 @@ const createPaymentIntentService = async (payload:any) => {
     customer: payload.customerId,
     payment_method: payload.paymentMethodId,
     confirm: true,
-    setup_future_usage: payload.session,
+    setup_future_usage: "on_session",
     application_fee_amount: platformFee,
-    
-    transfer_data: {
-      destination: payload.retireProfessionalId,
-      // amount: retireProfessionalAmount, // Transfer amount in cents
-    },
+
+    // transfer_data: {
+    //   destination: payload.retireProfessionalId,
+    //   // amount: retireProfessionalAmount, // Transfer amount in cents
+    // },
     automatic_payment_methods: {
       enabled: true,
       allow_redirects: "never", // Disallow redirect-based methods
     },
   });
+  const offer = await OfferService.getSingleOffer(payload.offerId);
+  let orderResult;
 
-  return paymentIntent;
+  if (offer && paymentIntent.status === "succeeded") {
+    const clientRequirement = await genreateClientRequirementPdf(payload);
+    const order = {
+      clientRequerment: clientRequirement,
+      orderFrom: offer.clientEmail,
+      orderReciver: offer.professionalEmail,
+
+      deliveryDate: offer.totalDeliveryTime,
+      totalPrice: offer.totalReceive,
+
+      project: payload.offerId,
+
+      paymentIntentId: payload.paymentIntentId,
+    };
+  }
+
+  return orderResult;
 };
 
 const handleAccountUpdated = async (event: any) => {
   console.log(event, "check even from handle account updated");
 };
+
+const deliverProject = async (customerId: string) => {};
+
 export const StripeServices = {
   // saveCardWithCustomerInfoIntoStripe,
   // authorizedPaymentWithSaveCardFromStripe,
@@ -245,4 +268,5 @@ export const StripeServices = {
   refundPaymentToCustomer,
   createPaymentIntentService,
   handleAccountUpdated,
+  deliverProject,
 };
