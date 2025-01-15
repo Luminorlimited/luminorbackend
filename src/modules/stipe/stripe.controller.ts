@@ -6,6 +6,8 @@ import config from "../../config";
 import Stripe from "stripe";
 import { RetireProfessional } from "../professional/professional.model";
 import { RetireProfessionalService } from "../professional/professional.service";
+import { mergePDFs } from "../../utilitis/generateClientRequirementPdf";
+
 
 const stripe = new Stripe(config.stripe.secretKey as string, {
   apiVersion: "2024-11-20.acacia",
@@ -108,7 +110,22 @@ const refundPaymentToCustomer = catchAsync(async (req: any, res: any) => {
 
 //payment from owner to rider
 const createPaymentIntent = catchAsync(async (req: any, res: any) => {
-  const result = await StripeServices.createPaymentIntentService(req.body);
+  const files = req.files;
+  console.log(req.files)
+  if (!files || files.length === 0) {
+    throw new Error("No files uploaded.");
+  }
+
+ 
+  const mergedPDFUrl = await mergePDFs(files,req.body.caption,req.body.additionalMessage);
+  console.log(mergedPDFUrl,"chec merge url")
+  const order=req.body;
+
+  order.clientRequerment=mergedPDFUrl
+
+
+  const result = await StripeServices.createPaymentIntentService(order);
+ 
 
   sendResponse(res, {
     statusCode: 200,
@@ -199,6 +216,17 @@ const handleWebHook = catchAsync(async (req: any, res: any) => {
   res.status(200).send("Event received");
 });
 
+const deliverProject=catchAsync(async (req: any, res: any) => {
+  const result = await StripeServices.deliverProject(req.params.id);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "project deliver successfully",
+    data: result,
+  });
+});
+
 export const StripeController = {
   // saveCardWithCustomerInfo,
   // authorizedPaymentWithSaveCard,
@@ -209,4 +237,5 @@ export const StripeController = {
   refundPaymentToCustomer,
   createPaymentIntent,
   handleWebHook,
+  deliverProject
 };

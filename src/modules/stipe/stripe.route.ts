@@ -9,6 +9,8 @@ import {
   TStripeSaveWithCustomerInfoPayloadSchema,
 } from "./stripe.validation";
 import auth from "../../middlewares/auth";
+import { multerUpload } from "../../middlewares/multer";
+import { parseBodyData } from "../../middlewares/parseJson";
 
 const router = express.Router();
 
@@ -57,6 +59,7 @@ router.delete(
 //   StripeController.refundPaymentToCustomer
 // );
 
-router.post("/create-payment-intent", StripeController.createPaymentIntent);
+router.post("/create-payment-intent", multerUpload.array("clientRequirement"),parseBodyData, StripeController.createPaymentIntent);
+router.patch("/deliver-project/:id",StripeController.deliverProject)
 
 export const StripeRoutes = router;

@@ -1,13 +1,12 @@
-import PDFDocument from "pdfkit";
+import { uploadFileToSpace } from "./uploadTos3";
 import fs from "fs";
 import path from "path";
-import { uploadFileToSpace } from "./uploadTos3";
-import { IOffer } from "../modules/offers/offer.interface";
+import PDFDocument from "pdfkit";
 
-export const genreateClientRequirementPdf = async (offer: IOffer) => {
+export const mergePDFs = async (files: any, caption: string, additionalMessage: string) => {
   try {
-    // Define the local file path
-    const fileName = `offer_${Date.now()}.pdf`;
+    // Define the local file path for the merged PDF
+    const fileName = `merged_${Date.now()}.pdf`;
     const filePath = path.join(__dirname, "..", "uploads", fileName);
 
     // Create the uploads folder if it doesn't exist
@@ -15,40 +14,51 @@ export const genreateClientRequirementPdf = async (offer: IOffer) => {
       fs.mkdirSync(path.dirname(filePath), { recursive: true });
     }
 
-    // Initialize PDFKit
-    const doc = new PDFDocument();
+    // Initialize a new PDF document
+    const mergedDoc = new PDFDocument();
 
-    // Write the PDF to the local file system
+    // Write the merged PDF to the local file system
     const writeStream = fs.createWriteStream(filePath);
-    doc.pipe(writeStream);
+    mergedDoc.pipe(writeStream);
 
-    // Add content to the PDF
-    doc
-      .fontSize(16)
-      .text(`Offer for Project: ${offer.projectName}`, { align: "left" });
-    doc.text(`Description: ${offer.description}`, { align: "left" });
-    doc.text(`Agreement Type: ${offer.agreementType}`, { align: "left" });
-    doc.text(`Total Price: ${offer.totalPrice}`, { align: "left" });
+    let isFirstPage = true; // Track the first page
 
-    if (offer.agreementType === "Flat_Fee") {
-      doc.text(`Flat Fee Price: ${offer.flatFee?.price}`, { align: "left" });
-    } else if (offer.agreementType === "Hourly_Fee") {
-      doc.text(`Hourly Rate: ${offer.hourlyFee?.pricePerHour}`, {
-        align: "left",
+    // Append each uploaded file to the merged PDF
+    for (const file of files) {
+      const pdfBuffer = file.buffer; // Use the buffer instead of reading from path
+
+      // Add a new page for each file, except for the first page
+      if (!isFirstPage) {
+        mergedDoc.addPage();
+      }
+
+      // Handle the first page with the caption
+      if (isFirstPage) {
+        mergedDoc
+          .fontSize(14)
+          .text(caption, { align: "center", underline: true })
+          .moveDown(); // Add the caption at the top
+        isFirstPage = false; // Mark first page as processed
+      }
+
+      // Embed the file's image content into the current page
+      mergedDoc.image(pdfBuffer, {
+        fit: [500, 700], // Fit the image within this dimension
+        align: "center",
+        valign: "center",
       });
-    } else if (offer.agreementType === "Milestone") {
-      doc.text(`Milestones:`, { align: "left" });
-      offer.milestones?.forEach(
-        (milestone: { title: any; price: any }, index: number) => {
-          doc.text(
-            `Milestone ${index + 1}: ${milestone.title} - $${milestone.price}`,
-            { align: "left" }
-          );
-        }
-      );
     }
 
-    doc.end();
+    // Add the final page for the additional message
+    mergedDoc.addPage();
+    mergedDoc
+      .fontSize(14)
+      .text("Additional Message:", { align: "center", underline: true })
+      .moveDown()
+      .fontSize(12)
+      .text(additionalMessage, { align: "left" });
+
+    mergedDoc.end();
 
     // Wait for the file to be completely written
     await new Promise((resolve, reject) => {
@@ -56,26 +66,22 @@ export const genreateClientRequirementPdf = async (offer: IOffer) => {
       writeStream.on("error", reject);
     });
 
-    // console.log("PDF generated locally:", filePath);
-
-    // Upload the file to DigitalOcean Spaces
+    // Upload the merged PDF to DigitalOcean Spaces
     const uploadedURL = await uploadFileToSpace(
       {
         buffer: fs.readFileSync(filePath),
         originalname: fileName,
         mimetype: "application/pdf",
       },
-      "offers"
+      "merged-pdfs"
     );
-
-    // console.log("PDF uploaded to DigitalOcean Spaces:", uploadedURL);
 
     // Optionally delete the local file after uploading
     fs.unlinkSync(filePath);
 
     return uploadedURL;
   } catch (error) {
-    console.error("Error generating or uploading PDF:", error);
+    console.error("Error merging or uploading PDF:", error);
     throw error;
   }
 };

@@ -42,8 +42,13 @@ const offerSchema = new mongoose.Schema<IOffer>(
       type:Number,
       required:true
     },
-
-
+   
+    transactionNumber:{
+      type:String,
+      required:true
+      
+    }
+,
 
     isAccepted: { type: Boolean, default: false },
   },
