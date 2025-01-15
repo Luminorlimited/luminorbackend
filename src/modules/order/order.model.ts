@@ -33,6 +33,7 @@ const orderSchema = new mongoose.Schema<IOrder>({
     type: String,
     required: true,
   },
+  
 });
 
 export const Order = model<IOrder>("Order", orderSchema);

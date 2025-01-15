@@ -31,6 +31,7 @@ export type IOffer = {
   isAccepted: boolean;
   serviceFee:number;
   totalDeliveryTime:number;
+  transactionNumber:string
 };
 export enum AgreementType {
   FlatFee = "Flat_Fee",

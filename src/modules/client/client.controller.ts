@@ -20,8 +20,9 @@ const createClient = catchAsync(async (req: Request, res: Response) => {
       name,
       email,
       role,
-      stripe:{onboardingUrl:"",customerId:"",isOnboardingSucess:false},
+      stripe: { onboardingUrl: "", customerId: "", isOnboardingSucess: false },
       password,
+      
     },
     others
   );
