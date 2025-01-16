@@ -16,12 +16,10 @@ const offer_interface_1 = require("./offer.interface");
 const offer_model_1 = require("./offer.model");
 const createOffer = (offer) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
-    // Calculate the total price
     const totalPrice = (0, calculateTotalPrice_1.calculateTotalPrice)(offer);
-    // Calculate the service fee (deduct 20%)
-    offer.serviceFee = offer.totalPrice * 0.2; // 80% of the total price after deduction
-    offer.totalPrice = totalPrice - (offer.totalPrice * 0.2);
-    // Calculate the total delivery time
+    offer.serviceFee = offer.totalPrice * 0.2;
+    offer.totalPrice = totalPrice;
+    offer.totalReceive = totalPrice - (offer.totalPrice * 0.2);
     if (offer.agreementType === offer_interface_1.AgreementType.FlatFee) {
         offer.totalDeliveryTime = ((_a = offer.flatFee) === null || _a === void 0 ? void 0 : _a.delivery) || 0;
     }
@@ -31,7 +29,6 @@ const createOffer = (offer) => __awaiter(void 0, void 0, void 0, function* () {
     else if (offer.agreementType === offer_interface_1.AgreementType.Milestone && offer.milestones) {
         offer.totalDeliveryTime = offer === null || offer === void 0 ? void 0 : offer.milestones.reduce((total, milestone) => total + (milestone.delivery || 0), 0);
     }
-    // Create a new offer document in the database
     const newOffer = yield offer_model_1.Offer.create(offer);
     return newOffer;
 });

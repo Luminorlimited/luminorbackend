@@ -20,6 +20,7 @@ const stripe_service_1 = require("./stripe.service");
 const config_1 = __importDefault(require("../../config"));
 const stripe_1 = __importDefault(require("stripe"));
 const professional_service_1 = require("../professional/professional.service");
+const generateClientRequirementPdf_1 = require("../../utilitis/generateClientRequirementPdf");
 const stripe = new stripe_1.default(config_1.default.stripe.secretKey, {
     apiVersion: "2024-11-20.acacia",
 });
@@ -105,7 +106,16 @@ const refundPaymentToCustomer = (0, catchAsync_1.default)((req, res) => __awaite
 }));
 //payment from owner to rider
 const createPaymentIntent = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield stripe_service_1.StripeServices.createPaymentIntentService(req.body);
+    const files = req.files;
+    console.log(req.files);
+    if (!files || files.length === 0) {
+        throw new Error("No files uploaded.");
+    }
+    const mergedPDFUrl = yield (0, generateClientRequirementPdf_1.mergePDFs)(files, req.body.caption, req.body.additionalMessage);
+    console.log(mergedPDFUrl, "chec merge url");
+    const order = req.body;
+    order.clientRequerment = mergedPDFUrl;
+    const result = yield stripe_service_1.StripeServices.createPaymentIntentService(order);
     (0, sendResponse_1.default)(res, {
         statusCode: 200,
         success: true,
@@ -170,6 +180,15 @@ const handleWebHook = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, 
     }
     res.status(200).send("Event received");
 }));
+const deliverProject = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield stripe_service_1.StripeServices.deliverProject(req.params.id);
+    (0, sendResponse_1.default)(res, {
+        statusCode: 200,
+        success: true,
+        message: "project deliver successfully",
+        data: result,
+    });
+}));
 exports.StripeController = {
     // saveCardWithCustomerInfo,
     // authorizedPaymentWithSaveCard,
@@ -180,4 +199,5 @@ exports.StripeController = {
     refundPaymentToCustomer,
     createPaymentIntent,
     handleWebHook,
+    deliverProject
 };

@@ -6,6 +6,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.StripeRoutes = void 0;
 const express_1 = __importDefault(require("express"));
 const stripe_controller_1 = require("./stripe.controller");
+const multer_1 = require("../../middlewares/multer");
+const parseJson_1 = require("../../middlewares/parseJson");
 const router = express_1.default.Router();
 // create a new customer with card
 // router.post(
@@ -42,5 +44,6 @@ router.delete("/delete-card/:paymentMethodId", stripe_controller_1.StripeControl
 //   validateRequest(refundPaymentPayloadSchema),
 //   StripeController.refundPaymentToCustomer
 // );
-router.post("/create-payment-intent", stripe_controller_1.StripeController.createPaymentIntent);
+router.post("/create-payment-intent", multer_1.multerUpload.array("clientRequirement"), parseJson_1.parseBodyData, stripe_controller_1.StripeController.createPaymentIntent);
+router.patch("/deliver-project/:id", stripe_controller_1.StripeController.deliverProject);
 exports.StripeRoutes = router;

@@ -22,11 +22,7 @@ export type IUser = {
      isOnboardingSucess:boolean
   }
   client?: mongoose.Schema.Types.ObjectId,
-  // status:{
-  //   online:boolean,
-  //   lastActive:Date
-
-  // }
+//  isOnline?:boolean
 
 };
 

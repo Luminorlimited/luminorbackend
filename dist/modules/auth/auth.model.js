@@ -74,9 +74,16 @@ const userSchema = new mongoose_1.default.Schema({
             default: false
         }
     },
+    // isOnline:{
+    //   type:Boolean,
+    // },
     otp: { type: String },
     otpExpiry: { type: Date },
     identifier: { type: String },
+    // status: {
+    //   online: { type: Boolean, default: false },
+    //   lastActive: { type: Date, default: null },
+    // },
 });
 userSchema.statics.isUserExist = function (email) {
     return __awaiter(this, void 0, void 0, function* () {

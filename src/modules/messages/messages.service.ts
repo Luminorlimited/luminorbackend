@@ -1,4 +1,5 @@
 import { ENUM_USER_ROLE } from "../../enums/user";
+
 import { User } from "../auth/auth.model";
 import { Client } from "../client/client.model";
 import { RetireProfessional } from "../professional/professional.model";
@@ -60,7 +61,7 @@ const getMessages = async (senderId: string, recipientId: string) => {
 
 const getConversationLists = async (user: any) => {
   try {
-    // console.log(user.email, "check email");
+    console.log(user.email, "check email");
 
 
     const messages = await Message.find({
@@ -100,10 +101,13 @@ const getConversationLists = async (user: any) => {
           profileUrl = retireProfessional?.profileUrl || null;
         }
 
+        // const isOnline = onlineUsers.has(user.email);
         return {
           email: user.email,
           name: `${user.name.firstName} ${user.name.lastName}`,
           profileUrl,
+          // isOnline:isOnline
+       
         };
       })
     );

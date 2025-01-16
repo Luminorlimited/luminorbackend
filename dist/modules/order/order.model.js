@@ -31,16 +31,14 @@ const orderSchema = new mongoose_1.default.Schema({
         required: true,
     },
     orderFrom: {
-        type: mongoose_1.default.Schema.Types.ObjectId,
-        ref: "User",
+        type: String,
         required: true,
     },
     orderReciver: {
-        type: mongoose_1.default.Schema.Types.ObjectId,
-        ref: "User",
+        type: String,
         required: true,
     },
-    deliveryData: {
+    deliveryDate: {
         type: String,
         required: true,
     },
@@ -51,6 +49,10 @@ const orderSchema = new mongoose_1.default.Schema({
     project: {
         type: mongoose_1.default.Schema.Types.ObjectId,
         ref: "Offer",
+        required: true,
+    },
+    paymentIntentId: {
+        type: String,
         required: true,
     },
 });

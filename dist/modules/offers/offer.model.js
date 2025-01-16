@@ -34,6 +34,7 @@ const offerSchema = new mongoose_1.default.Schema({
     orderAgreementPDF: { type: String, required: true },
     milestones: [milestoneSchema],
     totalPrice: { type: Number, required: true },
+    totalReceive: { type: Number, required: true },
     professionalEmail: { type: String, required: true },
     clientEmail: { type: String, required: true },
     totalDeliveryTime: {
@@ -42,6 +43,10 @@ const offerSchema = new mongoose_1.default.Schema({
     },
     serviceFee: {
         type: Number,
+        required: true
+    },
+    transactionNumber: {
+        type: String,
         required: true
     },
     isAccepted: { type: Boolean, default: false },

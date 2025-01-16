@@ -38,6 +38,10 @@ const userSchema = new mongoose.Schema<IUser>({
     default:false
   }
   },
+  // isOnline:{
+  //   type:Boolean,
+  
+  // },
 
   otp: { type: String },
   otpExpiry: { type: Date },
