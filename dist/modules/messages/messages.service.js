@@ -59,7 +59,7 @@ const getMessages = (senderId, recipientId) => __awaiter(void 0, void 0, void 0,
 });
 const getConversationLists = (user) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        // console.log(user.email, "check email");
+        console.log(user.email, "check email");
         const messages = yield messages_model_1.Message.find({
             $or: [
                 { sender: { $regex: `^${user.email}$`, $options: "i" } },
@@ -87,10 +87,12 @@ const getConversationLists = (user) => __awaiter(void 0, void 0, void 0, functio
                 const retireProfessional = yield professional_model_1.RetireProfessional.findOne({ retireProfessional: user._id }).select("profileUrl");
                 profileUrl = (retireProfessional === null || retireProfessional === void 0 ? void 0 : retireProfessional.profileUrl) || null;
             }
+            // const isOnline = onlineUsers.has(user.email);
             return {
                 email: user.email,
                 name: `${user.name.firstName} ${user.name.lastName}`,
                 profileUrl,
+                // isOnline:isOnline
             };
         })));
         return userDetails;

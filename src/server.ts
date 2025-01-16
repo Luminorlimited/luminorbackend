@@ -14,6 +14,8 @@ import { uploadFileToSpace } from "./utilitis/uploadTos3";
 import { Nimble } from "aws-sdk";
 import { zoomService } from "./modules/zoom/zoom.service";
 import { OfferService } from "./modules/offers/offer.service";
+import { User } from "./modules/auth/auth.model";
+import { MessageService } from "./modules/messages/messages.service";
 
 
 const options = {
@@ -36,18 +38,34 @@ const io = new Server(httpServer, {
 
 // Store socket IDs for users
 const users: { [key: string]: string } = {};
+const onlineUsers = new Map<string, boolean>();
 
 io.on("connection", (socket) => {
-  // Register the user with their email and socket ID
-  socket.on("register", (data: any) => {
+
+  socket.on("register", async(data: any) => {
     const { email } = JSON.parse(data);
     // console.log(email);
 
     users[email] = socket.id;
     console.log(users[email]);
+    onlineUsers.set(email, true);;
+ 
+    const conversationList = await MessageService.getConversationLists({email});
+    // socket.emit("conversation-list", conversationList);
+    const updatedConversationList = conversationList.map((user) => {
+      return {
+        ...user,
+        isOnline: onlineUsers.get(user.email) || false
+      };
+    });
+
+  
+    socket.emit("conversation-list", updatedConversationList);
+
+    // socket.broadcast.emit("user-online", email);
   });
 
-  // Private messaging between users6
+
   socket.on("privateMessage", async (data: any) => {
     // console.log(users);
     const { toEmail, message = null, fromEmail, media } = JSON.parse(data);
@@ -189,16 +207,64 @@ io.on("connection", (socket) => {
       socket.emit("zoomMeetingError", "Failed to create Zoom meeting");
     }
   });
+//   socket.on('user-online', async (userId) => {
+//     try {
+//         await User.findByIdAndUpdate(userId, { isOnline: true });
+//         console.log(`User ${userId} is online`);
+//     } catch (err) {
+//         console.error(`Error setting user online: ${err}`);
+//     }
+// });
 
   // Handle disconnection of users
-  socket.on("disconnect", (reason) => {
-    for (const email in users) {
-      if (users[email] === socket.id) {
-        delete users[email];
+  socket.on("disconnect", async (reason) => {
+    // for (const email in users) {
+    //   if (users[email] === socket.id) {
+    //     try {
+
+    //       // await User.findOneAndUpdate({ email }, { isOnline: false });
+    //       socket.broadcast.emit("user-offline", email);
+    //       console.log(`User ${email} is now offline.`);
+    //     } catch (err) {
+    //       console.error(`Error setting user offline for ${email}:`, err);
+    //     }
+        
+     
+    //     delete users[email];
+    //     break;
+    //   }
+    // }
+    let email = ''; 
+    for (let [userEmail, isOnline] of onlineUsers) {
+      if (socket.id === users[userEmail]) {
+        email = userEmail;
         break;
       }
     }
+
+    if (email) {
+     
+      onlineUsers.set(email, false);
+      console.log(`User ${email} is now offline`);
+
+    
+      socket.emit("user-offline", email);
+      
+ 
+      
+    const conversationList = await MessageService.getConversationLists(email);
+      const updatedConversationList = conversationList.map((user) => {
+        return {
+          ...user,
+          isOnline: onlineUsers.get(user.email) || false
+        };
+      });
+
+      // Emit the updated conversation list to the disconnected user
+      socket.emit("conversation-list", updatedConversationList);
+    }
   });
+ 
 
   socket.on("error", (error) => { });
 });

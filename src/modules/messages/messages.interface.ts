@@ -6,4 +6,5 @@ export type IMessage = {
   message?: string;
   media?: string;
   meetingLink?: string;
+
 };

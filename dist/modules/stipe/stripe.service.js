@@ -14,10 +14,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.StripeServices = void 0;
 const stripe_1 = __importDefault(require("stripe"));
+const auth_model_1 = require("../auth/auth.model");
 const config_1 = __importDefault(require("../../config"));
 const handleApiError_1 = __importDefault(require("../../errors/handleApiError"));
 const http_status_codes_1 = require("http-status-codes");
 const isValidAmount_1 = require("../../utilitis/isValidAmount");
+const order_model_1 = require("../order/order.model");
+const offer_service_1 = require("../offers/offer.service");
+const order_service_1 = require("../order/order.service");
 // Initialize Stripe with your secret API key
 const stripe = new stripe_1.default(config_1.default.stripe_key, {
     //   apiVersion: "2024-06-20",
@@ -172,7 +176,7 @@ const refundPaymentToCustomer = (payload) => __awaiter(void 0, void 0, void 0, f
 });
 // Service function for creating a PaymentIntent
 const createPaymentIntentService = (payload) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log(payload, "check payload");
+    // console.log(payload, "check payload");
     if (!payload.amount) {
         throw new handleApiError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "Amount is required");
     }
@@ -180,35 +184,76 @@ const createPaymentIntentService = (payload) => __awaiter(void 0, void 0, void 0
         throw new handleApiError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, `Amount '${payload.amount}' is not a valid amount`);
     }
     // Convert amount to cents
-    const totalAmount = Math.round(payload.amount * 100); // Convert to cents
-    const platformFee = Math.round((payload.amount * 20) / 100) * 100; // 20% fee
-    const retireProfessionalAmount = totalAmount - platformFee;
+    // const totalAmount = Math.round(payload.amount * 100); // Convert to cents
+    // const platformFee = Math.round((payload.amount * 20) / 100) * 100; // 20% fee
+    // const retireProfessionalAmount = totalAmount - platformFee;
     // Validate transfer amount
-    if (retireProfessionalAmount > totalAmount) {
-        throw new handleApiError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, `Transfer amount (${retireProfessionalAmount}) exceeds total amount (${totalAmount}).`);
-    }
+    // if (retireProfessionalAmount > totalAmount) {
+    //   throw new ApiError(
+    //     StatusCodes.BAD_REQUEST,
+    //     `Transfer amount (${retireProfessionalAmount}) exceeds total amount (${totalAmount}).`
+    //   );
+    // }
     // Create a PaymentIntent with Stripe
     const paymentIntent = yield stripe.paymentIntents.create({
-        amount: totalAmount, // Total amount in cents
+        amount: payload.amount, // Total amount in cents
         currency: "usd",
         customer: payload.customerId,
         payment_method: payload.paymentMethodId,
         confirm: true,
-        setup_future_usage: payload.session,
-        application_fee_amount: platformFee,
-        transfer_data: {
-            destination: payload.retireProfessionalId,
-            // amount: retireProfessionalAmount, // Transfer amount in cents
-        },
+        setup_future_usage: "on_session",
+        // application_fee_amount: platformFee,
+        // transfer_data: {
+        //   destination: config.stripe.accountId as string,
+        //   // amount: retireProfessionalAmount, // Transfer amount in cents
+        // },
         automatic_payment_methods: {
             enabled: true,
             allow_redirects: "never", // Disallow redirect-based methods
         },
     });
-    return paymentIntent;
+    const offer = yield offer_service_1.OfferService.getSingleOffer(payload.offerId);
+    let orderResult;
+    if (offer && paymentIntent.status === "succeeded") {
+        const order = {
+            clientRequerment: payload.clientRequerment,
+            orderFrom: offer.clientEmail,
+            orderReciver: offer.professionalEmail,
+            deliveryDate: offer.totalDeliveryTime,
+            totalPrice: offer.totalPrice,
+            project: payload.offerId,
+            paymentIntentId: payload.paymentMethodId,
+        };
+        console.log(order, "check order");
+        orderResult = yield order_model_1.Order.create(order);
+    }
+    return orderResult;
 });
 const handleAccountUpdated = (event) => __awaiter(void 0, void 0, void 0, function* () {
     console.log(event, "check even from handle account updated");
+});
+const deliverProject = (orderId) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    const order = yield order_service_1.OrderService.getOrderById(orderId);
+    const retireProfessional = yield auth_model_1.User.findOne({ email: order === null || order === void 0 ? void 0 : order.orderReciver });
+    if (!retireProfessional) {
+        throw new handleApiError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "user not found");
+    }
+    console.log(retireProfessional, "check retire professional");
+    if (!order) {
+        throw new handleApiError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "order not found");
+    }
+    const totalAmount = Math.round(parseFloat(order === null || order === void 0 ? void 0 : order.totalPrice) * 100); // Convert to cents
+    const platformFee = Math.round((parseFloat(order.totalPrice) * 20) / 100) * 100; // 20% fee
+    const transferAmount = totalAmount - platformFee;
+    const transfer = yield stripe.transfers.create({
+        amount: transferAmount, // $80 (after platform fee)
+        currency: "usd",
+        destination: (_a = retireProfessional === null || retireProfessional === void 0 ? void 0 : retireProfessional.stripe) === null || _a === void 0 ? void 0 : _a.customerId,
+        transfer_group: `DELIVERY_${order === null || order === void 0 ? void 0 : order.paymentIntentId}`,
+        // metadata: { clientEmail: order?.orderFrom, orderId: "67890" },
+    });
+    return transfer;
 });
 exports.StripeServices = {
     // saveCardWithCustomerInfoIntoStripe,
@@ -220,4 +265,5 @@ exports.StripeServices = {
     refundPaymentToCustomer,
     createPaymentIntentService,
     handleAccountUpdated,
+    deliverProject,
 };
