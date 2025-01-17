@@ -24,12 +24,12 @@ const enterOtp = catchAsync(async (req: Request, res: Response) => {
   const result = await AuthService.enterOtp(req.body);
   AuthService
   // res.cookie("token", result.accessToken, { httpOnly: true });
-  res.cookie("token", result.accessToken, {
-    secure: config.env === "production",
-    httpOnly: true,
-    sameSite: "none",
-    maxAge: 1000 * 60 * 60 * 24 * 365,
-  });
+  // res.cookie("token", result.accessToken, {
+  //   secure: config.env === "production",
+  //   httpOnly: true,
+  //   sameSite: "none",
+  //   maxAge: 1000 * 60 * 60 * 24 * 365,
+  // });
 
   sendResponse(res, {
     statusCode: StatusCodes.OK,

@@ -29,13 +29,17 @@ const createOrder = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, vo
     });
 }));
 const getOrderByProfessional = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const user = req.params.id;
-    const messages = yield order_service_1.OrderService.getOrderByProfessional(user);
+    const user = req.user;
+    console.log(user);
+    if (!user) {
+        throw new handleApiError_1.default(http_status_codes_1.StatusCodes.UNAUTHORIZED, "user not found");
+    }
+    const order = yield order_service_1.OrderService.getOrderByProfessional(user.email);
     (0, sendResponse_1.default)(res, {
         success: true,
         statusCode: http_status_codes_1.StatusCodes.OK,
         message: "order get by professional   successfull",
-        data: messages,
+        data: order,
     });
 }));
 const getSpecificOrderBYClientAndProfessional = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -44,6 +48,7 @@ const getSpecificOrderBYClientAndProfessional = (0, catchAsync_1.default)((req, 
     if (!professional || !client) {
         throw new handleApiError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "Both professional and client must be provided and must be strings");
     }
+    console.log(client, professional);
     const list = yield order_service_1.OrderService.getSpecificOrderBYClientAndProfessional(client, professional);
     (0, sendResponse_1.default)(res, {
         success: true,
@@ -53,9 +58,6 @@ const getSpecificOrderBYClientAndProfessional = (0, catchAsync_1.default)((req, 
     });
 }));
 const getOrderById = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    if (!req.user) {
-        throw new handleApiError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "header not found");
-    }
     // console.log(req.user)
     const list = yield order_service_1.OrderService.getOrderById(req.params.id);
     (0, sendResponse_1.default)(res, {

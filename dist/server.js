@@ -85,10 +85,12 @@ io.on("connection", (socket) => {
             if (toSocketId) {
                 socket.to(toSocketId).emit("privateMessage", {
                     message: savedMessage,
+                    fromEmail: fromEmail
                 });
             }
             socket.emit("privateMessage", {
                 message: savedMessage,
+                fromEmail: fromEmail
             });
         }
         catch (error) { }
