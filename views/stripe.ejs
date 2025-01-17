@@ -28,6 +28,7 @@
       // Handle form submission
       const form = document.getElementById("payment-form");
       form.addEventListener("submit", async (event) => {
+        
         event.preventDefault();
 
         const { paymentMethod, error } = await stripe.createPaymentMethod({

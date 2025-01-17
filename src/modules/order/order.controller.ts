@@ -22,16 +22,21 @@ const createOrder = catchAsync(async (req: Request, res: Response) => {
 });
 const getOrderByProfessional = catchAsync(
   async (req: Request, res: Response) => {
-    const user = req.params.id;
+    const user = req.user as { email: string };
+    console.log(user)
+   
+    if(!user){
+      throw new ApiError(StatusCodes.UNAUTHORIZED,"user not found")
+    }
 
-    const messages = await OrderService.getOrderByProfessional(user);
+    const order = await OrderService.getOrderByProfessional(user.email);
 
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,
 
       message: "order get by professional   successfull",
-      data: messages,
+      data: order,
     });
   }
 );
@@ -46,6 +51,7 @@ const getSpecificOrderBYClientAndProfessional = catchAsync(
         "Both professional and client must be provided and must be strings"
       );
     }
+    console.log(client,professional)
 
     const list = await OrderService.getSpecificOrderBYClientAndProfessional(
       client,
@@ -62,9 +68,6 @@ const getSpecificOrderBYClientAndProfessional = catchAsync(
 );
 
 const getOrderById = catchAsync(async (req: Request, res: Response) => {
-  if (!req.user) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, "header not found");
-  }
 
   // console.log(req.user)
 
