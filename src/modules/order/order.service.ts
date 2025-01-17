@@ -22,7 +22,7 @@ const getSpecificOrderBYClientAndProfessional = async (
   return result;
 };
 const getOrderById = async (orderId: string) => {
-  const result = await Order.findById(orderId);
+  const result = await Order.findById(orderId).populate("project");
 
   return result;
 };
