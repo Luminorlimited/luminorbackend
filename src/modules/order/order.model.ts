@@ -33,6 +33,11 @@ const orderSchema = new mongoose.Schema<IOrder>({
     type: String,
     required: true,
   },
+  transaction: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Transaction", 
+    required: true,
+  },
   
 });
 

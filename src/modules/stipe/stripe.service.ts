@@ -10,6 +10,9 @@ import { OfferService } from "../offers/offer.service";
 
 import { OrderService } from "../order/order.service";
 import { RetireProfessional } from "../professional/professional.model";
+import { Transaction } from "../transaction/transaction.model";
+import mongoose from "mongoose";
+import { PAYMENTSTATUS } from "../transaction/transaction.interface";
 
 // Initialize Stripe with your secret API key
 const stripe = new Stripe(config.stripe_key as string, {
@@ -185,10 +188,64 @@ const refundPaymentToCustomer = async (payload: {
   }
 };
 
-// Service function for creating a PaymentIntent
-const createPaymentIntentService = async (payload: any) => {
-  // console.log(payload, "check payload");
 
+// const createPaymentIntentService = async (payload: any) => {
+//   // console.log(payload, "check payload");
+
+//   if (!payload.amount) {
+//     throw new ApiError(StatusCodes.BAD_REQUEST, "Amount is required");
+//   }
+
+//   if (!isValidAmount(payload.amount)) {
+//     throw new ApiError(
+//       StatusCodes.BAD_REQUEST,
+//       `Amount '${payload.amount}' is not a valid amount`
+//     );
+//   }
+
+
+//   // Create a PaymentIntent with Stripe
+//   const paymentIntent = await stripe.paymentIntents.create({
+//     amount: payload.amount, // Total amount in cents
+//     currency: "usd",
+//     customer: payload.customerId,
+//     payment_method: payload.paymentMethodId,
+//     confirm: true,
+//     setup_future_usage: "on_session",
+//     // application_fee_amount: platformFee,
+
+//     // transfer_data: {
+//     //   destination: config.stripe.accountId as string,
+//     //   // amount: retireProfessionalAmount, // Transfer amount in cents
+//     // },
+//     automatic_payment_methods: {
+//       enabled: true,
+//       allow_redirects: "never", // Disallow redirect-based methods
+//     },
+//   });
+//   const offer = await OfferService.getSingleOffer(payload.offerId);
+//   let orderResult;
+
+//   if (offer && paymentIntent.status === "succeeded") {
+//     const order = {
+//       clientRequerment: payload.clientRequerment,
+//       orderFrom: offer.clientEmail,
+//       orderReciver: offer.professionalEmail,
+
+//       deliveryDate: offer.totalDeliveryTime,
+//       totalPrice: offer.totalPrice,
+
+//       project: payload.offerId,
+
+//       paymentIntentId: payload.paymentMethodId,
+//     };
+//     console.log(order, "check order");
+//     orderResult = await Order.create(order);
+//   }
+
+//   return orderResult;
+// };
+const createPaymentIntentService = async (payload: any) => {
   if (!payload.amount) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "Amount is required");
   }
@@ -200,61 +257,86 @@ const createPaymentIntentService = async (payload: any) => {
     );
   }
 
-  // Convert amount to cents
-  // const totalAmount = Math.round(payload.amount * 100); // Convert to cents
-  // const platformFee = Math.round((payload.amount * 20) / 100) * 100; // 20% fee
-  // const retireProfessionalAmount = totalAmount - platformFee;
-
-  // Validate transfer amount
-  // if (retireProfessionalAmount > totalAmount) {
-  //   throw new ApiError(
-  //     StatusCodes.BAD_REQUEST,
-  //     `Transfer amount (${retireProfessionalAmount}) exceeds total amount (${totalAmount}).`
-  //   );
-  // }
-
   // Create a PaymentIntent with Stripe
   const paymentIntent = await stripe.paymentIntents.create({
-    amount: payload.amount, // Total amount in cents
+    amount: payload.amount*100, 
     currency: "usd",
     customer: payload.customerId,
     payment_method: payload.paymentMethodId,
     confirm: true,
     setup_future_usage: "on_session",
-    // application_fee_amount: platformFee,
-
-    // transfer_data: {
-    //   destination: config.stripe.accountId as string,
-    //   // amount: retireProfessionalAmount, // Transfer amount in cents
-    // },
     automatic_payment_methods: {
       enabled: true,
-      allow_redirects: "never", // Disallow redirect-based methods
+      allow_redirects: "never",
     },
   });
+
+  if (paymentIntent.status !== "succeeded") {
+    throw new ApiError(
+      StatusCodes.BAD_REQUEST,
+      "PaymentIntent was not successful"
+    );
+  }
+
+ 
   const offer = await OfferService.getSingleOffer(payload.offerId);
+  if (!offer) {
+    throw new ApiError(StatusCodes.NOT_FOUND, "Offer not found");
+  }
+
+
+  const session = await mongoose.startSession();
+
   let orderResult;
 
-  if (offer && paymentIntent.status === "succeeded") {
+  try {
+    session.startTransaction(); 
+
+  
+    const transaction = await Transaction.create(
+      [
+        {
+          orderId: null, 
+          amount: payload.amount,
+          paymentStatus: "pending", 
+          stripePaymentIntentId: paymentIntent.id,
+        },
+      ],
+      { session }
+    );
+
  
     const order = {
       clientRequerment: payload.clientRequerment,
       orderFrom: offer.clientEmail,
       orderReciver: offer.professionalEmail,
-
       deliveryDate: offer.totalDeliveryTime,
       totalPrice: offer.totalPrice,
-
       project: payload.offerId,
-
-      paymentIntentId: payload.paymentMethodId,
+      paymentIntentId: paymentIntent.id,
+      transaction: transaction[0]._id,
     };
-    console.log(order,"check order")
-    orderResult=await Order.create(order)
-  }
-  
 
-  return orderResult;
+    orderResult = await Order.create([order], { session });
+
+    
+    await Transaction.updateOne(
+      { _id: transaction[0]._id },
+      { orderId: orderResult[0]._id },
+      { session }
+    );
+
+   
+    await session.commitTransaction();
+  } catch (error) {
+  
+    await session.abortTransaction();
+    throw error;
+  } finally {
+    session.endSession();
+  }
+
+  return orderResult[0];
 };
 
 const handleAccountUpdated = async (event: any) => {
@@ -262,28 +344,34 @@ const handleAccountUpdated = async (event: any) => {
 };
 
 const deliverProject = async (orderId: string) => {
-
-  const order=await OrderService.getOrderById(orderId)
-  const retireProfessional=await User.findOne({email:order?.orderReciver})
-  if(!retireProfessional){
-    throw new ApiError(StatusCodes.BAD_REQUEST,"user not found")
+  const order = await OrderService.getOrderById(orderId);
+  const retireProfessional = await User.findOne({ email: order?.orderReciver });
+  if (!retireProfessional) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "user not found");
   }
-  console.log(retireProfessional,"check retire professional")
-  if(!order){
-    throw new ApiError(StatusCodes.BAD_REQUEST,"order not found")
+  // console.log(retireProfessional, "check retire professional");
+  if (!order) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "order not found");
   }
-  const totalAmount = Math.round(parseFloat(order?.totalPrice) * 100); // Convert to cents
-  const platformFee = Math.round((parseFloat(order.totalPrice) * 20) / 100) * 100; // 20% fee
+  const totalAmount = Math.round(parseFloat(order?.totalPrice) * 100);
+  const platformFee =
+    Math.round((parseFloat(order.totalPrice) * 20) / 100) * 100;
   const transferAmount = totalAmount - platformFee;
-const transfer = await stripe.transfers.create({
-  amount: transferAmount, // $80 (after platform fee)
-  currency: "usd",
-  destination: retireProfessional?.stripe?.customerId as string, 
-  transfer_group: `DELIVERY_${order?.paymentIntentId}`, 
-  // metadata: { clientEmail: order?.orderFrom, orderId: "67890" },
-});
-return transfer
-
+  const transfer = await stripe.transfers.create({
+    amount: transferAmount, 
+    currency: "usd",
+    destination: retireProfessional?.stripe?.customerId as string,
+    transfer_group: `DELIVERY_${order?.paymentIntentId}`,
+  
+  });
+  const updateTransaction=await Transaction.updateOne({
+    orderId:orderId,
+    $set: {
+      paymentStatus: PAYMENTSTATUS.COMPLETED, 
+     
+    },
+  })
+  return transfer;
 };
 
 export const StripeServices = {
