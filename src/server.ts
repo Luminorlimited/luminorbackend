@@ -38,7 +38,7 @@ const io = new Server(httpServer, {
 
 // Store socket IDs for users
 const users: { [key: string]: string } = {};
-const onlineUsers = new Map<string, boolean>();
+export const onlineUsers = new Map<string, boolean>();
 
 io.on("connection", (socket) => {
 
