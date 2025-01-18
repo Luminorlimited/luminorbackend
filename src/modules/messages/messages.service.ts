@@ -1,4 +1,5 @@
 import { ENUM_USER_ROLE } from "../../enums/user";
+import { onlineUsers } from "../../server";
 
 import { User } from "../auth/auth.model";
 import { Client } from "../client/client.model";
@@ -101,13 +102,14 @@ const getConversationLists = async (user: any) => {
           profileUrl = retireProfessional?.profileUrl || null;
         }
 
-        // const isOnline = onlineUsers.has(user.email);
+        const isOnline = onlineUsers.has(user.email);
         return {
           email: user.email,
           name: `${user.name.firstName} ${user.name.lastName}`,
           profileUrl,
-          // isOnline:isOnline
-       
+        
+   
+          isOnline:isOnline
         };
       })
     );
