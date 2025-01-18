@@ -102,14 +102,14 @@ const getConversationLists = async (user: any) => {
           profileUrl = retireProfessional?.profileUrl || null;
         }
 
-        const isOnline = onlineUsers.has(user.email);
+        const isOnline = onlineUsers?.has(user.email);
         return {
           email: user.email,
           name: `${user.name.firstName} ${user.name.lastName}`,
           profileUrl,
         
    
-          isOnline:isOnline
+          isOnline:isOnline||"false"
         };
       })
     );
