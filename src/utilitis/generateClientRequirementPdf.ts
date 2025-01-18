@@ -3,7 +3,11 @@ import fs from "fs";
 import path from "path";
 import PDFDocument from "pdfkit";
 
-export const mergePDFs = async (files: any, caption: string, additionalMessage: string) => {
+export const mergePDFs = async (
+  files: any[],
+  captions: string[], // Array of captions corresponding to each file
+  additionalMessage: string
+) => {
   try {
     // Define the local file path for the merged PDF
     const fileName = `merged_${Date.now()}.pdf`;
@@ -21,25 +25,22 @@ export const mergePDFs = async (files: any, caption: string, additionalMessage: 
     const writeStream = fs.createWriteStream(filePath);
     mergedDoc.pipe(writeStream);
 
-    let isFirstPage = true; // Track the first page
-
     // Append each uploaded file to the merged PDF
-    for (const file of files) {
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
       const pdfBuffer = file.buffer; // Use the buffer instead of reading from path
+      const caption = captions[i] || "No caption provided"; // Use the corresponding caption or a default message
 
-      // Add a new page for each file, except for the first page
-      if (!isFirstPage) {
+      // Add a new page for each file (no need to check for the first page)
+      if (i > 0) {
         mergedDoc.addPage();
       }
 
-      // Handle the first page with the caption
-      if (isFirstPage) {
-        mergedDoc
-          .fontSize(14)
-          .text(caption, { align: "center", underline: true })
-          .moveDown(); // Add the caption at the top
-        isFirstPage = false; // Mark first page as processed
-      }
+      // Add the caption at the top of the page
+      mergedDoc
+        .fontSize(14)
+        .text(caption, { align: "center", underline: true })
+        .moveDown(); // Add the caption at the top
 
       // Embed the file's image content into the current page
       mergedDoc.image(pdfBuffer, {
