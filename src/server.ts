@@ -198,11 +198,11 @@ io.on("connection", (socket) => {
       if (toSocketId) {
         socket.to(toSocketId).emit("createZoomMeeting", {
           from: fromEmail,
-          join_url,
+          savedMessage
         });
       }
       socket.emit("createZoomMeeting", {
-        start_url,
+        savedMessage
       });
     } catch (error) {
       console.error("Error creating Zoom meeting:", error);

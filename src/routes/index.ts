@@ -12,6 +12,7 @@ import { paypalRoute } from "../modules/paypal/paypal.route";
 import { zoomRoutes } from "../modules/zoom/zoom.route";
 import { BrainTreeRoute } from "../modules/braintree/braintree.route";
 import { OrderRoute } from "../modules/order/order.route";
+import { TransactionRoute } from "../modules/transaction/transaction.route";
 
 const router = express.Router();
 
@@ -61,6 +62,10 @@ const moduleRoutes = [
     path: "/order",
     route: OrderRoute,
   },
+ {
+  path:"/transaction",
+  route:TransactionRoute
+ }
 ];
 
 moduleRoutes.forEach((route) => router.use(route.path, route.route));

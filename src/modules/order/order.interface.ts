@@ -8,4 +8,5 @@ export type IOrder = {
   totalPrice: string;
   project: mongoose.Types.ObjectId;
   paymentIntentId: string;
+  transaction: mongoose.Types.ObjectId;
 };
