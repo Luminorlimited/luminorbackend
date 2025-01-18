@@ -280,7 +280,7 @@ async function bootstrap() {
   try {
     // Connect to MongoDB
     await mongoose.connect(
-      "mongodb+srv://luminor:bychoylqi2eiz9iu@cluster0.v0ciw.mongodb.net/luminor?retryWrites=true&w=majority&appName=Cluster0" as string,
+      "mongodb+srv://luminor:BYcHOYLQI2eiZ9IU@cluster0.v0ciw.mongodb.net/luminor?retryWrites=true&w=majority&appName=Cluster0" as string,
       options
     );
     // console.log(config.database_url, "check data base url");
