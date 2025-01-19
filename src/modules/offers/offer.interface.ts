@@ -10,7 +10,7 @@ export type IMilestone = {
 export type IOffer = {
   projectName: string;
   description: string;
-  agreementType:AgreementType;
+  agreementType: AgreementType;
   flatFee?: {
     revision: number;
     delivery: number;
@@ -24,14 +24,14 @@ export type IOffer = {
   orderAgreementPDF: string; // PDF file path or URL
   milestones?: IMilestone[]; // Array of milestone objects
   totalPrice: number;
-  totalReceive:number
+  totalReceive: number;
   professionalEmail: String; // Refers to the RetireProfessional model
   clientEmail: String; // Refers to the Client model
   createdAt: Date;
   isAccepted: boolean;
-  serviceFee:number;
-  totalDeliveryTime:number;
-  transactionNumber:string
+  serviceFee: number;
+  totalDeliveryTime: number;
+  // transactionNumber:string
 };
 export enum AgreementType {
   FlatFee = "Flat_Fee",
