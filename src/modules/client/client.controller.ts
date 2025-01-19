@@ -22,7 +22,6 @@ const createClient = catchAsync(async (req: Request, res: Response) => {
       role,
       stripe: { onboardingUrl: "", customerId: "", isOnboardingSucess: false },
       password,
-      
     },
     others
   );
@@ -38,12 +37,12 @@ const createClient = catchAsync(async (req: Request, res: Response) => {
 
 const getClients = catchAsync(async (req: Request, res: Response) => {
   const paginationOptions = pick(req.query, paginationFileds);
-  console.log(req.query, "querty check from controller");
+  // console.log(req.query, "querty check from controller");
   const filters = pick(req.query, filterableField);
   //  console.log(req.query,"check query")
   const result = await ClientService.getClients(filters, paginationOptions);
 
-  console.log(filters, "filters");
+  // console.log(filters, "filters");
   sendResponse<IClient[]>(res, {
     success: true,
     statusCode: StatusCodes.OK,

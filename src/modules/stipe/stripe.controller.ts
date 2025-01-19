@@ -8,7 +8,6 @@ import { RetireProfessional } from "../professional/professional.model";
 import { RetireProfessionalService } from "../professional/professional.service";
 import { mergePDFs } from "../../utilitis/generateClientRequirementPdf";
 
-
 const stripe = new Stripe(config.stripe.secretKey as string, {
   apiVersion: "2024-11-20.acacia",
 });
@@ -111,21 +110,22 @@ const refundPaymentToCustomer = catchAsync(async (req: any, res: any) => {
 //payment from owner to rider
 const createPaymentIntent = catchAsync(async (req: any, res: any) => {
   const files = req.files;
-  console.log(req.files)
+  // console.log(req.files)
   if (!files || files.length === 0) {
     throw new Error("No files uploaded.");
   }
 
- 
-  const mergedPDFUrl = await mergePDFs(files,req.body.caption,req.body.additionalMessage);
-  console.log(mergedPDFUrl,"chec merge url")
-  const order=req.body;
+  const mergedPDFUrl = await mergePDFs(
+    files,
+    req.body.caption,
+    req.body.additionalMessage
+  );
+  // console.log(mergedPDFUrl,"chec merge url")
+  const order = req.body;
 
-  order.clientRequerment=mergedPDFUrl
-
+  order.clientRequerment = mergedPDFUrl;
 
   const result = await StripeServices.createPaymentIntentService(order);
- 
 
   sendResponse(res, {
     statusCode: 200,
@@ -136,7 +136,7 @@ const createPaymentIntent = catchAsync(async (req: any, res: any) => {
 });
 const handleWebHook = catchAsync(async (req: any, res: any) => {
   const sig = req.headers["stripe-signature"] as string;
-  console.log(sig)
+  // console.log(sig)
 
   if (!sig) {
     return sendResponse(res, {
@@ -164,59 +164,58 @@ const handleWebHook = catchAsync(async (req: any, res: any) => {
   switch (event.type) {
     case "account.updated":
       const account = event.data.object;
-      console.log(account,"check account from webhook")
-  
+      // console.log(account,"check account from webhook")
+
       if (
         account.charges_enabled &&
         account.details_submitted &&
         account.payouts_enabled
       ) {
-        console.log(
-          "Onboarding completed successfully for account:",
-          account.id
-        );
+        // console.log(
+        //   "Onboarding completed successfully for account:",
+        //   account.id
+        // );
         await RetireProfessionalService.updateProfessionalStripeAccount(
           account
         );
       } else {
-        console.log("Onboarding incomplete for account:", account.id);
+        // console.log("Onboarding incomplete for account:", account.id);
       }
       break;
 
     case "capability.updated":
-      console.log("Capability updated event received. Handle accordingly.");
+      // console.log("Capability updated event received. Handle accordingly.");
       break;
 
     case "financial_connections.account.created":
-      console.log(
-        "Financial connections account created event received. Handle accordingly."
-      );
+      // console.log(
+      //   "Financial connections account created event received. Handle accordingly."
+      // );
       break;
 
     case "account.application.authorized":
       const authorizedAccount = event.data.object;
-      console.log("Application authorized for account:", authorizedAccount.id);
+      // console.log("Application authorized for account:", authorizedAccount.id);
       // Add your logic to handle this event
       break;
 
     case "customer.created":
       const customer = event.data.object;
-      console.log("New customer created:", customer.id);
+      // console.log("New customer created:", customer.id);
 
       break;
     case "account.external_account.created":
       const externalAccount = event.data.object;
-      console.log("External account created:", externalAccount);
-
+    // console.log("External account created:", externalAccount);
 
     default:
-      console.log(`Unhandled event type: ${event.type}`);
+    // console.log(`Unhandled event type: ${event.type}`);
   }
 
   res.status(200).send("Event received");
 });
 
-const deliverProject=catchAsync(async (req: any, res: any) => {
+const deliverProject = catchAsync(async (req: any, res: any) => {
   const result = await StripeServices.deliverProject(req.params.id);
 
   sendResponse(res, {
@@ -237,5 +236,5 @@ export const StripeController = {
   refundPaymentToCustomer,
   createPaymentIntent,
   handleWebHook,
-  deliverProject
+  deliverProject,
 };

@@ -17,7 +17,6 @@ import { OfferService } from "./modules/offers/offer.service";
 import { User } from "./modules/auth/auth.model";
 import { MessageService } from "./modules/messages/messages.service";
 
-
 const options = {
   autoIndex: true,
 };
@@ -41,31 +40,28 @@ const users: { [key: string]: string } = {};
 export const onlineUsers = new Map<string, boolean>();
 
 io.on("connection", (socket) => {
-
   socket.on("register", async (data: any) => {
     const { email } = JSON.parse(data);
     // console.log(email)
-;
-
     users[email] = socket.id;
-    console.log(users[email]);
-    onlineUsers.set(email, true);;
+    // console.log(users[email]);
+    onlineUsers.set(email, true);
 
-    const conversationList = await MessageService.getConversationLists({ email });
+    const conversationList = await MessageService.getConversationLists({
+      email,
+    });
     // socket.emit("conversation-list", conversationList);
     const updatedConversationList = conversationList.map((user) => {
       return {
         ...user,
-        isOnline: onlineUsers.get(user.email) || false
+        isOnline: onlineUsers.get(user.email) || false,
       };
     });
-
 
     socket.emit("conversation-list", updatedConversationList);
 
     // socket.broadcast.emit("user-online", email);
   });
-
 
   socket.on("privateMessage", async (data: any) => {
     // console.log(users);
@@ -95,14 +91,14 @@ io.on("connection", (socket) => {
       if (toSocketId) {
         socket.to(toSocketId).emit("privateMessage", {
           message: savedMessage,
-          fromEmail: fromEmail
+          fromEmail: fromEmail,
         });
       }
       socket.emit("privateMessage", {
         message: savedMessage,
-        fromEmail: fromEmail
+        fromEmail: fromEmail,
       });
-    } catch (error) { }
+    } catch (error) {}
   });
   // const message = {
   //   toEmail: "b@mail.com",
@@ -156,12 +152,16 @@ io.on("connection", (socket) => {
     const toSocketId = users[toEmail];
     // console.log(data,"from send offer")
     // console.log(offer,"check offer")
-    console.log(toSocketId, "check socket id to email")
+    // console.log(toSocketId, "check socket id to email")
     try {
       offer.totalPrice = calculateTotalPrice(offer);
       const offerPDFPath = await generateOfferPDF(offer);
       offer.orderAgreementPDF = offerPDFPath;
-      const totalOffer = { ...offer, clientEmail: fromEmail, professionalEmail: toEmail }
+      const totalOffer = {
+        ...offer,
+        clientEmail: fromEmail,
+        professionalEmail: toEmail,
+      };
       const newOffer = OfferService.createOffer(totalOffer);
 
       // console.log(newOffer,"check new offer")
@@ -171,14 +171,13 @@ io.on("connection", (socket) => {
           offer: newOffer,
         });
       }
-
     } catch (error) {
       socket.emit("sendoffer error ", "Failed to create effor");
     }
   });
   socket.on("createZoomMeeting", async (data: any) => {
     const { fromEmail, toEmail } = JSON.parse(data);
-    console.log(data, "from zoom meeting")
+    // console.log(data, "from zoom meeting")
     const toSocketId = users[toEmail];
 
     try {
@@ -199,13 +198,13 @@ io.on("connection", (socket) => {
       if (toSocketId) {
         socket.to(toSocketId).emit("createZoomMeeting", {
           from: fromEmail,
-          savedMessage
+          savedMessage,
         });
       }
-      savedMessage.meetingLink = start_url
-      savedMessage.message = start_url
+      savedMessage.meetingLink = start_url;
+      savedMessage.message = start_url;
       socket.emit("createZoomMeeting", {
-        savedMessage
+        savedMessage,
       });
     } catch (error) {
       console.error("Error creating Zoom meeting:", error);
@@ -234,12 +233,11 @@ io.on("connection", (socket) => {
     //       console.error(`Error setting user offline for ${email}:`, err);
     //     }
 
-
     //     delete users[email];
     //     break;
     //   }
     // }
-    let email = '';
+    let email = "";
     for (let [userEmail, isOnline] of onlineUsers) {
       if (socket.id === users[userEmail]) {
         email = userEmail;
@@ -247,23 +245,17 @@ io.on("connection", (socket) => {
       }
     }
 
-    if (email)
- {
-
+    if (email) {
       onlineUsers.set(email, false);
-      console.log(`User ${email} is now offline`);
-
+      // console.log(`User ${email} is now offline`);
 
       socket.emit("user-offline", email);
 
-
-
-      const conversationList = await MessageService.getConversationLists(email)
-;
+      const conversationList = await MessageService.getConversationLists(email);
       const updatedConversationList = conversationList.map((user) => {
         return {
           ...user,
-          isOnline: onlineUsers.get(user.email) || false
+          isOnline: onlineUsers.get(user.email) || false,
         };
       });
 
@@ -272,8 +264,7 @@ io.on("connection", (socket) => {
     }
   });
 
-
-  socket.on("error", (error) => { });
+  socket.on("error", (error) => {});
 });
 
 async function bootstrap() {

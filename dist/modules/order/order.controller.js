@@ -30,7 +30,7 @@ const createOrder = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, vo
 }));
 const getOrderByProfessional = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const user = req.user;
-    console.log(user);
+    // console.log(user)
     if (!user) {
         throw new handleApiError_1.default(http_status_codes_1.StatusCodes.UNAUTHORIZED, "user not found");
     }
@@ -48,7 +48,7 @@ const getSpecificOrderBYClientAndProfessional = (0, catchAsync_1.default)((req, 
     if (!professional || !client) {
         throw new handleApiError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "Both professional and client must be provided and must be strings");
     }
-    console.log(client, professional);
+    // console.log(client,professional)
     const list = yield order_service_1.OrderService.getSpecificOrderBYClientAndProfessional(client, professional);
     (0, sendResponse_1.default)(res, {
         success: true,

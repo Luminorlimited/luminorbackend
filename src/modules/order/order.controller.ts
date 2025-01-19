@@ -23,10 +23,10 @@ const createOrder = catchAsync(async (req: Request, res: Response) => {
 const getOrderByProfessional = catchAsync(
   async (req: Request, res: Response) => {
     const user = req.user as { email: string };
-    console.log(user)
-   
-    if(!user){
-      throw new ApiError(StatusCodes.UNAUTHORIZED,"user not found")
+    // console.log(user)
+
+    if (!user) {
+      throw new ApiError(StatusCodes.UNAUTHORIZED, "user not found");
     }
 
     const order = await OrderService.getOrderByProfessional(user.email);
@@ -51,7 +51,7 @@ const getSpecificOrderBYClientAndProfessional = catchAsync(
         "Both professional and client must be provided and must be strings"
       );
     }
-    console.log(client,professional)
+    // console.log(client,professional)
 
     const list = await OrderService.getSpecificOrderBYClientAndProfessional(
       client,
@@ -68,7 +68,6 @@ const getSpecificOrderBYClientAndProfessional = catchAsync(
 );
 
 const getOrderById = catchAsync(async (req: Request, res: Response) => {
-
   // console.log(req.user)
 
   const list = await OrderService.getOrderById(req.params.id);

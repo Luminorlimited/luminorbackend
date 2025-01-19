@@ -55,7 +55,7 @@ const createProfessional = (user, professionalData, file) => __awaiter(void 0, v
             type: "account_onboarding",
         });
         if (user.stripe) {
-            console.log(user.stripe, "check stripe");
+            // console.log(user.stripe, "check stripe");
             user.stripe.onboardingUrl = accountLink.url;
             user.stripe.customerId = account.id;
         }
@@ -170,7 +170,7 @@ const getRetireProfessionals = (filters, paginationOptions) => __awaiter(void 0,
     const aggregationPipeline = [];
     if (filtersData.location) {
         const [longitude, latitude, minDistance, maxDistance] = JSON.parse(filtersData.location);
-        console.log(longitude, latitude, minDistance, maxDistance);
+        // console.log(longitude, latitude, minDistance, maxDistance);
         aggregationPipeline.push({
             $geoNear: {
                 near: {
@@ -245,7 +245,7 @@ const getRetireProfessionalById = (professionalId) => __awaiter(void 0, void 0, 
     return result;
 });
 const updateProfessionalStripeAccount = (payload) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log(payload, "check payload from updateprofessional account");
+    // console.log(payload,"check payload from updateprofessional account")
     yield auth_model_1.User.findOneAndUpdate({ email: payload.email }, {
         $set: {
             "stripe.customerId": payload.id,

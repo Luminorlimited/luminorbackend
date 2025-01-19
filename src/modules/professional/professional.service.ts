@@ -43,7 +43,7 @@ const createProfessional = async (
     });
 
     if (user.stripe) {
-      console.log(user.stripe, "check stripe");
+      // console.log(user.stripe, "check stripe");
       user.stripe.onboardingUrl = accountLink.url;
       user.stripe.customerId = account.id;
     }
@@ -197,7 +197,7 @@ const getRetireProfessionals = async (
       filtersData.location
     );
 
-    console.log(longitude, latitude, minDistance, maxDistance);
+    // console.log(longitude, latitude, minDistance, maxDistance);
 
     aggregationPipeline.push({
       $geoNear: {
@@ -298,7 +298,7 @@ const getRetireProfessionalById = async (
 };
 
 const updateProfessionalStripeAccount = async (payload: any) => {
-  console.log(payload,"check payload from updateprofessional account")
+  // console.log(payload,"check payload from updateprofessional account")
   await User.findOneAndUpdate(
     { email: payload.email },
     {

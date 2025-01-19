@@ -12,20 +12,20 @@ const createMessage = async (payload: IMessage) => {
   return result;
 };
 const getMessages = async (senderId: string, recipientId: string) => {
-  console.log(senderId, recipientId);
+  // console.log(senderId, recipientId);
 
   const messages = await Message.find({
     $or: [
       { sender: senderId, recipient: recipientId },
       { sender: recipientId, recipient: senderId },
-      { sender: { $regex: `^${senderId}$`, $options: "i" }},
-      { sender: { $regex: `^${recipientId}$`, $options: "i" }},
-      { recipient: { $regex: `^${senderId}$`, $options: "i" }},
-      { recipient: { $regex: `^${recipientId}$`, $options: "i" }},
+      { sender: { $regex: `^${senderId}$`, $options: "i" } },
+      { sender: { $regex: `^${recipientId}$`, $options: "i" } },
+      { recipient: { $regex: `^${senderId}$`, $options: "i" } },
+      { recipient: { $regex: `^${recipientId}$`, $options: "i" } },
     ],
-  }).sort({ createdAt: 1 });
+  }).sort({ createdAt: -1 });
 
-  console.log(messages, "check messages");
+  // console.log(messages, "check messages");
 
   const emails = new Set<string>();
   messages.forEach((msg) => {
@@ -33,17 +33,23 @@ const getMessages = async (senderId: string, recipientId: string) => {
     emails.add(msg.recipient);
   });
 
-  const users = await User.find({ email: { $in: Array.from(emails) } }).select("email name role");
+  const users = await User.find({ email: { $in: Array.from(emails) } }).select(
+    "email name role"
+  );
 
   const userDetails = await Promise.all(
     users.map(async (user) => {
       let profileUrl = null;
 
       if (user.role === ENUM_USER_ROLE.CLIENT) {
-        const client = await Client.findOne({ client: user._id }).select("profileUrl");
+        const client = await Client.findOne({ client: user._id }).select(
+          "profileUrl"
+        );
         profileUrl = client?.profileUrl || null;
       } else if (user.role === ENUM_USER_ROLE.RETIREPROFESSIONAL) {
-        const retireProfessional = await RetireProfessional.findOne({ retireProfessional: user._id }).select("profileUrl");
+        const retireProfessional = await RetireProfessional.findOne({
+          retireProfessional: user._id,
+        }).select("profileUrl");
         profileUrl = retireProfessional?.profileUrl || null;
       }
 
@@ -51,54 +57,59 @@ const getMessages = async (senderId: string, recipientId: string) => {
         email: user.email,
         name: `${user.name.firstName} ${user.name.lastName}`,
         profileUrl,
-        userId:user._id
-        
+        userId: user._id,
       };
     })
   );
 
-  return {userDetails,messages};
+  return { userDetails, messages };
 };
 
 const getConversationLists = async (user: any) => {
   try {
-    console.log(user.email, "check email");
-
+    // console.log(user.email, "check email");
 
     const messages = await Message.find({
       $or: [
         { sender: { $regex: `^${user.email}$`, $options: "i" } },
         { recipient: { $regex: `^${user.email}$`, $options: "i" } },
       ],
-    }).sort({ createdAt: -1 });;
+    }).sort({ createdAt: -1 });
 
-    console.log(messages, "check messages");
-
+    // console.log(messages, "check messages");
 
     const emails = new Set<string>();
     messages.forEach((msg) => {
       emails.add(msg.sender);
       emails.add(msg.recipient);
     });
-    emails.delete(user.email); 
+    emails.delete(user.email);
+    const emailArray = Array.from(emails);
+    // console.log(emailArray, "check emails");
 
-    console.log(emails, "check emails");
+    const users = await User.find({
+      email: { $in: emailArray },
+    }).select("email name role");
 
-    
-    const users = await User.find({ email: { $in: Array.from(emails) } }).select("email name role");
+    const userMap = new Map(users.map((user) => [user.email, user]));
 
-    console.log(users, "check users");
+    const sortedUsers = emailArray
+      .map((email) => userMap.get(email))
+      .filter(Boolean);
 
     const userDetails = await Promise.all(
-      users.map(async (user) => {
-        
+      sortedUsers.map(async (user: any) => {
         let profileUrl = null;
 
         if (user.role === ENUM_USER_ROLE.CLIENT) {
-          const client = await Client.findOne({ client: user._id }).select("profileUrl");
+          const client = await Client.findOne({ client: user._id }).select(
+            "profileUrl"
+          );
           profileUrl = client?.profileUrl || null;
         } else if (user.role === ENUM_USER_ROLE.RETIREPROFESSIONAL) {
-          const retireProfessional = await RetireProfessional.findOne({ retireProfessional: user._id }).select("profileUrl");
+          const retireProfessional = await RetireProfessional.findOne({
+            retireProfessional: user._id,
+          }).select("profileUrl");
           profileUrl = retireProfessional?.profileUrl || null;
         }
 
@@ -107,9 +118,8 @@ const getConversationLists = async (user: any) => {
           email: user.email,
           name: `${user.name.firstName} ${user.name.lastName}`,
           profileUrl,
-        
-   
-          isOnline:isOnline||"false"
+
+          isOnline: isOnline || "false",
         };
       })
     );
@@ -120,9 +130,10 @@ const getConversationLists = async (user: any) => {
     throw error;
   }
 };
+// Import the `isOnline` function from your server file
 
 export const MessageService = {
   createMessage,
   getMessages,
-  getConversationLists
+  getConversationLists,
 };

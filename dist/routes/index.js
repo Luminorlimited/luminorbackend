@@ -17,6 +17,7 @@ const paypal_route_1 = require("../modules/paypal/paypal.route");
 const zoom_route_1 = require("../modules/zoom/zoom.route");
 const braintree_route_1 = require("../modules/braintree/braintree.route");
 const order_route_1 = require("../modules/order/order.route");
+const transaction_route_1 = require("../modules/transaction/transaction.route");
 const router = express_1.default.Router();
 const moduleRoutes = [
     {
@@ -64,6 +65,10 @@ const moduleRoutes = [
         path: "/order",
         route: order_route_1.OrderRoute,
     },
+    {
+        path: "/transaction",
+        route: transaction_route_1.TransactionRoute
+    }
 ];
 moduleRoutes.forEach((route) => router.use(route.path, route.route));
 exports.routes = router;
