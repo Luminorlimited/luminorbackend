@@ -7,8 +7,6 @@ import config from "../config";
 import { User } from "../modules/auth/auth.model";
 import ApiError from "../errors/handleApiError";
 
-
-
 //  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN)
 
 const auth = (...roles: string[]) => {
@@ -20,7 +18,7 @@ const auth = (...roles: string[]) => {
     try {
       const token = req.headers.authorization;
       // console.log(token,"check token")
-  
+
       if (!token) {
         throw new ApiError(StatusCodes.UNAUTHORIZED, "You are not authorized!");
       }
@@ -29,22 +27,20 @@ const auth = (...roles: string[]) => {
         token,
         config.jwt.secret as Secret
       );
-   console.log(verifiedUser,"check verified user")
+      //  console.log(verifiedUser,"check verified user")
       const user = await User.findOne({
-       
-          _id: verifiedUser.id,
-        
+        _id: verifiedUser.id,
       });
 
       if (!user) {
-        throw new ApiError(StatusCodes.UNAUTHORIZED, "This user is not found !");
+        throw new ApiError(
+          StatusCodes.UNAUTHORIZED,
+          "This user is not found !"
+        );
       }
 
-    
-
-
       if (roles.length && !roles.includes(verifiedUser.role)) {
-      throw new ApiError(StatusCodes.FORBIDDEN, "Forbidden!");
+        throw new ApiError(StatusCodes.FORBIDDEN, "Forbidden!");
       }
 
       req.user = verifiedUser;

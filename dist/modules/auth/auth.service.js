@@ -24,7 +24,7 @@ const professional_model_1 = require("../professional/professional.model");
 const client_model_1 = require("../client/client.model");
 const loginUser = (payload) => __awaiter(void 0, void 0, void 0, function* () {
     const { email, password } = payload;
-    console.log(password, "check password");
+    // console.log(password, "check password");
     const isUserExist = yield auth_model_1.User.isUserExist(email);
     if (!isUserExist) {
         throw new handleApiError_1.default(http_status_codes_1.StatusCodes.NOT_FOUND, "User Doesn,t Exist");
@@ -88,14 +88,14 @@ const loginUser = (payload) => __awaiter(void 0, void 0, void 0, function* () {
     // };
 });
 const enterOtp = (payload) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log(payload, "check payload");
-    console.log(payload, "check payload");
+    // console.log(payload, "check payload");
+    // console.log(payload, "check payload");
     const userData = yield auth_model_1.User.findOne({
         otp: payload.otp,
         email: payload.email.toLowerCase(),
     });
-    console.log(userData, "check user");
-    console.log(userData, "check userdaTA");
+    // console.log(userData, "check user");
+    // console.log(userData, "check userdaTA");
     if (!userData) {
         throw new handleApiError_1.default(404, "Your otp is incorrect");
     }
@@ -128,7 +128,7 @@ const enterOtp = (payload) => __awaiter(void 0, void 0, void 0, function* () {
 });
 const getProfile = (id) => __awaiter(void 0, void 0, void 0, function* () {
     const user = yield auth_model_1.User.findById(id);
-    console.log(user, "User details");
+    // console.log(user, "User details");
     let result;
     if ((user === null || user === void 0 ? void 0 : user.role) === user_1.ENUM_USER_ROLE.RETIREPROFESSIONAL) {
         result = yield professional_model_1.RetireProfessional.findOne({
@@ -141,16 +141,18 @@ const getProfile = (id) => __awaiter(void 0, void 0, void 0, function* () {
     return result;
 });
 const getSingleUserById = (id) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log(id, "check id");
+    // console.log(id,"check id")
     const user = yield auth_model_1.User.findById(id);
-    console.log(user, "check user");
+    //  console.log(user,"check user")
     if (!user) {
         throw new handleApiError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "User not found");
     }
     let result;
     if ((user === null || user === void 0 ? void 0 : user.role) === user_1.ENUM_USER_ROLE.RETIREPROFESSIONAL) {
-        console.log("i am in client ");
-        result = yield professional_model_1.RetireProfessional.findOne({ retireProfessional: user._id }).populate("retireProfessional");
+        // console.log("i am in client ")
+        result = yield professional_model_1.RetireProfessional.findOne({
+            retireProfessional: user._id,
+        }).populate("retireProfessional");
     }
     else if ((user === null || user === void 0 ? void 0 : user.role) === user_1.ENUM_USER_ROLE.CLIENT) {
         result = yield client_model_1.Client.findOne({ client: user._id }).populate("client");
@@ -161,5 +163,5 @@ exports.AuthService = {
     loginUser,
     enterOtp,
     getProfile,
-    getSingleUserById
+    getSingleUserById,
 };

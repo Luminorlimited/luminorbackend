@@ -13,7 +13,7 @@ import { Client } from "../client/client.model";
 
 const loginUser = async (payload: ILoginUser) => {
   const { email, password } = payload;
-  console.log(password, "check password");
+  // console.log(password, "check password");
 
   const isUserExist = await User.isUserExist(email);
 
@@ -94,16 +94,16 @@ const loginUser = async (payload: ILoginUser) => {
   // };
 };
 const enterOtp = async (payload: any) => {
-  console.log(payload, "check payload");
-  console.log(payload, "check payload");
+  // console.log(payload, "check payload");
+  // console.log(payload, "check payload");
 
   const userData = await User.findOne({
     otp: payload.otp,
     email: payload.email.toLowerCase(),
   });
-  console.log(userData, "check user");
+  // console.log(userData, "check user");
 
-  console.log(userData, "check userdaTA");
+  // console.log(userData, "check userdaTA");
 
   if (!userData) {
     throw new ApiError(404, "Your otp is incorrect");
@@ -147,47 +147,42 @@ const enterOtp = async (payload: any) => {
 
 const getProfile = async (id: string) => {
   const user = await User.findById(id);
-  console.log(user, "User details");
+  // console.log(user, "User details");
 
   let result;
 
   if (user?.role === ENUM_USER_ROLE.RETIREPROFESSIONAL) {
-
     result = await RetireProfessional.findOne({
       retireProfessional: user.id,
     }).populate("retireProfessional");
   } else if (user?.role === ENUM_USER_ROLE.CLIENT) {
-
-     result = await Client.findOne({ client: user.id }).populate("client");
-
-  
+    result = await Client.findOne({ client: user.id }).populate("client");
   }
-
 
   return result;
 };
-const getSingleUserById=async(id:string)=>{
-  console.log(id,"check id")
-   const user=await User.findById(id)
-   console.log(user,"check user")
-   if(!user){
-    throw new ApiError(StatusCodes.BAD_REQUEST,"User not found")
-   }
-  let result
-    if(user?.role===ENUM_USER_ROLE.RETIREPROFESSIONAL){
-      console.log("i am in client ")
-      result =await  RetireProfessional.findOne({retireProfessional:user._id}).populate("retireProfessional")
-    }
-    else if(user?.role===ENUM_USER_ROLE.CLIENT){
-      result =await  Client.findOne({client:user._id}).populate("client")
-    }
-   return result
-
-}
+const getSingleUserById = async (id: string) => {
+  // console.log(id,"check id")
+  const user = await User.findById(id);
+  //  console.log(user,"check user")
+  if (!user) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "User not found");
+  }
+  let result;
+  if (user?.role === ENUM_USER_ROLE.RETIREPROFESSIONAL) {
+    // console.log("i am in client ")
+    result = await RetireProfessional.findOne({
+      retireProfessional: user._id,
+    }).populate("retireProfessional");
+  } else if (user?.role === ENUM_USER_ROLE.CLIENT) {
+    result = await Client.findOne({ client: user._id }).populate("client");
+  }
+  return result;
+};
 
 export const AuthService = {
   loginUser,
   enterOtp,
   getProfile,
-  getSingleUserById
+  getSingleUserById,
 };

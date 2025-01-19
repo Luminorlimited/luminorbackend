@@ -55,6 +55,11 @@ const orderSchema = new mongoose_1.default.Schema({
         type: String,
         required: true,
     },
+    transaction: {
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: "Transaction",
+        required: true,
+    },
 });
 exports.Order = (0, mongoose_1.model)("Order", orderSchema);
 // userSchema.set("autoIndex", true);

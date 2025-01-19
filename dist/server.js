@@ -12,6 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.onlineUsers = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const config_1 = __importDefault(require("./config"));
 const http_1 = require("http");
@@ -44,19 +45,20 @@ const io = new socket_io_1.Server(httpServer, {
 });
 // Store socket IDs for users
 const users = {};
-const onlineUsers = new Map();
+exports.onlineUsers = new Map();
 io.on("connection", (socket) => {
     socket.on("register", (data) => __awaiter(void 0, void 0, void 0, function* () {
         const { email } = JSON.parse(data);
-        // console.log(email);
+        // console.log(email)
         users[email] = socket.id;
-        console.log(users[email]);
-        onlineUsers.set(email, true);
-        ;
-        const conversationList = yield messages_service_1.MessageService.getConversationLists({ email });
+        // console.log(users[email]);
+        exports.onlineUsers.set(email, true);
+        const conversationList = yield messages_service_1.MessageService.getConversationLists({
+            email,
+        });
         // socket.emit("conversation-list", conversationList);
         const updatedConversationList = conversationList.map((user) => {
-            return Object.assign(Object.assign({}, user), { isOnline: onlineUsers.get(user.email) || false });
+            return Object.assign(Object.assign({}, user), { isOnline: exports.onlineUsers.get(user.email) || false });
         });
         socket.emit("conversation-list", updatedConversationList);
         // socket.broadcast.emit("user-online", email);
@@ -85,12 +87,12 @@ io.on("connection", (socket) => {
             if (toSocketId) {
                 socket.to(toSocketId).emit("privateMessage", {
                     message: savedMessage,
-                    fromEmail: fromEmail
+                    fromEmail: fromEmail,
                 });
             }
             socket.emit("privateMessage", {
                 message: savedMessage,
-                fromEmail: fromEmail
+                fromEmail: fromEmail,
             });
         }
         catch (error) { }
@@ -140,7 +142,7 @@ io.on("connection", (socket) => {
         const toSocketId = users[toEmail];
         // console.log(data,"from send offer")
         // console.log(offer,"check offer")
-        console.log(toSocketId, "check socket id to email");
+        // console.log(toSocketId, "check socket id to email")
         try {
             offer.totalPrice = (0, calculateTotalPrice_1.calculateTotalPrice)(offer);
             const offerPDFPath = yield (0, generateOfferPdf_1.generateOfferPDF)(offer);
@@ -161,7 +163,7 @@ io.on("connection", (socket) => {
     }));
     socket.on("createZoomMeeting", (data) => __awaiter(void 0, void 0, void 0, function* () {
         const { fromEmail, toEmail } = JSON.parse(data);
-        console.log(data, "from zoom meeting");
+        // console.log(data, "from zoom meeting")
         const toSocketId = users[toEmail];
         try {
             const meeting = yield zoom_service_1.zoomService.createZoomMeeting();
@@ -172,18 +174,20 @@ io.on("connection", (socket) => {
             const savedMessage = yield messages_model_1.Message.create({
                 sender: fromEmail,
                 recipient: toEmail,
-                message: "Zoom meeting invitation",
+                message: join_url,
                 media: null,
                 meetingLink: join_url,
             });
             if (toSocketId) {
                 socket.to(toSocketId).emit("createZoomMeeting", {
                     from: fromEmail,
-                    join_url,
+                    savedMessage,
                 });
             }
+            savedMessage.meetingLink = start_url;
+            savedMessage.message = start_url;
             socket.emit("createZoomMeeting", {
-                start_url,
+                savedMessage,
             });
         }
         catch (error) {
@@ -214,20 +218,20 @@ io.on("connection", (socket) => {
         //     break;
         //   }
         // }
-        let email = '';
-        for (let [userEmail, isOnline] of onlineUsers) {
+        let email = "";
+        for (let [userEmail, isOnline] of exports.onlineUsers) {
             if (socket.id === users[userEmail]) {
                 email = userEmail;
                 break;
             }
         }
         if (email) {
-            onlineUsers.set(email, false);
-            console.log(`User ${email} is now offline`);
+            exports.onlineUsers.set(email, false);
+            // console.log(`User ${email} is now offline`);
             socket.emit("user-offline", email);
             const conversationList = yield messages_service_1.MessageService.getConversationLists(email);
             const updatedConversationList = conversationList.map((user) => {
-                return Object.assign(Object.assign({}, user), { isOnline: onlineUsers.get(user.email) || false });
+                return Object.assign(Object.assign({}, user), { isOnline: exports.onlineUsers.get(user.email) || false });
             });
             // Emit the updated conversation list to the disconnected user
             socket.emit("conversation-list", updatedConversationList);

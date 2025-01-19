@@ -44,7 +44,7 @@ const getOffersByProfessional = catchAsync(
 
 const getSingleOffer = catchAsync(async (req: Request, res: Response) => {
   const id = req.params.id;
-  console.log(id, "check params");
+  // console.log(id, "check params");
   const result = await OfferService.getSingleOffer(id);
 
   sendResponse(res, {
@@ -56,7 +56,7 @@ const getSingleOffer = catchAsync(async (req: Request, res: Response) => {
 });
 const deleteSingleOffer = catchAsync(async (req: Request, res: Response) => {
   const id = req.params.id;
-  console.log(id, "check params");
+  // console.log(id, "check params");
   const result = await OfferService.deleteSingleOffer(id);
 
   sendResponse(res, {
@@ -70,5 +70,5 @@ export const OfferController = {
   createOffer,
   getOffersByProfessional,
   getSingleOffer,
-  deleteSingleOffer
+  deleteSingleOffer,
 };

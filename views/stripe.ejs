@@ -28,7 +28,6 @@
       // Handle form submission
       const form = document.getElementById("payment-form");
       form.addEventListener("submit", async (event) => {
-        
         event.preventDefault();
 
         const { paymentMethod, error } = await stripe.createPaymentMethod({
@@ -40,7 +39,7 @@
           console.error(error);
           // Display error to the user
         } else {
-          console.log("PaymentMethod ID:", paymentMethod.id);
+          // console.log("PaymentMethod ID:", paymentMethod.id);
           // Send paymentMethod.id to your server
           // Example: sendPaymentMethodToServer(paymentMethod.id);
         }

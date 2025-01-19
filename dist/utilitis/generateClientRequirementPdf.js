@@ -17,7 +17,8 @@ const uploadTos3_1 = require("./uploadTos3");
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 const pdfkit_1 = __importDefault(require("pdfkit"));
-const mergePDFs = (files, caption, additionalMessage) => __awaiter(void 0, void 0, void 0, function* () {
+const mergePDFs = (files, captions, // Array of captions corresponding to each file
+additionalMessage) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // Define the local file path for the merged PDF
         const fileName = `merged_${Date.now()}.pdf`;
@@ -31,22 +32,20 @@ const mergePDFs = (files, caption, additionalMessage) => __awaiter(void 0, void 
         // Write the merged PDF to the local file system
         const writeStream = fs_1.default.createWriteStream(filePath);
         mergedDoc.pipe(writeStream);
-        let isFirstPage = true; // Track the first page
         // Append each uploaded file to the merged PDF
-        for (const file of files) {
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
             const pdfBuffer = file.buffer; // Use the buffer instead of reading from path
-            // Add a new page for each file, except for the first page
-            if (!isFirstPage) {
+            const caption = captions[i] || "No caption provided"; // Use the corresponding caption or a default message
+            // Add a new page for each file (no need to check for the first page)
+            if (i > 0) {
                 mergedDoc.addPage();
             }
-            // Handle the first page with the caption
-            if (isFirstPage) {
-                mergedDoc
-                    .fontSize(14)
-                    .text(caption, { align: "center", underline: true })
-                    .moveDown(); // Add the caption at the top
-                isFirstPage = false; // Mark first page as processed
-            }
+            // Add the caption at the top of the page
+            mergedDoc
+                .fontSize(14)
+                .text(caption, { align: "center", underline: true })
+                .moveDown(); // Add the caption at the top
             // Embed the file's image content into the current page
             mergedDoc.image(pdfBuffer, {
                 fit: [500, 700], // Fit the image within this dimension

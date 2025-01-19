@@ -50,7 +50,7 @@ const processPayment = (payload) => __awaiter(void 0, void 0, void 0, function* 
             },
             options: { submitForSettlement: true },
         });
-        console.log(result, "check result");
+        // console.log(result, "check result");
         if (!result.success) {
             throw new handleApiError_1.default(http_status_codes_1.StatusCodes.UNAUTHORIZED, result.message);
         }

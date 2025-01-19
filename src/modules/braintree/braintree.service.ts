@@ -39,7 +39,7 @@ const processPayment = async (payload: any) => {
       },
       options: { submitForSettlement: true },
     });
-    console.log(result, "check result");
+    // console.log(result, "check result");
 
     if (!result.success) {
       throw new ApiError(StatusCodes.UNAUTHORIZED, result.message);

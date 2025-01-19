@@ -1,57 +1,45 @@
 "use strict";
-// import mongoose, { model } from "mongoose";
-// import { IUser, IUserExistReturn, UserModel } from "./auth.interface";
-// import { ENUM_USER_ROLE } from "../../enums/user";
-// import config from "../../config";
-// import bcrypt from "bcrypt";
-// const userSchema = new mongoose.Schema<IUser>({
-//   name: {
-//     firstName: {
-//       type: String,
-//       required: true,
-//     },
-//     lastName: {
-//       type: String,
-//       required: true,
-//     },
-//   },
-//   role: {
-//     type: String,
-//     required: true,
-//     enum: ENUM_USER_ROLE,
-//   },
-//   email: { type: String, required: true, unique: true },
-//   password: { type: String, required: true,select:false},
-//   googleId: { type: String, default: null },
-//   facebookId: { type: String, defaul: null },
-//   customerId: {
-//     type: String,
-//     default: null,
-//   },
-//   otp: { type: String },
-//   otpExpiry: { type: Date },
-//   identifier: { type: String },
-// });
-// userSchema.statics.isUserExist = async function (
-//   email: string
-// ): Promise<IUserExistReturn | null> {
-//   return await User.findOne({ email }).select("+password");
-// };
-// userSchema.statics.isPasswordMatched = async function (
-//   givenPassword: string,
-//   savedPassword: string
-// ): Promise<boolean> {
-//   return await bcrypt.compare(givenPassword, savedPassword);
-// };
-// userSchema.pre("save", async function (next) {
-//   if (!this.isModified("password") || !this.password) {
-//     return next();
-//   }
-//   this.password = await bcrypt.hash(
-//     this.password,
-//     Number(config.bcrypt_salt_round)
-//   );
-//   next();
-// });
-// export const User = model<IUser, UserModel>("User", userSchema);
-// // userSchema.set("autoIndex", true);
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Transaction = void 0;
+const mongoose_1 = __importStar(require("mongoose"));
+const transaction_interface_1 = require("./transaction.interface");
+const transactionSchema = new mongoose_1.default.Schema({
+    orderId: {
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: "Order",
+        required: false,
+    },
+    amount: {
+        type: Number,
+        required: true,
+    },
+    paymentStatus: {
+        type: String,
+        enum: Object.values(transaction_interface_1.PAYMENTSTATUS),
+        required: true,
+    },
+});
+exports.Transaction = (0, mongoose_1.model)("Transaction", transactionSchema);
