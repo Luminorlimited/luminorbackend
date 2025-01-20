@@ -59,9 +59,11 @@ export const generateOfferPDF = async (offer: IOffer) => {
       const rowUnderlineWidth = 1; // Thicker line for better visualization
 
       const leftColumnMargin = 20; // Margin from the left for the first column
+      const rightColumnMargin=20
       const leftColumnX = containerLeft + leftColumnMargin; // Push the left column with margin
       const leftColumnWidth = 170; // Width of the left column
-      const rightColumnX = leftColumnX + leftColumnWidth + 10; // Adding some space between first and second columns (10px)
+      const rightColumnX = leftColumnX + leftColumnWidth + 10; 
+      // const rightColumnX = containerLeft + rightColumnMargin + 10; // Adding some space between first and second columns (10px)
       const rightColumnWidth = containerWidth - leftColumnWidth - 10; // Adjust the width of the second column
 
       const leftColumnColor = isHeader || label.includes('Milestone') ? "#f4f4f4" : "#f4f4f4"; // Deeper gray for left column in milestones
