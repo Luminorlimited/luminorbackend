@@ -1,101 +1,148 @@
-import PDFDocument from "pdfkit";
-import fs from "fs";
-import path from "path";
 import { uploadFileToSpace } from "./uploadTos3";
-import { IOffer } from "../modules/offers/offer.interface";
+import * as fs from 'fs';
+import * as path from 'path';
+import PDFDocument from 'pdfkit';
+import { AgreementType, IOffer } from "../modules/offers/offer.interface";
 
 export const generateOfferPDF = async (offer: IOffer) => {
   try {
-    // Define the local file path
     const fileName = `offer_${Date.now()}.pdf`;
     const filePath = path.join(__dirname, "..", "uploads", fileName);
 
-    // Create the uploads folder if it doesn't exist
     if (!fs.existsSync(path.dirname(filePath))) {
       fs.mkdirSync(path.dirname(filePath), { recursive: true });
     }
 
-    // Initialize PDFKit
     const doc = new PDFDocument({
       size: "A4",
       margin: 30,
     });
 
-    // Write the PDF to the local file system
     const writeStream = fs.createWriteStream(filePath);
     doc.pipe(writeStream);
 
-    // Add title
+    // Add container-like background
+    doc
+      .rect(0, 0, doc.page.width, doc.page.height)
+      .fill("#f4f4f4");
+
+    // Add styled container with padding (adjusted for both sides)
+    const containerLeft = 40;  // Left margin for the container
+    const containerRight = 40;  // Right margin for the container
+    const containerWidth = doc.page.width - containerLeft - containerRight;
+    doc
+      .rect(containerLeft, 40, containerWidth, doc.page.height - 80)
+      .fill("#fff")
+      .strokeColor("#ddd")
+      .lineWidth(0.5)
+      .stroke();
+
+    // Title inside the white container
     doc
       .font("Helvetica-Bold")
       .fontSize(20)
       .fillColor("#333")
-      .text("Offer Agreement", { align: "center" })
+      .text("Web Development Project Details", containerLeft, 50, { align: "center", underline: false })
       .moveDown(1);
 
-    // Add project details
-    doc
-      .font("Helvetica")
-      .fontSize(12)
-      .fillColor("#000")
-      .text(`Project Name: ${offer.projectName}`)
-      .text(`Description: ${offer.description}`)
-      .text(`Agreement Type: ${offer.agreementType}`)
-      .text(`Total Price: $${offer.totalPrice.toFixed(2)}`)
-      .moveDown(1);
+    // Line tracker
+    let yPosition = 100;
 
-    // Add specific agreement details
-    if (offer.agreementType === "Flat_Fee") {
+    // Helper to draw table rows with padding
+    const drawTableRow = (
+      label: string,
+      value: string,
+      isHeader: boolean = false
+    ) => {
+      const headerBackground = "#f9f9f9"; // Background color for the header cells
+      const rowUnderlineColor = "#888"; // Darker color for the row underline to make it more visible
+      const rowUnderlineWidth = 1; // Thicker line for better visualization
+
+      const leftColumnMargin = 20; // Margin from the left for the first column
+      const leftColumnX = containerLeft + leftColumnMargin; // Push the left column with margin
+      const leftColumnWidth = 170; // Width of the left column
+      const rightColumnX = leftColumnX + leftColumnWidth + 10; // Adding some space between first and second columns (10px)
+      const rightColumnWidth = containerWidth - leftColumnWidth - 10; // Adjust the width of the second column
+
+      const leftColumnColor = isHeader || label.includes('Milestone') ? "#f4f4f4" : "#f4f4f4"; // Deeper gray for left column in milestones
+
+      // Header cell (left column)
+      doc
+        .rect(leftColumnX, yPosition, leftColumnWidth, 25) // Apply background only to the left column
+        .fill(leftColumnColor);
+
+      // Label (header or left column text)
       doc
         .font("Helvetica-Bold")
-        .text("Flat Fee Details")
-        .font("Helvetica")
-        .text(`Price: $${offer.flatFee?.price.toFixed(2)}`)
-        .text(`Revisions: ${offer.flatFee?.revision}`)
-        .text(`Delivery Time: ${offer.flatFee?.delivery} days`);
-    } else if (offer.agreementType === "Hourly_Fee") {
-      doc
-        .font("Helvetica-Bold")
-        .text("Hourly Fee Details")
-        .font("Helvetica")
-        .text(`Hourly Rate: $${offer.hourlyFee?.pricePerHour.toFixed(2)}`)
-        .text(`Revisions: ${offer.hourlyFee?.revision}`)
-        .text(`Delivery Time: ${offer.hourlyFee?.delivery} days`);
-    } else if (offer.agreementType === "Milestone") {
-      doc.font("Helvetica-Bold").text("Milestone Details").font("Helvetica");
+        .fontSize(12)
+        .fillColor("#333")
+        .text(label, leftColumnX + 5, yPosition + 7); // Added padding inside the cell
 
-      offer.milestones?.forEach((milestone, index) => {
-        doc
-          .text(`Milestone ${index + 1}: ${milestone.title}`)
-          .text(`   - Price: $${milestone.price.toFixed(2)}`)
-          .text(`   - Delivery Time: ${milestone.delivery} days`)
-          .moveDown(0.5);
-      });
+      // Value cell (right column text)
+      doc
+        .font("Helvetica")
+        .fontSize(12)
+        .fillColor("#333")
+        .text(value, rightColumnX, yPosition + 7); // Right column text with some margin
+
+      // Underline for the row with deeper color and thicker line
+      doc
+        .moveTo(leftColumnX, yPosition + 25)
+        .lineTo(containerLeft + containerWidth, yPosition + 25) // Ensure the line fits within the container
+        .strokeColor(rowUnderlineColor) // Darker color for the underline
+        .lineWidth(rowUnderlineWidth) // Thicker line for the row underline
+        .stroke();
+
+      yPosition += 25;
+    };
+
+    // Draw rows with headers styled
+    drawTableRow("Project", offer.projectName, true);
+    drawTableRow("Description", offer.description, true);
+    drawTableRow("Agreement Type", offer.agreementType.replace("_", " "), true);
+    
+    // Agreement-specific details
+    switch (offer.agreementType) {
+      case AgreementType.FlatFee:
+        if (offer.flatFee) {
+          drawTableRow("Total Price", `$${offer.flatFee.price.toFixed(2)}`, true);
+          drawTableRow("Revisions", `${offer.flatFee.revision}`);
+          drawTableRow("Delivery Time", `${offer.flatFee.delivery} days`);
+        }
+        break;
+    
+      case AgreementType.HourlyFee:
+        if (offer.hourlyFee) {
+          drawTableRow("Price Per Hour", `$${offer.hourlyFee.pricePerHour.toFixed(2)}`);
+          drawTableRow("Revisions", `${offer.hourlyFee.revision}`);
+          drawTableRow("Delivery Time", `${offer.hourlyFee.delivery} days`);
+        }
+        break;
+    
+      case AgreementType.Milestone:
+        if (offer.milestones?.length) {
+          drawTableRow("Total Price", `$${offer.milestones.reduce((sum: any, m: { price: any; }) => sum + m.price, 0).toFixed(2)}`, true);
+          offer.milestones.forEach((milestone: { title: any; price: number; delivery: any; }, index: number) => {
+            drawTableRow(
+              `Milestone ${index + 1}`,
+              `${milestone.title} - $${milestone.price.toFixed(2)} - ${milestone.delivery} days`
+            );
+          });
+        }
+        break;
+    
+      default:
+        drawTableRow("Details", "No specific details available.");
     }
 
-    // Add footer with contact details
-    doc
-      .moveDown(2)
-      .font("Helvetica-Oblique")
-      .fontSize(10)
-      .fillColor("#555")
-      .text(
-        `Generated by ${offer.professionalEmail} for ${offer.clientEmail}`,
-        { align: "center" }
-      )
-
-      .text("Thank you for your business!", { align: "center" });
-
-    // Finalize the document
     doc.end();
 
-    // Wait for the file to be completely written
+    // Save and Upload PDF
     await new Promise((resolve, reject) => {
       writeStream.on("finish", resolve);
       writeStream.on("error", reject);
     });
 
-    // Upload the file to DigitalOcean Spaces
     const uploadedURL = await uploadFileToSpace(
       {
         buffer: fs.readFileSync(filePath),
@@ -105,7 +152,6 @@ export const generateOfferPDF = async (offer: IOffer) => {
       "offers"
     );
 
-    // Optionally delete the local file after uploading
     fs.unlinkSync(filePath);
 
     return uploadedURL;
