@@ -23,7 +23,7 @@ const getMessages = async (senderId: string, recipientId: string) => {
       { recipient: { $regex: `^${senderId}$`, $options: "i" } },
       { recipient: { $regex: `^${recipientId}$`, $options: "i" } },
     ],
-  }).sort({ createdAt: -1 });
+  }).sort({ createdAt: 1 });
 
   // console.log(messages, "check messages");
 
