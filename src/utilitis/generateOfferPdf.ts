@@ -5,6 +5,7 @@ import PDFDocument from 'pdfkit';
 import { AgreementType, IOffer } from "../modules/offers/offer.interface";
 
 export const generateOfferPDF = async (offer: IOffer) => {
+  console.log(offer, "check offer")
   try {
     const fileName = `offer_${Date.now()}.pdf`;
     const filePath = path.join(__dirname, "..", "uploads", fileName);
@@ -100,37 +101,38 @@ export const generateOfferPDF = async (offer: IOffer) => {
     drawTableRow("Project", offer.projectName, true);
     drawTableRow("Description", offer.description, true);
     drawTableRow("Agreement Type", offer.agreementType.replace("_", " "), true);
-    
+
     // Agreement-specific details
     switch (offer.agreementType) {
       case AgreementType.FlatFee:
         if (offer.flatFee) {
-          drawTableRow("Total Price", `$${offer.flatFee.price.toFixed(2)}`, true);
+          console.log(offer.flatFee, "check offer float fee")
+          drawTableRow("Total Price", `$${parseFloat(offer.flatFee.price as unknown as string).toFixed(2)}`, true);
           drawTableRow("Revisions", `${offer.flatFee.revision}`);
           drawTableRow("Delivery Time", `${offer.flatFee.delivery} days`);
         }
         break;
-    
+
       case AgreementType.HourlyFee:
         if (offer.hourlyFee) {
-          drawTableRow("Price Per Hour", `$${offer.hourlyFee.pricePerHour.toFixed(2)}`);
+          drawTableRow("Price Per Hour", `$${parseFloat(offer.hourlyFee.pricePerHour as unknown as string).toFixed(2)}`);
           drawTableRow("Revisions", `${offer.hourlyFee.revision}`);
           drawTableRow("Delivery Time", `${offer.hourlyFee.delivery} days`);
         }
         break;
-    
+
       case AgreementType.Milestone:
         if (offer.milestones?.length) {
-          drawTableRow("Total Price", `$${offer.milestones.reduce((sum: any, m: { price: any; }) => sum + m.price, 0).toFixed(2)}`, true);
+          drawTableRow("Total Price", `$${offer.milestones.reduce((sum: any, m: { price: any; }) => parseFloat(sum) + parseFloat(m.price), 0).toFixed(2)}`, true);
           offer.milestones.forEach((milestone: { title: any; price: number; delivery: any; }, index: number) => {
             drawTableRow(
               `Milestone ${index + 1}`,
-              `${milestone.title} - $${milestone.price.toFixed(2)} - ${milestone.delivery} days`
+              `${milestone.title} - $${parseFloat(milestone.price as unknown as string).toFixed(2)} - ${milestone.delivery} days`
             );
           });
         }
         break;
-    
+
       default:
         drawTableRow("Details", "No specific details available.");
     }
