@@ -110,7 +110,9 @@ const refundPaymentToCustomer = catchAsync(async (req: any, res: any) => {
 //payment from owner to rider
 const createPaymentIntent = catchAsync(async (req: any, res: any) => {
   const files = req.files;
-  // console.log(req.files)
+  console.log(files, "check files")
+
+  console.log(req.files)
   if (!files || files.length === 0) {
     throw new Error("No files uploaded.");
   }

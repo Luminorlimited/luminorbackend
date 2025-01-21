@@ -6,11 +6,13 @@ export const parseBodyData = (
   next: NextFunction
 ): void => {
   try {
+
+    console.log(req.body, "check req body")
     if (req.body.data) {
       req.body = JSON.parse(req.body.data); // Parse the nested JSON
     }
     next(); // Proceed to the next middleware
-  } catch (error:any) {
+  } catch (error: any) {
     console.error("Error parsing JSON:", error.message);
     res.status(400).json({
       success: false,
