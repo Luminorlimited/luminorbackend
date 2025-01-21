@@ -18,6 +18,7 @@ router.get(
   OrderController.getSpecificOrderBYClientAndProfessional
 );
 router.get("/professional-order",  auth(ENUM_USER_ROLE.RETIREPROFESSIONAL), OrderController.getOrderByProfessional);
+router.get("/client-order",  auth(ENUM_USER_ROLE.CLIENT), OrderController.getOrderByProfessional);
 router.get(
   "/:id",
 

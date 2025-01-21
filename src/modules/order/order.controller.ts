@@ -40,6 +40,26 @@ const getOrderByProfessional = catchAsync(
     });
   }
 );
+const getOrderByClient = catchAsync(
+  async (req: Request, res: Response) => {
+    const user = req.user as { email: string };
+    // console.log(user)
+
+    if (!user) {
+      throw new ApiError(StatusCodes.UNAUTHORIZED, "user not found");
+    }
+
+    const order = await OrderService.getOrderByClient(user.email);
+
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+
+      message: "order get by client   successfull",
+      data: order,
+    });
+  }
+);
 const getSpecificOrderBYClientAndProfessional = catchAsync(
   async (req: Request, res: Response) => {
     const professional = req.query.professional as string | undefined;
@@ -85,4 +105,5 @@ export const OrderController = {
   getOrderByProfessional,
   getSpecificOrderBYClientAndProfessional,
   getOrderById,
+  getOrderByClient
 };

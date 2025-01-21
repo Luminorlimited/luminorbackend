@@ -7,7 +7,11 @@ const createOrder = async (payload: IOrder) => {
 };
 
 const getOrderByProfessional = async (email: string) => {
-  const result = await Order.findOne({ orderFrom: email }).populate("project").populate("transaction");
+  const result = await Order.find({ orderReciver: email }).populate("project").populate("transaction");
+  return result;
+};
+const getOrderByClient= async (email: string) => {
+  const result = await Order.find({ orderFrom: email }).populate("project").populate("transaction");
   return result;
 };
 
@@ -31,4 +35,5 @@ export const OrderService = {
   getOrderByProfessional,
   getSpecificOrderBYClientAndProfessional,
   getOrderById,
+  getOrderByClient
 };
