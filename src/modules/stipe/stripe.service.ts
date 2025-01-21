@@ -246,20 +246,24 @@ const refundPaymentToCustomer = async (payload: {
 //   return orderResult;
 // };
 const createPaymentIntentService = async (payload: any) => {
-  if (!payload.amount) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, "Amount is required");
-  }
+  // if (!payload.amount) {
+  //   throw new ApiError(StatusCodes.BAD_REQUEST, "Amount is required");
+  // }
 
-  if (!isValidAmount(payload.amount)) {
-    throw new ApiError(
-      StatusCodes.BAD_REQUEST,
-      `Amount '${payload.amount}' is not a valid amount`
-    );
+  // if (!isValidAmount(payload.amount)) {
+  //   throw new ApiError(
+  //     StatusCodes.BAD_REQUEST,
+  //     `Amount '${payload.amount}' is not a valid amount`
+  //   );
+  // }
+  const offer = await OfferService.getSingleOffer(payload.offerId);
+  if (!offer) {
+    throw new ApiError(StatusCodes.NOT_FOUND, "Offer not found");
   }
 
   // Create a PaymentIntent with Stripe
   const paymentIntent = await stripe.paymentIntents.create({
-    amount: payload.amount*100, 
+    amount: offer.totalPrice * 100,
     currency: "usd",
     customer: payload.customerId,
     payment_method: payload.paymentMethodId,
@@ -278,11 +282,8 @@ const createPaymentIntentService = async (payload: any) => {
     );
   }
 
- 
-  const offer = await OfferService.getSingleOffer(payload.offerId);
-  if (!offer) {
-    throw new ApiError(StatusCodes.NOT_FOUND, "Offer not found");
-  }
+
+
 
 
   const session = await mongoose.startSession();
@@ -290,22 +291,22 @@ const createPaymentIntentService = async (payload: any) => {
   let orderResult;
 
   try {
-    session.startTransaction(); 
+    session.startTransaction();
 
-  
+
     const transaction = await Transaction.create(
       [
         {
-          orderId: null, 
+          orderId: null,
           amount: payload.amount,
-          paymentStatus: "pending", 
+          paymentStatus: "pending",
           stripePaymentIntentId: paymentIntent.id,
         },
       ],
       { session }
     );
 
- 
+
     const order = {
       clientRequerment: payload.clientRequerment,
       orderFrom: offer.clientEmail,
@@ -319,17 +320,17 @@ const createPaymentIntentService = async (payload: any) => {
 
     orderResult = await Order.create([order], { session });
 
-    
+
     await Transaction.updateOne(
       { _id: transaction[0]._id },
       { orderId: orderResult[0]._id },
       { session }
     );
 
-   
+
     await session.commitTransaction();
   } catch (error) {
-  
+
     await session.abortTransaction();
     throw error;
   } finally {
@@ -358,17 +359,17 @@ const deliverProject = async (orderId: string) => {
     Math.round((parseFloat(order.totalPrice) * 20) / 100) * 100;
   const transferAmount = totalAmount - platformFee;
   const transfer = await stripe.transfers.create({
-    amount: transferAmount, 
+    amount: transferAmount,
     currency: "usd",
     destination: retireProfessional?.stripe?.customerId as string,
     transfer_group: `DELIVERY_${order?.paymentIntentId}`,
-  
+
   });
-  const updateTransaction=await Transaction.updateOne({
-    orderId:orderId,
+  const updateTransaction = await Transaction.updateOne({
+    orderId: orderId,
     $set: {
-      paymentStatus: PAYMENTSTATUS.COMPLETED, 
-     
+      paymentStatus: PAYMENTSTATUS.COMPLETED,
+
     },
   })
   return transfer;
