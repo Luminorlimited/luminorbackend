@@ -7,7 +7,7 @@ const createOrder = async (payload: IOrder) => {
 };
 
 const getOrderByProfessional = async (email: string) => {
-  const result = await Order.findOne({ orderReciver: email }).populate("project").populate("transaction");
+  const result = await Order.findOne({ orderFrom: email }).populate("project").populate("transaction");
   return result;
 };
 
