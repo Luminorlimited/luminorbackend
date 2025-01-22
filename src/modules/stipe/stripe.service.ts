@@ -285,7 +285,7 @@ const createPaymentIntentService = async (payload: any) => {
 
 
 
-await Offer.deleteOne({id:offer.id})
+
 
 
 
@@ -331,7 +331,7 @@ await Offer.deleteOne({id:offer.id})
       { session }
     );
 
-
+    await Offer.deleteOne({id:offer.id}),{session}
     await session.commitTransaction();
   } catch (error) {
 
