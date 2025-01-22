@@ -39,7 +39,12 @@ const orderSchema = new mongoose.Schema<IOrder>({
     required: true,
   },
   
-});
+},
+{
+  timestamps:true,
+  versionKey:false
+}
+);
 
 export const Order = model<IOrder>("Order", orderSchema);
 // userSchema.set("autoIndex", true);

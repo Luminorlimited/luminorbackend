@@ -62,7 +62,10 @@ const clientSchema = new mongoose.Schema<IClient>(
       default :null
     }
   },
-  { timestamps: true }
+  { timestamps: true ,
+
+    versionKey:false
+  }
 );
 clientSchema.index({ location: "2dsphere" });
 

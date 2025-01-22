@@ -14,7 +14,6 @@ const RetireProfessionalSchema = new mongoose.Schema<IProfessional>(
     // Retired Professional account fields
     dateOfBirth: { type: Date, required: true },
     phoneNumber: { type: String, required: true },
-   
 
     linkedinProfile: { type: String },
     previousPositions: { type: [String], required: true },
@@ -68,7 +67,7 @@ const RetireProfessionalSchema = new mongoose.Schema<IProfessional>(
     averageRating: { type: Number, default: 0 },
   },
 
-  { timestamps: true }
+  { timestamps: true, versionKey: false }
 );
 RetireProfessionalSchema.index({ location: "2dsphere" });
 export const RetireProfessional = mongoose.model(

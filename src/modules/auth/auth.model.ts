@@ -50,7 +50,9 @@ const userSchema = new mongoose.Schema<IUser>({
   //   online: { type: Boolean, default: false },
   //   lastActive: { type: Date, default: null },
   // },
-});
+},
+{ timestamps: true, versionKey: false }
+);
 userSchema.statics.isUserExist = async function (
   email: string
 ): Promise<IUserExistReturn | null> {

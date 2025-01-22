@@ -45,7 +45,7 @@ const offerSchema = new mongoose.Schema<IOffer>(
 
     isAccepted: { type: Boolean, default: false },
   },
-  { timestamps: true }
+  { timestamps: true ,versionKey:false}
 );
 
 export const Offer = mongoose.model<IOffer>("Offer", offerSchema);

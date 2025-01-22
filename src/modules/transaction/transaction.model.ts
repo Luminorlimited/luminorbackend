@@ -21,6 +21,9 @@ const transactionSchema = new mongoose.Schema<ITransaction>({
   
  
 
+},{
+  timestamps:true,
+  versionKey:false
 });
 
 export const Transaction = model<ITransaction>("Transaction", transactionSchema);
