@@ -91,15 +91,15 @@ const updateSingleClient = catchAsync(async (req: Request, res: Response) => {
       );
     }
 
-    if (fileMap["profileUrl"]) {
-      profileImageUrl = await uploadFileToSpace(
-        fileMap["profileUrl"],
-        "profileUrl"
-      );
-    }
+    // if (fileMap["profileUrl"]) {
+    //   profileImageUrl = await uploadFileToSpace(
+    //     fileMap["profileUrl"],
+    //     "profileUrl"
+    //   );
+    // }
     updatedProfile = {
       ...others,
-      projectUrl: projectUrl,
+      // projectUrl: projectUrl,
       profileUrl: profileImageUrl,
     };
   }

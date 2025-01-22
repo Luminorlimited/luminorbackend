@@ -32,7 +32,8 @@ export type IClient = {
   };
   projectDurationRange?: number;
   projectListing?: string;
-  projectUrl?: string;
+  // projectUrl?: string;
+  projectPreference?:string[]
 };
 
 // export type IUpdateClient = {
