@@ -1,6 +1,6 @@
 import express from "express";
 import { OfferController } from "./offer.controller";
-import { multerUpload } from "../../middlewares/multer";
+
 const router = express.Router();
 
 export const OfferRoute = router;

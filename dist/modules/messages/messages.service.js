@@ -31,7 +31,7 @@ const getMessages = (senderId, recipientId) => __awaiter(void 0, void 0, void 0,
             { recipient: { $regex: `^${senderId}$`, $options: "i" } },
             { recipient: { $regex: `^${recipientId}$`, $options: "i" } },
         ],
-    }).sort({ createdAt: -1 });
+    }).sort({ createdAt: 1 });
     // console.log(messages, "check messages");
     const emails = new Set();
     messages.forEach((msg) => {

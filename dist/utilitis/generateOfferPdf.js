@@ -1,4 +1,27 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -13,62 +36,131 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.generateOfferPDF = void 0;
-const pdfkit_1 = __importDefault(require("pdfkit"));
-const fs_1 = __importDefault(require("fs"));
-const path_1 = __importDefault(require("path"));
 const uploadTos3_1 = require("./uploadTos3");
+const fs = __importStar(require("fs"));
+const path = __importStar(require("path"));
+const pdfkit_1 = __importDefault(require("pdfkit"));
+const offer_interface_1 = require("../modules/offers/offer.interface");
 const generateOfferPDF = (offer) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c;
+    var _a;
+    //console.log(offer, "check offer")
     try {
-        // Define the local file path
         const fileName = `offer_${Date.now()}.pdf`;
-        const filePath = path_1.default.join(__dirname, "..", "uploads", fileName);
-        // Create the uploads folder if it doesn't exist
-        if (!fs_1.default.existsSync(path_1.default.dirname(filePath))) {
-            fs_1.default.mkdirSync(path_1.default.dirname(filePath), { recursive: true });
+        const filePath = path.join(__dirname, "..", "uploads", fileName);
+        if (!fs.existsSync(path.dirname(filePath))) {
+            fs.mkdirSync(path.dirname(filePath), { recursive: true });
         }
-        // Initialize PDFKit
-        const doc = new pdfkit_1.default();
-        // Write the PDF to the local file system
-        const writeStream = fs_1.default.createWriteStream(filePath);
+        const doc = new pdfkit_1.default({
+            size: "A4",
+            margin: 30,
+        });
+        const writeStream = fs.createWriteStream(filePath);
         doc.pipe(writeStream);
-        // Add content to the PDF
+        // Add container-like background
         doc
-            .fontSize(16)
-            .text(`Offer for Project: ${offer.projectName}`, { align: "left" });
-        doc.text(`Description: ${offer.description}`, { align: "left" });
-        doc.text(`Agreement Type: ${offer.agreementType}`, { align: "left" });
-        doc.text(`Total Price: ${offer.totalPrice}`, { align: "left" });
-        if (offer.agreementType === "Flat_Fee") {
-            doc.text(`Flat Fee Price: ${(_a = offer.flatFee) === null || _a === void 0 ? void 0 : _a.price}`, { align: "left" });
-        }
-        else if (offer.agreementType === "Hourly_Fee") {
-            doc.text(`Hourly Rate: ${(_b = offer.hourlyFee) === null || _b === void 0 ? void 0 : _b.pricePerHour}`, {
-                align: "left",
-            });
-        }
-        else if (offer.agreementType === "Milestone") {
-            doc.text(`Milestones:`, { align: "left" });
-            (_c = offer.milestones) === null || _c === void 0 ? void 0 : _c.forEach((milestone, index) => {
-                doc.text(`Milestone ${index + 1}: ${milestone.title} - $${milestone.price}`, { align: "left" });
-            });
+            .rect(0, 0, doc.page.width, doc.page.height)
+            .fill("#f4f4f4");
+        // Add styled container with padding (adjusted for both sides)
+        const containerLeft = 40; // Left margin for the container
+        const containerRight = 40; // Right margin for the container
+        const containerWidth = doc.page.width - containerLeft - containerRight;
+        doc
+            .rect(containerLeft, 40, containerWidth, doc.page.height - 80)
+            .fill("#fff")
+            .strokeColor("#ddd")
+            .lineWidth(0.5)
+            .stroke();
+        // Title inside the white container
+        doc
+            .font("Helvetica-Bold")
+            .fontSize(20)
+            .fillColor("#333")
+            .text("Web Development Project Details", containerLeft, 50, { align: "center", underline: false })
+            .moveDown(1);
+        // Line tracker
+        let yPosition = 100;
+        // Helper to draw table rows with padding
+        const drawTableRow = (label, value, isHeader = false) => {
+            const headerBackground = "#f9f9f9"; // Background color for the header cells
+            const rowUnderlineColor = "#888"; // Darker color for the row underline to make it more visible
+            const rowUnderlineWidth = 1; // Thicker line for better visualization
+            const leftColumnMargin = 20; // Margin from the left for the first column
+            const rightColumnMargin = 20;
+            const leftColumnX = containerLeft + leftColumnMargin; // Push the left column with margin
+            const leftColumnWidth = 170; // Width of the left column
+            const rightColumnX = leftColumnX + leftColumnWidth + 10;
+            // const rightColumnX = containerLeft + rightColumnMargin + 10; // Adding some space between first and second columns (10px)
+            const rightColumnWidth = containerWidth - leftColumnWidth - 10; // Adjust the width of the second column
+            const leftColumnColor = isHeader || label.includes('Milestone') ? "#f4f4f4" : "#f4f4f4"; // Deeper gray for left column in milestones
+            // Header cell (left column)
+            doc
+                .rect(leftColumnX, yPosition, leftColumnWidth, 25) // Apply background only to the left column
+                .fill(leftColumnColor);
+            // Label (header or left column text)
+            doc
+                .font("Helvetica-Bold")
+                .fontSize(12)
+                .fillColor("#333")
+                .text(label, leftColumnX + 5, yPosition + 7); // Added padding inside the cell
+            // Value cell (right column text)
+            doc
+                .font("Helvetica")
+                .fontSize(12)
+                .fillColor("#333")
+                .text(value, rightColumnX, yPosition + 7); // Right column text with some margin
+            // Underline for the row with deeper color and thicker line
+            doc
+                .moveTo(leftColumnX, yPosition + 25)
+                .lineTo(containerLeft + containerWidth, yPosition + 25) // Ensure the line fits within the container
+                .strokeColor(rowUnderlineColor) // Darker color for the underline
+                .lineWidth(rowUnderlineWidth) // Thicker line for the row underline
+                .stroke();
+            yPosition += 25;
+        };
+        // Draw rows with headers styled
+        drawTableRow("Project", offer.projectName, true);
+        drawTableRow("Description", offer.description, true);
+        drawTableRow("Agreement Type", offer.agreementType.replace("_", " "), true);
+        // Agreement-specific details
+        switch (offer.agreementType) {
+            case offer_interface_1.AgreementType.FlatFee:
+                if (offer.flatFee) {
+                    //  console.log(offer.flatFee, "check offer float fee")
+                    drawTableRow("Total Price", `$${parseFloat(offer.flatFee.price).toFixed(2)}`, true);
+                    drawTableRow("Revisions", `${offer.flatFee.revision}`);
+                    drawTableRow("Delivery Time", `${offer.flatFee.delivery} days`);
+                }
+                break;
+            case offer_interface_1.AgreementType.HourlyFee:
+                if (offer.hourlyFee) {
+                    drawTableRow("Price Per Hour", `$${parseFloat(offer.hourlyFee.pricePerHour).toFixed(2)}`);
+                    drawTableRow("Revisions", `${offer.hourlyFee.revision}`);
+                    drawTableRow("Delivery Time", `${offer.hourlyFee.delivery} days`);
+                }
+                break;
+            case offer_interface_1.AgreementType.Milestone:
+                if ((_a = offer.milestones) === null || _a === void 0 ? void 0 : _a.length) {
+                    drawTableRow("Total Price", `$${offer.milestones.reduce((sum, m) => parseFloat(sum) + parseFloat(m.price), 0).toFixed(2)}`, true);
+                    offer.milestones.forEach((milestone, index) => {
+                        drawTableRow(`Milestone ${index + 1}`, `${milestone.title} - $${parseFloat(milestone.price).toFixed(2)} - ${milestone.delivery} days`);
+                    });
+                }
+                break;
+            default:
+                drawTableRow("Details", "No specific details available.");
         }
         doc.end();
-        // Wait for the file to be completely written
+        // Save and Upload PDF
         yield new Promise((resolve, reject) => {
             writeStream.on("finish", resolve);
             writeStream.on("error", reject);
         });
-        // console.log("PDF generated locally:", filePath);
-        // Upload the file to DigitalOcean Spaces
         const uploadedURL = yield (0, uploadTos3_1.uploadFileToSpace)({
-            buffer: fs_1.default.readFileSync(filePath),
+            buffer: fs.readFileSync(filePath),
             originalname: fileName,
             mimetype: "application/pdf",
         }, "offers");
-        // console.log("PDF uploaded to DigitalOcean Spaces:", uploadedURL);
-        // Optionally delete the local file after uploading
-        fs_1.default.unlinkSync(filePath);
+        fs.unlinkSync(filePath);
         return uploadedURL;
     }
     catch (error) {

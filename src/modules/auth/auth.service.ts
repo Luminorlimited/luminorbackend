@@ -1,7 +1,7 @@
 import { Secret } from "jsonwebtoken";
 import config from "../../config";
 import ApiError from "../../errors/handleApiError";
-import { ILoginUser, ILoginUserResponse } from "./auth.interface";
+import { ILoginUser } from "./auth.interface";
 import { User } from "./auth.model";
 import { StatusCodes } from "http-status-codes";
 

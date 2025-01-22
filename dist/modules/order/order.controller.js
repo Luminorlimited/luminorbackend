@@ -42,6 +42,20 @@ const getOrderByProfessional = (0, catchAsync_1.default)((req, res) => __awaiter
         data: order,
     });
 }));
+const getOrderByClient = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = req.user;
+    // console.log(user)
+    if (!user) {
+        throw new handleApiError_1.default(http_status_codes_1.StatusCodes.UNAUTHORIZED, "user not found");
+    }
+    const order = yield order_service_1.OrderService.getOrderByClient(user.email);
+    (0, sendResponse_1.default)(res, {
+        success: true,
+        statusCode: http_status_codes_1.StatusCodes.OK,
+        message: "order get by client   successfull",
+        data: order,
+    });
+}));
 const getSpecificOrderBYClientAndProfessional = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const professional = req.query.professional;
     const client = req.query.client;
@@ -72,4 +86,5 @@ exports.OrderController = {
     getOrderByProfessional,
     getSpecificOrderBYClientAndProfessional,
     getOrderById,
+    getOrderByClient
 };

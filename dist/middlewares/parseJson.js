@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.parseBodyData = void 0;
 const parseBodyData = (req, res, next) => {
     try {
+        console.log(req.body, "check req body");
         if (req.body.data) {
             req.body = JSON.parse(req.body.data); // Parse the nested JSON
         }

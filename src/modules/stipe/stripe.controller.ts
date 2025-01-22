@@ -4,7 +4,7 @@ import sendResponse from "../../shared/sendResponse";
 import { StripeServices } from "./stripe.service";
 import config from "../../config";
 import Stripe from "stripe";
-import { RetireProfessional } from "../professional/professional.model";
+
 import { RetireProfessionalService } from "../professional/professional.service";
 import { mergePDFs } from "../../utilitis/generateClientRequirementPdf";
 

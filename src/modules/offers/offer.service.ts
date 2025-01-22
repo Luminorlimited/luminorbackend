@@ -36,7 +36,7 @@ const createOffer = async (offer: IOffer) => {
 // };
 const getOffersByProfessional = async (email: string) => {
   const offers = await Offer.find({ clientEmail: email });
-  let totalDeliverTime;
+ 
 
   const offersWithUserInfo = await Promise.all(
     offers.map(async (offer) => {

@@ -63,6 +63,6 @@ const RetireProfessionalSchema = new mongoose_1.default.Schema({
         },
     ],
     averageRating: { type: Number, default: 0 },
-}, { timestamps: true });
+}, { timestamps: true, versionKey: false });
 RetireProfessionalSchema.index({ location: "2dsphere" });
 exports.RetireProfessional = mongoose_1.default.model("RetireProfessional", RetireProfessionalSchema);

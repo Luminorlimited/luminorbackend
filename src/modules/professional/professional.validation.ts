@@ -1,17 +1,14 @@
 import { z } from "zod";
 import { ENUM_USER_ROLE } from "../../enums/user";
-import { INDUSTRIES } from "../../enums/service";
 
-// Validation schema for reference objects
 
-// Validation schema for CV or cover letter objects
 const fileSchema = z.object({
   fileName: z.string().nullable(),
   filePath: z.string().nullable(),
   fileType: z.string().nullable(),
 });
 
-// Main sign-up validation schema
+
 const signUpZodSchema = z.object({
   body: z.object({
     name: z.object({

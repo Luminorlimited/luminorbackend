@@ -59,6 +59,7 @@ const RetireProfessionalSchema = new mongoose.Schema<IProfessional>(
           required: true,
         },
         rating: { type: Number, required: true, min: 1, max: 5 },
+        averageRating:{type:Number},
         feedBack: { type: String, required: true },
         createdAt: { type: Date, default: Date.now },
       },
