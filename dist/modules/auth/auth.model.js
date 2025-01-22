@@ -84,7 +84,7 @@ const userSchema = new mongoose_1.default.Schema({
     //   online: { type: Boolean, default: false },
     //   lastActive: { type: Date, default: null },
     // },
-});
+}, { timestamps: true, versionKey: false });
 userSchema.statics.isUserExist = function (email) {
     return __awaiter(this, void 0, void 0, function* () {
         return yield exports.User.findOne({ email }).select("+password");

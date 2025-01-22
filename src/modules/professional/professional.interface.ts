@@ -1,8 +1,9 @@
-import mongoose from "mongoose";
+import mongoose, { mongo } from "mongoose";
 export type IReview = {
   rating: number;
   feedBack: string;
   user: mongoose.Schema.Types.ObjectId;
+  averageRating:number
   createdAt: Date;
 };
 

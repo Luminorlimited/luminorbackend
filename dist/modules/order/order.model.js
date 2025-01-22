@@ -60,6 +60,9 @@ const orderSchema = new mongoose_1.default.Schema({
         ref: "Transaction",
         required: true,
     },
+}, {
+    timestamps: true,
+    versionKey: false
 });
 exports.Order = (0, mongoose_1.model)("Order", orderSchema);
 // userSchema.set("autoIndex", true);

@@ -97,10 +97,15 @@ const updateSingleClient = (0, catchAsync_1.default)((req, res) => __awaiter(voi
         if (fileMap["projectUrl"]) {
             projectUrl = yield (0, uploadTos3_1.uploadFileToSpace)(fileMap["projectUrl"], "project-samples");
         }
-        if (fileMap["profileUrl"]) {
-            profileImageUrl = yield (0, uploadTos3_1.uploadFileToSpace)(fileMap["profileUrl"], "profileUrl");
-        }
-        updatedProfile = Object.assign(Object.assign({}, others), { projectUrl: projectUrl, profileUrl: profileImageUrl });
+        // if (fileMap["profileUrl"]) {
+        //   profileImageUrl = await uploadFileToSpace(
+        //     fileMap["profileUrl"],
+        //     "profileUrl"
+        //   );
+        // }
+        updatedProfile = Object.assign(Object.assign({}, others), { 
+            // projectUrl: projectUrl,
+            profileUrl: profileImageUrl });
     }
     // console.log(req.user, "check user");
     // Include uploaded file URLs in the update payload

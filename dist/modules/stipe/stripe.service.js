@@ -18,7 +18,6 @@ const auth_model_1 = require("../auth/auth.model");
 const config_1 = __importDefault(require("../../config"));
 const handleApiError_1 = __importDefault(require("../../errors/handleApiError"));
 const http_status_codes_1 = require("http-status-codes");
-const isValidAmount_1 = require("../../utilitis/isValidAmount");
 const order_model_1 = require("../order/order.model");
 const offer_service_1 = require("../offers/offer.service");
 const order_service_1 = require("../order/order.service");
@@ -224,15 +223,22 @@ const refundPaymentToCustomer = (payload) => __awaiter(void 0, void 0, void 0, f
 //   return orderResult;
 // };
 const createPaymentIntentService = (payload) => __awaiter(void 0, void 0, void 0, function* () {
-    if (!payload.amount) {
-        throw new handleApiError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "Amount is required");
-    }
-    if (!(0, isValidAmount_1.isValidAmount)(payload.amount)) {
-        throw new handleApiError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, `Amount '${payload.amount}' is not a valid amount`);
+    // if (!payload.amount) {
+    //   throw new ApiError(StatusCodes.BAD_REQUEST, "Amount is required");
+    // }
+    // if (!isValidAmount(payload.amount)) {
+    //   throw new ApiError(
+    //     StatusCodes.BAD_REQUEST,
+    //     `Amount '${payload.amount}' is not a valid amount`
+    //   );
+    // }
+    const offer = yield offer_service_1.OfferService.getSingleOffer(payload.offerId);
+    if (!offer) {
+        throw new handleApiError_1.default(http_status_codes_1.StatusCodes.NOT_FOUND, "Offer not found");
     }
     // Create a PaymentIntent with Stripe
     const paymentIntent = yield stripe.paymentIntents.create({
-        amount: payload.amount * 100,
+        amount: offer.totalPrice * 100,
         currency: "usd",
         customer: payload.customerId,
         payment_method: payload.paymentMethodId,
@@ -246,10 +252,6 @@ const createPaymentIntentService = (payload) => __awaiter(void 0, void 0, void 0
     if (paymentIntent.status !== "succeeded") {
         throw new handleApiError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "PaymentIntent was not successful");
     }
-    const offer = yield offer_service_1.OfferService.getSingleOffer(payload.offerId);
-    if (!offer) {
-        throw new handleApiError_1.default(http_status_codes_1.StatusCodes.NOT_FOUND, "Offer not found");
-    }
     const session = yield mongoose_1.default.startSession();
     let orderResult;
     try {
@@ -257,7 +259,7 @@ const createPaymentIntentService = (payload) => __awaiter(void 0, void 0, void 0
         const transaction = yield transaction_model_1.Transaction.create([
             {
                 orderId: null,
-                amount: payload.amount,
+                amount: offer.totalPrice,
                 paymentStatus: "pending",
                 stripePaymentIntentId: paymentIntent.id,
             },
@@ -314,7 +316,7 @@ const deliverProject = (orderId) => __awaiter(void 0, void 0, void 0, function* 
             paymentStatus: transaction_interface_1.PAYMENTSTATUS.COMPLETED,
         },
     });
-    return transfer;
+    return { transfer, updateTransaction };
 });
 exports.StripeServices = {
     // saveCardWithCustomerInfoIntoStripe,

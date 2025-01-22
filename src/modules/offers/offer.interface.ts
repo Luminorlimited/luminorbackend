@@ -1,4 +1,4 @@
-import { ObjectId } from "mongoose";
+
 export type IMilestone = {
   title: string;
   description: string;

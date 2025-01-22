@@ -54,10 +54,16 @@ const clientSchema = new mongoose_1.default.Schema({
         max: { type: Number, default: null },
     },
     projectListing: { type: String, default: null },
-    projectUrl: {
-        type: String,
-        default: null,
-    },
-}, { timestamps: true });
+    // projectUrl: {
+    //   type: String,
+    //   default: null,
+    // },
+    projectPreference: {
+        type: [String],
+        default: null
+    }
+}, { timestamps: true,
+    versionKey: false
+});
 clientSchema.index({ location: "2dsphere" });
 exports.Client = mongoose_1.default.model("Client", clientSchema);

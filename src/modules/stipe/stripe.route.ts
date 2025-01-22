@@ -1,14 +1,7 @@
 import express from "express";
-import validateRequest from "../../middlewares/validateRequest";
+
 import { StripeController } from "./stripe.controller";
-import {
-  AuthorizedPaymentPayloadSchema,
-  capturedPaymentPayloadSchema,
-  refundPaymentPayloadSchema,
-  saveNewCardWithExistingCustomerPayloadSchema,
-  TStripeSaveWithCustomerInfoPayloadSchema,
-} from "./stripe.validation";
-import auth from "../../middlewares/auth";
+
 import { multerUpload } from "../../middlewares/multer";
 import { parseBodyData } from "../../middlewares/parseJson";
 

@@ -13,4 +13,5 @@ exports.OrderRoute = router;
 router.post("/", order_controller_1.OrderController.createOrder);
 router.get("/professional", order_controller_1.OrderController.getSpecificOrderBYClientAndProfessional);
 router.get("/professional-order", (0, auth_1.default)(user_1.ENUM_USER_ROLE.RETIREPROFESSIONAL), order_controller_1.OrderController.getOrderByProfessional);
+router.get("/client-order", (0, auth_1.default)(user_1.ENUM_USER_ROLE.CLIENT), order_controller_1.OrderController.getOrderByProfessional);
 router.get("/:id", order_controller_1.OrderController.getOrderById);

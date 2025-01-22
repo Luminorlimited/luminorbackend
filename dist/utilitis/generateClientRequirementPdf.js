@@ -13,12 +13,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.mergePDFs = void 0;
-const uploadTos3_1 = require("./uploadTos3");
+const pdfkit_1 = __importDefault(require("pdfkit"));
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
-const pdfkit_1 = __importDefault(require("pdfkit"));
-const mergePDFs = (files, captions, // Array of captions corresponding to each file
-additionalMessage) => __awaiter(void 0, void 0, void 0, function* () {
+const uploadTos3_1 = require("./uploadTos3"); // Assuming this is your upload logic
+const mergePDFs = (files, // Array of files (could be empty)
+caption, // Single caption string
+additionalMessage // Single additional message string
+) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // Define the local file path for the merged PDF
         const fileName = `merged_${Date.now()}.pdf`;
@@ -32,35 +34,48 @@ additionalMessage) => __awaiter(void 0, void 0, void 0, function* () {
         // Write the merged PDF to the local file system
         const writeStream = fs_1.default.createWriteStream(filePath);
         mergedDoc.pipe(writeStream);
-        // Append each uploaded file to the merged PDF
-        for (let i = 0; i < files.length; i++) {
-            const file = files[i];
-            const pdfBuffer = file.buffer; // Use the buffer instead of reading from path
-            const caption = captions[i] || "No caption provided"; // Use the corresponding caption or a default message
-            // Add a new page for each file (no need to check for the first page)
-            if (i > 0) {
-                mergedDoc.addPage();
-            }
-            // Add the caption at the top of the page
+        // Add the caption to the first page
+        if (caption) {
             mergedDoc
                 .fontSize(14)
                 .text(caption, { align: "center", underline: true })
-                .moveDown(); // Add the caption at the top
-            // Embed the file's image content into the current page
-            mergedDoc.image(pdfBuffer, {
-                fit: [500, 700], // Fit the image within this dimension
-                align: "center",
-                valign: "center",
-            });
+                .moveDown(); // Move down after the caption
         }
-        // Add the final page for the additional message
-        mergedDoc.addPage();
-        mergedDoc
-            .fontSize(14)
-            .text("Additional Message:", { align: "center", underline: true })
-            .moveDown()
-            .fontSize(12)
-            .text(additionalMessage, { align: "left" });
+        // Add space between caption and files or additional message
+        const spaceBetweenCaptionAndContent = 1.5; // Adjust space as needed
+        mergedDoc.moveDown(spaceBetweenCaptionAndContent);
+        // If files are provided, embed each file in the PDF
+        if (files && files.length > 0) {
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const pdfBuffer = file.buffer; // Buffer of the uploaded file
+                // Add the file content
+                mergedDoc.image(pdfBuffer, {
+                    fit: [500, 700], // Fit the image within this dimension
+                    align: "center",
+                    valign: "center",
+                });
+                // Add space after each file (optional)
+                if (i < files.length - 1) {
+                    mergedDoc.addPage(); // Add a new page if more than one file
+                }
+            }
+        }
+        // If there are no files, just add space for the additional message
+        if (files.length === 0) {
+            mergedDoc.moveDown(spaceBetweenCaptionAndContent);
+        }
+        else {
+            // After files, continue on the same page for the additional message
+            mergedDoc.addPage(); // Ensure that additional message starts from a new page if files exist
+        }
+        // Add the additional message (plain text with no header or underline)
+        if (additionalMessage) {
+            mergedDoc
+                .fontSize(12)
+                .text(additionalMessage, { align: "left" }); // Plain text for the additional message
+        }
+        // End the PDF document
         mergedDoc.end();
         // Wait for the file to be completely written
         yield new Promise((resolve, reject) => {

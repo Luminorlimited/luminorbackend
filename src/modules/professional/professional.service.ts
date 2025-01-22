@@ -10,7 +10,7 @@ import { IGenericResponse } from "../../interfaces/general";
 import { paginationHelpers } from "../../helpers/paginationHelper";
 import { searchableField } from "../../constants/searchableField";
 
-import { getIndustryFromService } from "../../utilitis/serviceMapping";
+
 import { uploadFileToSpace } from "../../utilitis/uploadTos3";
 import { jwtHelpers } from "../../helpers/jwtHelpers";
 import { Secret } from "jsonwebtoken";

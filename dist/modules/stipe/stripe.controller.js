@@ -107,11 +107,14 @@ const refundPaymentToCustomer = (0, catchAsync_1.default)((req, res) => __awaite
 //payment from owner to rider
 const createPaymentIntent = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const files = req.files;
-    // console.log(req.files)
-    if (!files || files.length === 0) {
-        throw new Error("No files uploaded.");
+    //console.log(files, "check files")
+    let mergedPDFUrl;
+    if (files || files.length === 0) {
+        mergedPDFUrl = yield (0, generateClientRequirementPdf_1.mergePDFs)(files, req.body.caption, req.body.additionalMessage);
     }
-    const mergedPDFUrl = yield (0, generateClientRequirementPdf_1.mergePDFs)(files, req.body.caption, req.body.additionalMessage);
+    else {
+        mergedPDFUrl = yield (0, generateClientRequirementPdf_1.mergePDFs)([], req.body.caption, req.body.additionalMessage);
+    }
     // console.log(mergedPDFUrl,"chec merge url")
     const order = req.body;
     order.clientRequerment = mergedPDFUrl;

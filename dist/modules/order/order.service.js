@@ -16,7 +16,11 @@ const createOrder = (payload) => __awaiter(void 0, void 0, void 0, function* () 
     return result;
 });
 const getOrderByProfessional = (email) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield order_model_1.Order.findOne({ orderReciver: email }).populate("project").populate("transaction");
+    const result = yield order_model_1.Order.find({ orderReciver: email }).populate("project").populate("transaction");
+    return result;
+});
+const getOrderByClient = (email) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield order_model_1.Order.find({ orderFrom: email }).populate("project").populate("transaction");
     return result;
 });
 const getSpecificOrderBYClientAndProfessional = (clientId, professionalId) => __awaiter(void 0, void 0, void 0, function* () {
@@ -35,4 +39,5 @@ exports.OrderService = {
     getOrderByProfessional,
     getSpecificOrderBYClientAndProfessional,
     getOrderById,
+    getOrderByClient
 };

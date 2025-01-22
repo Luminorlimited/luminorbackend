@@ -4,15 +4,16 @@ import { User } from "../auth/auth.model";
 import config from "../../config";
 import ApiError from "../../errors/handleApiError";
 import { StatusCodes } from "http-status-codes";
-import { isValidAmount } from "../../utilitis/isValidAmount";
+
 import { Order } from "../order/order.model";
 import { OfferService } from "../offers/offer.service";
 
 import { OrderService } from "../order/order.service";
-import { RetireProfessional } from "../professional/professional.model";
+
 import { Transaction } from "../transaction/transaction.model";
 import mongoose from "mongoose";
 import { PAYMENTSTATUS } from "../transaction/transaction.interface";
+import { Offer } from "../offers/offer.model";
 
 // Initialize Stripe with your secret API key
 const stripe = new Stripe(config.stripe_key as string, {
@@ -284,6 +285,9 @@ const createPaymentIntentService = async (payload: any) => {
 
 
 
+await Offer.deleteOne({id:offer.id})
+
+
 
 
   const session = await mongoose.startSession();
@@ -372,7 +376,7 @@ const deliverProject = async (orderId: string) => {
 
     },
   })
-  return transfer;
+  return {transfer,updateTransaction};
 };
 
 export const StripeServices = {

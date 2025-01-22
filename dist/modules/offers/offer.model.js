@@ -43,12 +43,8 @@ const offerSchema = new mongoose_1.default.Schema({
     },
     serviceFee: {
         type: Number,
-        required: true
-    },
-    transactionNumber: {
-        type: String,
-        required: true
+        required: true,
     },
     isAccepted: { type: Boolean, default: false },
-}, { timestamps: true });
+}, { timestamps: true, versionKey: false });
 exports.Offer = mongoose_1.default.model("Offer", offerSchema);
