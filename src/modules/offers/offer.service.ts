@@ -1,3 +1,5 @@
+import { StatusCodes } from "http-status-codes";
+import ApiError from "../../errors/handleApiError";
 import { calculateTotalPrice } from "../../utilitis/calculateTotalPrice";
 import { User } from "../auth/auth.model";
 import { AgreementType, IOffer } from "./offer.interface";
@@ -60,8 +62,16 @@ const getOffersByProfessional = async (email: string) => {
 };
 const getSingleOffer = async (id: string) => {
   const offer = await Offer.findById(id);
+  if(!offer){
+    throw new ApiError(StatusCodes.UNAUTHORIZED,"offer not found")
+  }
+  const [client, retireProfessional] = await Promise.all([
+    User.findOne({ email: offer.clientEmail }).select("name "), 
+    User.findOne({ email: offer.professionalEmail }).select("name "), 
+  ]);
+
   // console.log(offer, "offer");
-  return offer;
+  return {offer,client,retireProfessional};
 };
 const deleteSingleOffer = async (id: string) => {
   const offer = await Offer.findByIdAndDelete({ _id: id });
