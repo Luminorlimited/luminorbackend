@@ -5,7 +5,7 @@ import PDFDocument from 'pdfkit';
 import { AgreementType, IOffer } from "../modules/offers/offer.interface";
 
 export const generateOfferPDF = async (offer: IOffer) => {
-  console.log(offer, "check offer")
+  //console.log(offer, "check offer")
   try {
     const fileName = `offer_${Date.now()}.pdf`;
     const filePath = path.join(__dirname, "..", "uploads", fileName);
@@ -108,7 +108,7 @@ export const generateOfferPDF = async (offer: IOffer) => {
     switch (offer.agreementType) {
       case AgreementType.FlatFee:
         if (offer.flatFee) {
-          console.log(offer.flatFee, "check offer float fee")
+        //  console.log(offer.flatFee, "check offer float fee")
           drawTableRow("Total Price", `$${parseFloat(offer.flatFee.price as unknown as string).toFixed(2)}`, true);
           drawTableRow("Revisions", `${offer.flatFee.revision}`);
           drawTableRow("Delivery Time", `${offer.flatFee.delivery} days`);
