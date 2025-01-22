@@ -59,7 +59,12 @@ router.delete(
 //   StripeController.refundPaymentToCustomer
 // );
 
-router.post("/create-payment-intent", multerUpload.array("clientRequirement"),parseBodyData, StripeController.createPaymentIntent);
-router.patch("/deliver-project/:id",StripeController.deliverProject)
+router.post(
+  "/create-payment-intent",
+  multerUpload.array("clientRequirement"),
+  parseBodyData,
+  StripeController.createPaymentIntent
+);
+router.patch("/deliver-project/:id", StripeController.deliverProject);
 
 export const StripeRoutes = router;
