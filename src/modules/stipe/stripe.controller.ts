@@ -112,16 +112,22 @@ const createPaymentIntent = catchAsync(async (req: any, res: any) => {
   const files = req.files;
   console.log(files, "check files")
 
-  console.log(req.files)
-  if (!files || files.length === 0) {
-    throw new Error("No files uploaded.");
+  let mergedPDFUrl
+
+
+  if (files || files.length === 0) {
+   
+    mergedPDFUrl = await mergePDFs(
+      files,
+      req.body.caption,
+      req.body.additionalMessage
+    );
   }
 
-  const mergedPDFUrl = await mergePDFs(
-    files,
-    req.body.caption,
-    req.body.additionalMessage
-  );
+  else {
+    mergedPDFUrl=await mergePDFs([],req.body.caption,req.body.additionalMessage)
+  }
+
   // console.log(mergedPDFUrl,"chec merge url")
   const order = req.body;
 

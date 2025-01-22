@@ -53,10 +53,14 @@ const clientSchema = new mongoose.Schema<IClient>(
       max: { type: Number, default: null },
     },
     projectListing: { type: String, default: null },
-    projectUrl: {
-      type: String,
-      default: null,
-    },
+    // projectUrl: {
+    //   type: String,
+    //   default: null,
+    // },
+    projectPreference:{
+      type:[String],
+      default :null
+    }
   },
   { timestamps: true }
 );

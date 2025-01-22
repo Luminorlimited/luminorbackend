@@ -226,7 +226,7 @@ const updateSingleClient = async (
     }
     // console.log(auth,"check auth");
 
-    // Update the associated User model (linked by client field)
+
     const updatedUser = await User.findByIdAndUpdate(id, auth, {
       new: true, // return the updated document
       session,
@@ -236,14 +236,13 @@ const updateSingleClient = async (
       throw new ApiError(404, "User not found");
     }
 
-    // Commit the transaction after both updates are successful
+  
     await session.commitTransaction();
     session.endSession();
 
-    // Return the updated client with populated user data
     return updatedClient.populate("client");
   } catch (error: any) {
-    // In case of error, rollback the transaction
+
     await session.abortTransaction();
     session.endSession();
     throw new ApiError(400, error.message || "Error updating client");
