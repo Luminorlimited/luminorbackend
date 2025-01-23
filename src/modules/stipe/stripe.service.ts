@@ -257,7 +257,9 @@ const createPaymentIntentService = async (payload: any) => {
   //     `Amount '${payload.amount}' is not a valid amount`
   //   );
   // }
-  const offer = await OfferService.getSingleOffer(payload.offerId);
+  console.log(payload, "check payload")
+  const { offer } = await OfferService.getSingleOffer(payload.offerId);
+  console.log(offer, "check offer")
   if (!offer) {
     throw new ApiError(StatusCodes.NOT_FOUND, "Offer not found");
   }
@@ -331,7 +333,7 @@ const createPaymentIntentService = async (payload: any) => {
       { session }
     );
 
-    await Offer.deleteOne({id:offer.id}),{session}
+    await Offer.deleteOne({ id: offer.id }), { session }
     await session.commitTransaction();
   } catch (error) {
 
@@ -349,8 +351,14 @@ const handleAccountUpdated = async (event: any) => {
 };
 
 const deliverProject = async (orderId: string) => {
+  // console.log(orderId, "check orderId")
   const order = await OrderService.getOrderById(orderId);
-  const retireProfessional = await User.findOne({ email: order?.orderReciver });
+
+  // console.log(order, "check order")
+  if (!order || !order.result) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "order not found")
+  }
+  const retireProfessional = await User.findOne({ email: order?.result.orderReciver });
   if (!retireProfessional) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "user not found");
   }
@@ -358,25 +366,25 @@ const deliverProject = async (orderId: string) => {
   if (!order) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "order not found");
   }
-  const totalAmount = Math.round(parseFloat(order?.totalPrice) * 100);
+  const totalAmount = Math.round(parseFloat(order?.result.totalPrice) * 100);
   const platformFee =
-    Math.round((parseFloat(order.totalPrice) * 20) / 100) * 100;
+    Math.round((parseFloat(order.result.totalPrice) * 20) / 100) * 100;
   const transferAmount = totalAmount - platformFee;
   const transfer = await stripe.transfers.create({
     amount: transferAmount,
     currency: "usd",
     destination: retireProfessional?.stripe?.customerId as string,
-    transfer_group: `DELIVERY_${order?.paymentIntentId}`,
+    transfer_group: `DELIVERY_${order?.result.paymentIntentId}`,
 
   });
-  const updateTransaction = await Transaction.updateOne({
-    orderId: orderId,
-    $set: {
-      paymentStatus: PAYMENTSTATUS.COMPLETED,
-
-    },
-  })
-  return {transfer,updateTransaction};
+  // console.lo
+  const updateTransaction = await Transaction.findOneAndUpdate(
+    { _id: order.result.transaction },
+    { $set: { paymentStatus: PAYMENTSTATUS.COMPLETED } },
+    { new: true }
+  );
+  console.log(updateTransaction, "check update transaction")
+  return { transfer, updateTransaction };
 };
 
 export const StripeServices = {
