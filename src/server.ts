@@ -98,7 +98,7 @@ io.on("connection", (socket) => {
         message: savedMessage,
         fromEmail: fromEmail,
       });
-    } catch (error) {}
+    } catch (error) { }
   });
   // const message = {
   //   toEmail: "b@mail.com",
@@ -149,6 +149,9 @@ io.on("connection", (socket) => {
 
   socket.on("sendOffer", async (data: any) => {
     const { toEmail, offer, fromEmail } = JSON.parse(data);
+    console.log(toEmail, "the reciver")
+    console.log(fromEmail, "the initator")
+    console.log(offer, "the check offer")
     const toSocketId = users[toEmail];
     // console.log(data,"from send offer")
     // console.log(offer,"check offer")
@@ -159,8 +162,8 @@ io.on("connection", (socket) => {
       offer.orderAgreementPDF = offerPDFPath;
       const totalOffer = {
         ...offer,
-        clientEmail: fromEmail,
-        professionalEmail: toEmail,
+        clientEmail: toEmail,
+        professionalEmail: fromEmail,
       };
       const newOffer = OfferService.createOffer(totalOffer);
 
@@ -264,7 +267,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("error", (error) => {});
+  socket.on("error", (error) => { });
 });
 
 async function bootstrap() {
