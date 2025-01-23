@@ -12,7 +12,7 @@ export type IReview = {
     retireProfessionalId:mongoose.Types.ObjectId
   
     rating: Rating; 
-    comment: string; 
+    feedback: string; 
   
   };
   
