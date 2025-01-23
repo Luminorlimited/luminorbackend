@@ -57,14 +57,31 @@ const clientSchema = new mongoose.Schema<IClient>(
     //   type: String,
     //   default: null,
     // },
-    projectPreference:{
-      type:[String],
-      default :null
-    }
-  },
-  { timestamps: true ,
+    projectPreference: {
+      type: [String],
+      default: null,
+    },
+    // reviews: [
+    //   {
+    //     user: {
+    //       type: mongoose.Schema.Types.ObjectId,
+    //       ref: "RetireProfessional",
+    //       required: true,
+    //     },
+    //     rating: { type: Number, required: true, min: 1, max: 5 },
 
-    versionKey:false
+    //     feedBack: { type: String, required: true },
+    //     createdAt: { type: Date, default: Date.now },
+    //   },
+    // ],
+
+    // averageRating: { type: Number, default: 0 },
+  },
+
+  {
+    timestamps: true,
+
+    versionKey: false,
   }
 );
 clientSchema.index({ location: "2dsphere" });

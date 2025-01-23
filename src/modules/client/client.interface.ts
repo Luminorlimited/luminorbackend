@@ -1,5 +1,14 @@
 import mongoose from "mongoose";
 
+
+export type IReview = {
+  rating: number;
+  feedBack: string;
+  user: mongoose.Schema.Types.ObjectId;
+ 
+  createdAt: Date;
+};
+
 export type IClient = {
   client: mongoose.Schema.Types.ObjectId;
   name?: {
@@ -34,6 +43,8 @@ export type IClient = {
   projectListing?: string;
   // projectUrl?: string;
   projectPreference?:string[]
+  // reviews?: IReview;
+  //   averageRating: number;
 };
 
 // export type IUpdateClient = {
