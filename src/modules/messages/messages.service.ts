@@ -115,6 +115,7 @@ const getConversationLists = async (user: any) => {
 
         const isOnline = onlineUsers?.has(user.email);
         return {
+          id: user._id,
           email: user.email,
           name: `${user.name.firstName} ${user.name.lastName}`,
           profileUrl,
