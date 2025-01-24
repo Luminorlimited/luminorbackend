@@ -247,21 +247,24 @@ const refundPaymentToCustomer = async (payload: {
 //   return orderResult;
 // };
 const createPaymentIntentService = async (payload: any) => {
-  // if (!payload.amount) {
-  //   throw new ApiError(StatusCodes.BAD_REQUEST, "Amount is required");
-  // }
+ 
 
-  // if (!isValidAmount(payload.amount)) {
-  //   throw new ApiError(
-  //     StatusCodes.BAD_REQUEST,
-  //     `Amount '${payload.amount}' is not a valid amount`
-  //   );
-  // }
   console.log(payload, "check payload")
   const { offer } = await OfferService.getSingleOffer(payload.offerId);
   console.log(offer, "check offer")
   if (!offer) {
     throw new ApiError(StatusCodes.NOT_FOUND, "Offer not found");
+  }
+
+   await stripe.paymentMethods.attach(
+    payload.paymentMethodId,
+    { customer: payload.customerId }
+  );
+  
+  // Step 2: Retrieve the payment method (attached to customer)
+  const paymentMethodDetails = await stripe.paymentMethods.retrieve(payload.paymentMethodId);
+  if (paymentMethodDetails.customer !== payload.customerId) {
+    throw new Error("PaymentMethod does not belong to this customer.");
   }
 
   // Create a PaymentIntent with Stripe
