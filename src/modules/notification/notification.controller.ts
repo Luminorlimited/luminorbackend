@@ -6,19 +6,21 @@ import { Request, Response } from "express";
 import { NotificationService } from "./notification.service";
 import { INotification } from "./notification.interface";
 
-const createNotification = catchAsync(async (req: Request, res: Response) => {
-  const notification = req.body;
+// const createNotification = catchAsync(async (req: Request, res: Response) => {
+//   const notification = req.body;
 
-  const result = await NotificationService.createNotification(notification);
+//   const result = await NotificationService.createNotification(notification);
 
-  sendResponse<INotification>(res, {
-    success: true,
-    statusCode: StatusCodes.OK,
+  
 
-    message: "Notification saved    successfully",
-    data: result,
-  });
-});
+//   sendResponse<INotification>(res, {
+//     success: true,
+//     statusCode: StatusCodes.OK,
+
+//     message: "Notification saved    successfully",
+//     data: result,
+//   });
+// });
 const getUserNotification = catchAsync(async (req: Request, res: Response) => {
   const { recipient, status, type } = req.query;
 
@@ -49,8 +51,22 @@ const updateNotification = catchAsync(async (req: Request, res: Response) => {
     data: messages,
   });
 });
+const updateMessageNotification = catchAsync(async (req: Request, res: Response) => {
+  const ids = req.body.ids;
+
+  const messages = await NotificationService.updateMessageNotification(ids);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+
+    message: "user notification  update    successfully",
+    data: messages,
+  });
+});
 export const NotificationController = {
-  createNotification,
+  // createNotification,
   getUserNotification,
   updateNotification,
+  updateMessageNotification
 };

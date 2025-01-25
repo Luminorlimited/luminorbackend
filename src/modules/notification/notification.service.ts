@@ -1,10 +1,29 @@
-
-import { ENUM_NOTIFICATION_STATUS } from "../../enums/notificationStatus";
+import {
+  ENUM_NOTIFICATION_STATUS,
+  ENUM_NOTIFICATION_TYPE,
+} from "../../enums/notificationStatus";
+import { ObjectId } from "mongodb";
+import { io } from "../../server";
+import { MessageService } from "../messages/messages.service";
 import { INotification } from "./notification.interface";
 import { Notification } from "./notification.model";
 
-const createNotification = async (payload: INotification) => {
+const createNotification = async (payload: INotification, event: string) => {
   const result = await Notification.create(payload);
+  let count;
+  if (payload.type === ENUM_NOTIFICATION_TYPE.PRIVATEMESSAGE) {
+    count = await MessageService.countMessages(payload.recipient);
+  }
+  if (result) {
+    io.emit(event, {
+      toEmail: payload.recipient,
+      message: payload.message,
+      fromEmail: payload.sender,
+      type: payload.type,
+      status: payload.status,
+      count: count,
+    });
+  }
   return result;
 };
 
@@ -43,8 +62,22 @@ const updateNotification = async (id: string) => {
   );
   return result;
 };
+const updateMessageNotification= async (ids: string[]) => {
+
+  const result = await Notification.updateMany(
+    {
+      _id: { $in: ids }, 
+    },
+    { status: ENUM_NOTIFICATION_STATUS.SEEN },
+    {
+      new: true,
+    }
+  );
+  return result;
+};
 export const NotificationService = {
   createNotification,
   getUserNotification,
   updateNotification,
+  updateMessageNotification
 };

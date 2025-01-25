@@ -6,11 +6,12 @@ import { ENUM_NOTIFICATION_STATUS, ENUM_NOTIFICATION_TYPE } from "../../enums/no
     sender: string;
     message: string;
     type: ENUM_NOTIFICATION_TYPE;
-    status: ENUM_NOTIFICATION_STATUS;
-    _id: string;
-    createdAt: string;
-    updatedAt: string;
-    __v: number;
+    status?: ENUM_NOTIFICATION_STATUS;
+    _id?: string;
+    createdAt?: string;
+    updatedAt?: string;
+    __v?: number;
+    count?:number
   };
   export type INotificationType =
     "privateMessage"|

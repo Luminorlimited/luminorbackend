@@ -1,8 +1,14 @@
+import {
+  ENUM_NOTIFICATION_STATUS,
+  ENUM_NOTIFICATION_TYPE,
+} from "../../enums/notificationStatus";
 import { ENUM_USER_ROLE } from "../../enums/user";
 import { onlineUsers } from "../../server";
+import { uploadFileToSpace } from "../../utilitis/uploadTos3";
 
 import { User } from "../auth/auth.model";
 import { Client } from "../client/client.model";
+import { Notification } from "../notification/notification.model";
 import { RetireProfessional } from "../professional/professional.model";
 import { IMessage } from "./messages.interface";
 import { Message } from "./messages.model";
@@ -131,10 +137,29 @@ const getConversationLists = async (user: any) => {
     throw error;
   }
 };
-// Import the `isOnline` function from your server file
+
+const uploadMessagefile = async (file: any) => {
+  const fileUrl = await uploadFileToSpace(file, "message-file");
+  return fileUrl;
+};
+
+const countMessages = async (email: string) => {
+  console.log(email, "chcekc email");
+  const totalUnseen = await Notification.find({
+    recipient: email,
+    status: ENUM_NOTIFICATION_STATUS.UNSEEN,
+    type: ENUM_NOTIFICATION_TYPE.PRIVATEMESSAGE,
+  }).select("_id");
+  const filterIds = totalUnseen.map((message) => message._id.toString());
+  // console.log(filterIds,"check filter id")
+
+  return { count: totalUnseen.length, totalUnseenId: filterIds };
+};
 
 export const MessageService = {
   createMessage,
   getMessages,
   getConversationLists,
+  uploadMessagefile,
+  countMessages,
 };

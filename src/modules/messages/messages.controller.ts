@@ -52,8 +52,29 @@ const getConversationLists = catchAsync(async (req: Request, res: Response) => {
     data: list,
   });
 });
+const uploadMessagefile=catchAsync(async (req: Request, res: Response) => {
+   const file=req.file
+
+  //  console.log(req.file,"check req.file")
+
+ 
+ if(!file){
+
+  throw new ApiError(StatusCodes.UNAUTHORIZED,"choose a file")
+ }
+  const fileUrl = await MessageService.uploadMessagefile(file);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+
+    message: "file upload    successfully",
+    data: fileUrl,
+  });
+});
 export const MessageController = {
   createMessage,
   getMessages,
   getConversationLists,
+  uploadMessagefile
 };

@@ -5,6 +5,7 @@ export enum ENUM_NOTIFICATION_STATUS {
   
   export enum ENUM_NOTIFICATION_TYPE {
     PRIVATEMESSAGE = "privateMessage",
+    OFFER="offer",
     JOINTEAMSTATUSUPDATE = "joinTeamStatusUpdate",
     JOINTEAMREQUESTSTATUS = "joinTeamRequestStatus",
     UPDATECREATETEAM = "updateCreateTeam",
