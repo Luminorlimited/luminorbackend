@@ -70,23 +70,49 @@ io.on("connection", (socket) => {
     // console.log(toSocketId);
 
     // const fromSocketId = users[fromEmail];
+    // console.log(data, "check data")
+    // console.log(media, "check media ")
 
     if (!fromEmail) {
       socket.send(JSON.stringify({ error: "email is required" }));
     }
 
+
+    // console.log(media, "check media")
+
     try {
       let mediaUrl = null;
-      if (media) {
-        let mediaBuffer = Buffer.from(media, "base64");
+
+      if (media.length > 0) {
+        // let mediaBuffer = Buffer.from(media, "base64");
+        // console.log("i am in loop")
+
+        // const base64Data = media.replace(/^data:image\/[a-z]+;base64,/, "");
+
+        // Convert base64 string to buffer
+        console.log("hello")
+        const base64Data = media[0].replace(/^data:image\/[a-z]+;base64,/, "");
+        const mediaBuffer = Buffer.from(base64Data, "base64");
+
+        console.log(mediaBuffer, "check base64 data")
+        // const mediaBuffer = Buffer.from(media[0], "base64");
+        // console.log(mediaBuffer, "check media buffer")
+
+        // Upload to DigitalOcean Spaces (or S3)
+        // console.log(media[0], "check media")
+        // const base64Data = media[0].split(',')[1]; // This will remove the 'data:image/...' part.
+        // const mediaBuffer = Buffer.from(base64Data, 'base64');
+
         mediaUrl = await uploadFileToSpace(mediaBuffer, "privateMessageFile");
+        console.log(mediaUrl, "check media url")
       }
       const savedMessage = await Message.create({
         sender: fromEmail,
         message: message,
-        medai: mediaUrl,
+        media: mediaUrl,
         recipient: toEmail,
       });
+      console.log(savedMessage, "check saved message")
 
       if (toSocketId) {
         socket.to(toSocketId).emit("privateMessage", {
