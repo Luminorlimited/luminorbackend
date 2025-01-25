@@ -38,14 +38,14 @@ const enterOtp = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
-const getProfile= catchAsync(async (req: Request, res: Response) => {
-const user=req.user as any
+const getProfile = catchAsync(async (req: Request, res: Response) => {
+  const user = req.user as any
 
 
-console.log(user,"check user")
+  // console.log(user,"check user")
   // res.cookie("token", result.accessToken, { httpOnly: true });
-  const result=await AuthService.getProfile(user.id)
-  
+  const result = await AuthService.getProfile(user.id)
+
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
@@ -54,22 +54,22 @@ console.log(user,"check user")
   });
 });
 
-const getSingleUserById= catchAsync(async (req: Request, res: Response) => {
-  
-  
-  
+const getSingleUserById = catchAsync(async (req: Request, res: Response) => {
+
+
+
   // console.log(user,"check user")
-    // res.cookie("token", result.accessToken, { httpOnly: true });
-    const result=await AuthService.getSingleUserById(req.params.id)
-    
-    sendResponse(res, {
-      statusCode: StatusCodes.OK,
-      success: true,
-      message: "single user  get successfully",
-      data: result,
-    });
+  // res.cookie("token", result.accessToken, { httpOnly: true });
+  const result = await AuthService.getSingleUserById(req.params.id)
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "single user  get successfully",
+    data: result,
   });
-  
+});
+
 
 
 export const AuthController = {
@@ -77,5 +77,5 @@ export const AuthController = {
   enterOtp,
   getProfile,
   getSingleUserById
-  
+
 };
