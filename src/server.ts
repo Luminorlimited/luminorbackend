@@ -5,8 +5,8 @@ import app from "./app";
 import { Server } from "socket.io";
 import { Message } from "./modules/messages/messages.model";
 import { Notification } from "./modules/notification/notification.model";
-import { ENUM_NOTIFICATION_STATUS } from "./enums/notificationStatus";
-import { NotificationCreateResponse } from "./modules/notification/notification.interface";
+import { ENUM_NOTIFICATION_STATUS, ENUM_NOTIFICATION_TYPE } from "./enums/notificationStatus";
+import { INotification, NotificationCreateResponse } from "./modules/notification/notification.interface";
 import { calculateTotalPrice } from "./utilitis/calculateTotalPrice";
 import { generateOfferPDF } from "./utilitis/generateOfferPdf";
 import { Offer } from "./modules/offers/offer.model";
@@ -16,13 +16,14 @@ import { zoomService } from "./modules/zoom/zoom.service";
 import { OfferService } from "./modules/offers/offer.service";
 import { User } from "./modules/auth/auth.model";
 import { MessageService } from "./modules/messages/messages.service";
+import { NotificationService } from "./modules/notification/notification.service";
 
 const options = {
   autoIndex: true,
 };
 
 const httpServer = createServer(app);
-const io = new Server(httpServer, {
+export const io = new Server(httpServer, {
   cors: {
     origin: ["http://localhost:3000"],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
@@ -65,7 +66,7 @@ io.on("connection", (socket) => {
 
   socket.on("privateMessage", async (data: any) => {
     // console.log(users);
-    const { toEmail, message = null, fromEmail, media } = JSON.parse(data);
+    const { toEmail, message , fromEmail, media } = JSON.parse(data);
     const toSocketId = users[toEmail];
     // console.log(toSocketId);
 
@@ -83,29 +84,7 @@ io.on("connection", (socket) => {
     try {
       let mediaUrl = null;
 
-      if (media.length > 0) {
-        // let mediaBuffer = Buffer.from(media, "base64");
-        // console.log("i am in loop")
-
-        // const base64Data = media.replace(/^data:image\/[a-z]+;base64,/, "");
-
-        // Convert base64 string to buffer
-        console.log("hello")
-        const base64Data = media[0].replace(/^data:image\/[a-z]+;base64,/, "");
-        const mediaBuffer = Buffer.from(base64Data, "base64");
-
-        console.log(mediaBuffer, "check base64 data")
-        // const mediaBuffer = Buffer.from(media[0], "base64");
-        // console.log(mediaBuffer, "check media buffer")
-
-        // Upload to DigitalOcean Spaces (or S3)
-        // console.log(media[0], "check media")
-        // const base64Data = media[0].split(',')[1]; // This will remove the 'data:image/...' part.
-        // const mediaBuffer = Buffer.from(base64Data, 'base64');
-
-        mediaUrl = await uploadFileToSpace(mediaBuffer, "privateMessageFile");
-        console.log(mediaUrl, "check media url")
-      }
+  
       const savedMessage = await Message.create({
         sender: fromEmail,
         message: message,
@@ -119,12 +98,29 @@ io.on("connection", (socket) => {
           message: savedMessage,
           fromEmail: fromEmail,
         });
+       
+         const notificatnionBody:INotification={
+            recipient:toEmail as string,
+            sender:fromEmail as string,
+            message:`${fromEmail} send you a message`,
+            type: ENUM_NOTIFICATION_TYPE.PRIVATEMESSAGE,
+            status:ENUM_NOTIFICATION_STATUS.UNSEEN,
+           
+          }
+        
+       await NotificationService.createNotification(notificatnionBody,"message-notification")
+       
+      
+      
       }
+    
       socket.emit("privateMessage", {
         message: savedMessage,
         fromEmail: fromEmail,
       });
-    } catch (error) { }
+    }
+    
+    catch (error) { }
   });
   // const message = {
   //   toEmail: "b@mail.com",
@@ -134,50 +130,50 @@ io.on("connection", (socket) => {
   // };
   // socket.emit("privateMessage", JSON.stringify(message))
   // Notification event
-  socket.on("notification", async ({ toEmail, message, fromEmail, type }) => {
-    const toSocketId = users[toEmail];
+  // socket.on("notification", async ({ toEmail, message, fromEmail, type }) => {
+  //   const toSocketId = users[toEmail];
 
-    // const fromSocketId = users[fromEmail];
+  //   // const fromSocketId = users[fromEmail];
 
-    if (!fromEmail) {
-      socket.send(JSON.stringify({ error: "email is required" }));
-    }
+  //   if (!fromEmail) {
+  //     socket.send(JSON.stringify({ error: "email is required" }));
+  //   }
 
-    try {
-      const notification = await Notification.create({
-        recipient: toEmail,
-        sender: fromEmail,
-        message: message,
-        status: ENUM_NOTIFICATION_STATUS.UNSEEN,
-        type: type,
-      });
+  //   try {
+  //     const notification = await Notification.create({
+  //       recipient: toEmail,
+  //       sender: fromEmail,
+  //       message: message,
+  //       status: ENUM_NOTIFICATION_STATUS.UNSEEN,
+  //       type: type,
+  //     });
 
-      const notificationResponse: NotificationCreateResponse = {
-        success: true,
-        statusCode: 200,
-        message: "Notification saved successfully",
-        data: notification.toObject(),
-      };
+  //     const notificationResponse: NotificationCreateResponse = {
+  //       success: true,
+  //       statusCode: 200,
+  //       message: "Notification saved successfully",
+  //       data: notification.toObject(),
+  //     };
 
-      // const notificationId = notificationData._id;
-      if (toSocketId) {
-        socket.to(toSocketId).emit("notification", {
-          from: fromEmail,
-          message,
+  //     // const notificationId = notificationData._id;
+  //     if (toSocketId) {
+  //       socket.to(toSocketId).emit("notification", {
+  //         from: fromEmail,
+  //         message,
 
-          type: type,
-        });
-      }
-    } catch (error) {
-      socket.emit("notificationError", "Failed to create notification");
-    }
-  });
+  //         type: type,
+  //       });
+  //     }
+  //   } catch (error) {
+  //     socket.emit("notificationError", "Failed to create notification");
+  //   }
+  // });
 
   socket.on("sendOffer", async (data: any) => {
     const { toEmail, offer, fromEmail } = JSON.parse(data);
-    console.log(toEmail, "the reciver")
-    console.log(fromEmail, "the initator")
-    console.log(offer, "the check offer")
+    // console.log(toEmail, "the reciver")
+    // console.log(fromEmail, "the initator")
+    // console.log(offer, "the check offer")
     const toSocketId = users[toEmail];
     // console.log(data,"from send offer")
     // console.log(offer,"check offer")
@@ -193,7 +189,7 @@ io.on("connection", (socket) => {
       };
       const newOffer = OfferService.createOffer(totalOffer);
 
-      // console.log(newOffer,"check new offer")
+      console.log(newOffer,"check new offer")
       if (toSocketId) {
         socket.to(toSocketId).emit("sendOffer", {
           from: fromEmail,
@@ -305,7 +301,7 @@ async function bootstrap() {
     );
     // console.log(config.database_url, "check data base url");
     console.log("Connected to MongoDB successfully.");
-
+   await MessageService.countMessages("tamim@example.com")
     // Start the server
     httpServer.listen(config.port, () => {
       console.log(`Server running at port ${config.port}`);

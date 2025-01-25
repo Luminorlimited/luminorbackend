@@ -4,6 +4,9 @@ import { calculateTotalPrice } from "../../utilitis/calculateTotalPrice";
 import { User } from "../auth/auth.model";
 import { AgreementType, IOffer } from "./offer.interface";
 import { Offer } from "./offer.model";
+import { INotification } from "../notification/notification.interface";
+import { ENUM_NOTIFICATION_STATUS, ENUM_NOTIFICATION_TYPE } from "../../enums/notificationStatus";
+import { NotificationService } from "../notification/notification.service";
 
 const createOffer = async (offer: IOffer) => {
   const totalPrice = calculateTotalPrice(offer);
@@ -27,6 +30,17 @@ const createOffer = async (offer: IOffer) => {
   }
 
   const newOffer = await Offer.create(offer);
+  const notificatnionBody:INotification={
+    recipient:offer.clientEmail as string,
+    sender:offer.professionalEmail as string,
+    message:`${offer.professionalEmail} send you a offer`,
+    type: ENUM_NOTIFICATION_TYPE.OFFER,
+    status:ENUM_NOTIFICATION_STATUS.UNSEEN
+  }
+
+
+
+  await NotificationService.createNotification(notificatnionBody,"offer-notification")
 
   return newOffer;
 };

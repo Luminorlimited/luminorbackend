@@ -7,12 +7,12 @@ import { NotificationController } from "./notification.controller";
 const router = express.Router();
 
 export const NotificationRoutes = router;
-router.post(
-  "/",
-  validateRequest(NoticationValidation.createNoticationSchema),
-  NotificationController.createNotification
-);
+// router.post(
+//   "/",
+//   validateRequest(NoticationValidation.createNoticationSchema),
+//   NotificationController.createNotification
+// );
 
 router.get("/", NotificationController.getUserNotification);
-
+router.patch("/update-many", NotificationController.updateMessageNotification);
 router.patch("/:id", NotificationController.updateNotification);
