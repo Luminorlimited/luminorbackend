@@ -9,7 +9,9 @@ import ApiError from "../../errors/handleApiError";
 const createMessage = catchAsync(async (req: Request, res: Response) => {
   const createMessage = req.body;
 
-  const result = await MessageService.createMessage(createMessage);
+  const sender=req.user
+
+  const result = await MessageService.createMessage(createMessage,sender);
 
   sendResponse<IMessage>(res, {
     success: true,

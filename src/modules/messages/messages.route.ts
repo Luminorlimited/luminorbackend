@@ -11,6 +11,7 @@ const router = express.Router();
 export const MessageRoutes = router;
 router.post(
   "/",
+  auth(),
   validateRequest(MessageValidation.CreateMessageSchema),
 
   MessageController.createMessage

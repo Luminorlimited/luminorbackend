@@ -1,4 +1,4 @@
-import { Schema, model } from "mongoose";
+import mongoose, { Schema, model } from "mongoose";
 import { IMessage } from "./messages.interface";
 
 const messageSchema = new Schema<IMessage>(
@@ -6,11 +6,18 @@ const messageSchema = new Schema<IMessage>(
     sender: {
       type: String,
       required: true,
+      ref: "User",
     },
 
     recipient: {
       type: String,
       required: true,
+      ref: "User",
+    },
+    room: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      ref: "Convirsation",
     },
 
     message: {
@@ -25,9 +32,7 @@ const messageSchema = new Schema<IMessage>(
       type: String,
       default: null,
     },
-   
   },
- 
 
   {
     timestamps: true,
