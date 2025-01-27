@@ -1,3 +1,5 @@
+import mongoose from "mongoose";
+
 export type IMessage = {
   sender: string;
 
@@ -6,5 +8,6 @@ export type IMessage = {
   message?: string;
   media?: string;
   meetingLink?: string;
+  room:mongoose.Types.ObjectId
 
 };
