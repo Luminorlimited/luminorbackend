@@ -12,14 +12,10 @@ const postReviews = catchAsync(async (req: Request, res: Response) => {
     const professionalId=req.params.id
     const user = req.user as any;
 
-     const client=await Client.findOne({client:user.id})
-     if(!client){
-      throw new ApiError(StatusCodes.UNAUTHORIZED,"client not found")
-     }
-    review.clientId = client._id; 
+
    
    console.log(review,"check review")
-   const result=await ReviewsService.postReviews(professionalId,review)
+   const result=await ReviewsService.postReviews(user.id,professionalId,review)
   
     sendResponse(res, {
       success: true,
@@ -31,6 +27,27 @@ const postReviews = catchAsync(async (req: Request, res: Response) => {
     });
   });
 
+  const getReviews=catchAsync(async (req: Request, res: Response) => {
+    const review=req.body
+    const professionalId=req.params.id
+    const user = req.user as any;
+
+
+   
+   console.log(review,"check review")
+   const result=await ReviewsService.getReviews(user.id)
+  
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+  
+      message: "your review get successfully",
+     
+      data: result,
+    });
+  });
+
   export const ReviewController={
-    postReviews
+    postReviews,
+    getReviews
   }

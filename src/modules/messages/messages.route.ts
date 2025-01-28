@@ -11,7 +11,7 @@ const router = express.Router();
 export const MessageRoutes = router;
 router.post(
   "/",
-  auth(),
+
   validateRequest(MessageValidation.CreateMessageSchema),
 
   MessageController.createMessage
@@ -21,6 +21,14 @@ router.get(
 
   MessageController.getMessages
 );
-router.post("/file-upload",  multerUpload.single("file"),MessageController.uploadMessagefile)
+router.post(
+  "/file-upload",
+  multerUpload.single("file"),
+  MessageController.uploadMessagefile
+);
 
-router.get("/get-convirsation-list",auth(),MessageController.getConversationLists)
+router.get(
+  "/get-convirsation-list",
+  auth(),
+  MessageController.getConversationLists
+);

@@ -4,13 +4,13 @@ import { IMessage } from "./messages.interface";
 const messageSchema = new Schema<IMessage>(
   {
     sender: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
       required: true,
       ref: "User",
     },
 
     recipient: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
       required: true,
       ref: "User",
     },

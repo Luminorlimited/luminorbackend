@@ -50,6 +50,7 @@ export type IProfessional = {
   workSample?: string;
   reviews?: IReview;
   averageRating: number;
+  reviewCount:number
 };
 
 export interface IProfessionalFilter {

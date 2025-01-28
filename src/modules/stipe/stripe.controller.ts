@@ -233,7 +233,16 @@ const deliverProject = catchAsync(async (req: any, res: any) => {
     data: result,
   });
 });
+const generateAccountLink=catchAsync(async (req: any, res: any) => {
+  const result = await StripeServices.generateAccountLink(req.user.id);
 
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "project deliver successfully",
+    data: result,
+  });
+});
 export const StripeController = {
   // saveCardWithCustomerInfo,
   // authorizedPaymentWithSaveCard,
@@ -245,4 +254,5 @@ export const StripeController = {
   createPaymentIntent,
   handleWebHook,
   deliverProject,
+  generateAccountLink
 };
