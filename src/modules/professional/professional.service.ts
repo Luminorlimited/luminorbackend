@@ -10,7 +10,6 @@ import { IGenericResponse } from "../../interfaces/general";
 import { paginationHelpers } from "../../helpers/paginationHelper";
 import { searchableField } from "../../constants/searchableField";
 
-
 import { uploadFileToSpace } from "../../utilitis/uploadTos3";
 import { jwtHelpers } from "../../helpers/jwtHelpers";
 import { Secret } from "jsonwebtoken";
@@ -305,6 +304,7 @@ const updateProfessionalStripeAccount = async (payload: any) => {
       $set: {
         "stripe.customerId": payload.id,
         "stripe.isOnboardingSucess": true,
+        "stripe.onboardingUrl": null,
       },
     }
   );

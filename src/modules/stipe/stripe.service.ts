@@ -189,7 +189,6 @@ const refundPaymentToCustomer = async (payload: {
   }
 };
 
-
 // const createPaymentIntentService = async (payload: any) => {
 //   // console.log(payload, "check payload");
 
@@ -203,7 +202,6 @@ const refundPaymentToCustomer = async (payload: {
 //       `Amount '${payload.amount}' is not a valid amount`
 //     );
 //   }
-
 
 //   // Create a PaymentIntent with Stripe
 //   const paymentIntent = await stripe.paymentIntents.create({
@@ -247,22 +245,21 @@ const refundPaymentToCustomer = async (payload: {
 //   return orderResult;
 // };
 const createPaymentIntentService = async (payload: any) => {
- 
-
-  console.log(payload, "check payload")
+  console.log(payload, "check payload");
   const { offer } = await OfferService.getSingleOffer(payload.offerId);
-  console.log(offer, "check offer")
+  console.log(offer, "check offer");
   if (!offer) {
     throw new ApiError(StatusCodes.NOT_FOUND, "Offer not found");
   }
 
-   await stripe.paymentMethods.attach(
-    payload.paymentMethodId,
-    { customer: payload.customerId }
-  );
-  
+  await stripe.paymentMethods.attach(payload.paymentMethodId, {
+    customer: payload.customerId,
+  });
+
   // Step 2: Retrieve the payment method (attached to customer)
-  const paymentMethodDetails = await stripe.paymentMethods.retrieve(payload.paymentMethodId);
+  const paymentMethodDetails = await stripe.paymentMethods.retrieve(
+    payload.paymentMethodId
+  );
   if (paymentMethodDetails.customer !== payload.customerId) {
     throw new Error("PaymentMethod does not belong to this customer.");
   }
@@ -288,20 +285,12 @@ const createPaymentIntentService = async (payload: any) => {
     );
   }
 
-
-
-
-
-
-
-
   const session = await mongoose.startSession();
 
   let orderResult;
 
   try {
     session.startTransaction();
-
 
     const transaction = await Transaction.create(
       [
@@ -314,7 +303,6 @@ const createPaymentIntentService = async (payload: any) => {
       ],
       { session }
     );
-
 
     const order = {
       clientRequerment: payload.clientRequerment,
@@ -329,17 +317,15 @@ const createPaymentIntentService = async (payload: any) => {
 
     orderResult = await Order.create([order], { session });
 
-
     await Transaction.updateOne(
       { _id: transaction[0]._id },
       { orderId: orderResult[0]._id },
       { session }
     );
 
-    await Offer.deleteOne({ id: offer.id }), { session }
+    await Offer.deleteOne({ id: offer.id }), { session };
     await session.commitTransaction();
   } catch (error) {
-
     await session.abortTransaction();
     throw error;
   } finally {
@@ -359,9 +345,11 @@ const deliverProject = async (orderId: string) => {
 
   // console.log(order, "check order")
   if (!order || !order.result) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, "order not found")
+    throw new ApiError(StatusCodes.BAD_REQUEST, "order not found");
   }
-  const retireProfessional = await User.findOne({ email: order?.result.orderReciver });
+  const retireProfessional = await User.findOne({
+    email: order?.result.orderReciver,
+  });
   if (!retireProfessional) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "user not found");
   }
@@ -378,7 +366,6 @@ const deliverProject = async (orderId: string) => {
     currency: "usd",
     destination: retireProfessional?.stripe?.customerId as string,
     transfer_group: `DELIVERY_${order?.result.paymentIntentId}`,
-
   });
   // console.lo
   const updateTransaction = await Transaction.findOneAndUpdate(
@@ -386,10 +373,57 @@ const deliverProject = async (orderId: string) => {
     { $set: { paymentStatus: PAYMENTSTATUS.COMPLETED } },
     { new: true }
   );
-  console.log(updateTransaction, "check update transaction")
+  console.log(updateTransaction, "check update transaction");
   return { transfer, updateTransaction };
 };
 
+const generateAccountLink = async (id: string) => {
+  // Find the user by ID
+  const user = await User.findById(id);
+
+  if (!user) {
+    throw new ApiError(StatusCodes.NOT_FOUND, "User not found");
+  }
+
+  if (!user.stripe?.customerId) {
+    throw new ApiError(
+      StatusCodes.BAD_REQUEST,
+      "User does not have a Stripe customer ID"
+    );
+  }
+
+  try {
+    // Create the account link
+    const accountLink = await stripe.accountLinks.create({
+      account: user.stripe.customerId,
+      refresh_url: "https://your-platform.com/reauth",
+      return_url: "https://your-platform.com/return",
+      type: "account_onboarding",
+    });
+
+    // Update the user with the new onboarding URL
+    const updatedUser = await User.findByIdAndUpdate(
+      id,
+      { "stripe.onboardingUrl": accountLink.url },
+      { new: true } // Return the updated document
+    );
+
+    if (!updatedUser) {
+      throw new ApiError(
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        "Failed to update the user with the onboarding URL"
+      );
+    }
+
+    return updatedUser;
+  } catch (error) {
+    console.error("Error generating account link:", error);
+    throw new ApiError(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      "Failed to generate account link"
+    );
+  }
+};
 export const StripeServices = {
   // saveCardWithCustomerInfoIntoStripe,
   // authorizedPaymentWithSaveCardFromStripe,
@@ -401,4 +435,5 @@ export const StripeServices = {
   createPaymentIntentService,
   handleAccountUpdated,
   deliverProject,
+  generateAccountLink,
 };

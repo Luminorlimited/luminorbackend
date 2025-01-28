@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
 
 export type IMessage = {
-  sender: string;
+  sender: mongoose.Types.ObjectId;
 
-  recipient: string;
+  recipient: mongoose.Types.ObjectId;
 
   message?: string;
   media?: string;

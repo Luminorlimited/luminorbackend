@@ -4,6 +4,7 @@ import { StripeController } from "./stripe.controller";
 
 import { multerUpload } from "../../middlewares/multer";
 import { parseBodyData } from "../../middlewares/parseJson";
+import auth from "../../middlewares/auth";
 
 const router = express.Router();
 
@@ -59,5 +60,6 @@ router.post(
   StripeController.createPaymentIntent
 );
 router.patch("/deliver-project/:id", StripeController.deliverProject);
+router.patch("/update-url",auth(),StripeController.generateAccountLink)
 
 export const StripeRoutes = router;

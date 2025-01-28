@@ -9,9 +9,7 @@ import ApiError from "../../errors/handleApiError";
 const createMessage = catchAsync(async (req: Request, res: Response) => {
   const createMessage = req.body;
 
-  const sender=req.user
-
-  const result = await MessageService.createMessage(createMessage,sender);
+  const result = await MessageService.createMessage(createMessage);
 
   sendResponse<IMessage>(res, {
     success: true,
@@ -54,16 +52,14 @@ const getConversationLists = catchAsync(async (req: Request, res: Response) => {
     data: list,
   });
 });
-const uploadMessagefile=catchAsync(async (req: Request, res: Response) => {
-   const file=req.file
+const uploadMessagefile = catchAsync(async (req: Request, res: Response) => {
+  const file = req.file;
 
   //  console.log(req.file,"check req.file")
 
- 
- if(!file){
-
-  throw new ApiError(StatusCodes.UNAUTHORIZED,"choose a file")
- }
+  if (!file) {
+    throw new ApiError(StatusCodes.UNAUTHORIZED, "choose a file");
+  }
   const fileUrl = await MessageService.uploadMessagefile(file);
 
   sendResponse(res, {
@@ -78,5 +74,5 @@ export const MessageController = {
   createMessage,
   getMessages,
   getConversationLists,
-  uploadMessagefile
+  uploadMessagefile,
 };
