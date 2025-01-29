@@ -127,28 +127,68 @@ const getConversationLists = async (email: string) => {
       select: "email name profileUrl",
     });
 
-  // console.log(convirsationList, "check convirsationList");
-  
+  // const unreadCounts = await countMessageWithRecipient(otherUserEmails, email);
+  const formattedData = await Promise.all(
+    convirsationList.map(async (conversation:any) => {
+      const otherUser =
+        conversation.user1._id.toString() !== user.id
+          ? conversation.user1
+          : conversation.user2;
 
-  // console.log(onlineUsers,"check online users")
+      const count = await countMessageWithRecipient(otherUser.email,email);
 
-  const formattedData: any = convirsationList.map((conversation) => {
-    const otherUser: any =
-      conversation.user1._id.toString() !== user.id
-        ? conversation.user1
-        : conversation.user2;
-
-    return {
-      email: otherUser.email,
-      name: `${otherUser.name.firstName.trim()} ${otherUser.name.lastName.trim()}`,
-      profileUrl: otherUser.profileUrl || null,
-      isOnline: onlineUsers.get(email) || false
-      
-    };
-  });
+      return {
+        email: otherUser.email,
+        name: `${otherUser.name.firstName.trim()} ${otherUser.name.lastName.trim()}`,
+        profileUrl: otherUser.profileUrl || null,
+        isOnline: onlineUsers.get(otherUser.email) || false, 
+        count: count,
+      };
+    })
+  );
 
   return formattedData;
 };
+// const getConversationLists = async (email: string) => {
+//   const user = await User.findOne({ email });
+//   if (!user) {
+//     throw new ApiError(StatusCodes.NOT_FOUND, "user not found");
+//   }
+
+//   // Fetch conversations in one go
+//   const conversationList = await Convirsation.find({
+//     $or: [{ user1: user._id }, { user2: user._id }],
+//   })
+//     .populate("user1", "email name profileUrl")
+//     .populate("user2", "email name profileUrl");
+
+//   const otherUserEmails = conversationList.map(conversation =>
+//     conversation.user1._id.toString() !== user.id
+//       ? conversation.user1.email 
+//       : conversation.user2.email
+//   );
+
+//   // Fetch all unread counts in a single query
+//   const unreadCounts = await getUnreadMessageCounts(otherUserEmails, email); 
+
+//   // Format conversation list
+//   return conversationList.map(conversation => {
+//     const otherUser =
+//       conversation.user1._id.toString() !== user.id
+//         ? conversation.user1
+//         : conversation.user2;
+
+//     return {
+//       email: otherUser.email,
+//       name: `${otherUser.name.firstName.trim()} ${otherUser.name.lastName.trim()}`,
+//       profileUrl: otherUser.profileUrl || null,
+//       isOnline: onlineUsers.get(otherUser.email) || false, 
+//       count: unreadCounts[otherUser.email] || 0, // Use pre-fetched counts
+//     };
+//   });
+// };
+
+
 const uploadMessagefile = async (file: any) => {
   const fileUrl = await uploadFileToSpace(file, "message-file");
   return fileUrl;
@@ -166,11 +206,35 @@ const countMessages = async (email: string) => {
 
   return { count: totalUnseen.length, totalUnseenId: filterIds };
 };
+const countMessageWithRecipient=async(sender:string,recepient:string)=>{
 
+  const totalUnseen=await Notification.find({
+    sender:sender,
+    recipient:recepient,
+    status:ENUM_NOTIFICATION_STATUS.UNSEEN,
+    type:ENUM_NOTIFICATION_TYPE.PRIVATEMESSAGE
+  })
+  const filterIds = totalUnseen.map((message) => message._id.toString());
+  // console.log(filterIds,"check filter id")
+
+  return { count: totalUnseen.length, totalUnseenId: filterIds };
+}
+const getUnreadMessageCounts = async (recipientEmails: string[], senderEmail: string) => {
+  const unreadMessages = await Message.aggregate([
+    { $match: { recipient: { $in: recipientEmails }, sender: senderEmail, isRead: false } },
+    { $group: { _id: "$recipient", count: { $sum: 1 } } }
+  ]);
+
+  return unreadMessages.reduce((acc, { _id, count }) => {
+    acc[_id] = count;
+    return acc;
+  }, {});
+};
 export const MessageService = {
   createMessage,
   getMessages,
   getConversationLists,
   uploadMessagefile,
   countMessages,
+  countMessageWithRecipient
 };

@@ -55,7 +55,8 @@ io.on("connection", (socket) => {
     onlineUsers.set(email, true);
 
     const conversationList = await MessageService.getConversationLists(email);
-    const count = await MessageService.countMessages(email);
+    console.log(conversationList,"check convirsation list")
+
 
     socket.emit("conversation-list", conversationList);
   });
@@ -78,43 +79,37 @@ io.on("connection", (socket) => {
 
         recipient: toEmail,
       });
-      console.log(toSocketId, "check to socket id");
+      const notificatnionBody: INotification = {
+        recipient: toEmail as string,
+        sender: fromEmail as string,
+        message: `${fromEmail} send you a message`,
+        type: ENUM_NOTIFICATION_TYPE.PRIVATEMESSAGE,
+        status: ENUM_NOTIFICATION_STATUS.UNSEEN,
+      };
+      await NotificationService.createNotification(
+        notificatnionBody,
+        "message-notification"
+      );
+ 
       if (toSocketId) {
+        const toEmailConvisationList =
+          await MessageService.getConversationLists(toEmail);
+        socket.to(toSocketId).emit("conversation-list", toEmailConvisationList);
         socket.to(toSocketId).emit("privateMessage", {
           message: savedMessage,
           fromEmail: fromEmail,
         });
-
-        const toEmailConvisationList =
-          await MessageService.getConversationLists(toEmail);
-        console.log(toEmailConvisationList, "check to email convirsation list");
-        socket.to(toSocketId).emit("convirsation-list", toEmailConvisationList);
-
-        const notificatnionBody: INotification = {
-          recipient: toEmail as string,
-          sender: fromEmail as string,
-          message: `${fromEmail} send you a message`,
-          type: ENUM_NOTIFICATION_TYPE.PRIVATEMESSAGE,
-          status: ENUM_NOTIFICATION_STATUS.UNSEEN,
-        };
-
-        await NotificationService.createNotification(
-          notificatnionBody,
-          "message-notification"
-        );
       }
-
+      const fromEmailConvirsationList =
+        await MessageService.getConversationLists(fromEmail);
+      socket.emit("conversation-list", fromEmailConvirsationList);
       socket.emit("privateMessage", {
         message: savedMessage,
         fromEmail: fromEmail,
       });
-      const fromEmailConvirsationList =
-        await MessageService.getConversationLists(fromEmail);
-      console.log(
-        fromEmailConvirsationList,
-        "from email convirsationlist basically who is listening"
-      );
-      socket.emit("convirsation-list", fromEmailConvirsationList);
+      
+    
+      
     } catch (error) {}
   });
 
