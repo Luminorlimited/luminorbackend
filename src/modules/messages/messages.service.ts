@@ -107,10 +107,16 @@ const getMessages = async (senderId: string, recipientId: string) => {
   return { userDetails, messages };
 };
 
-const getConversationLists = async (user: any) => {
+const getConversationLists = async (email: string) => {
+  const user = await User.findOne({
+    email: email,
+  });
+  if (!user) {
+    throw new ApiError(StatusCodes.NOT_FOUND, "user not found");
+  }
   // console.log(user,"check user")
   const convirsationList = await Convirsation.find({
-    $or: [{ user1: user.id }, { user2: user.id }],
+    $or: [{ user1: user._id }, { user2: user._id }],
   })
     .populate({
       path: "user1",
@@ -133,13 +139,13 @@ const getConversationLists = async (user: any) => {
       email: otherUser.email,
       name: `${otherUser.name.firstName.trim()} ${otherUser.name.lastName.trim()}`,
       profileUrl: otherUser.profileUrl || null,
+      
     };
   });
 
   return formattedData;
 };
 const uploadMessagefile = async (file: any) => {
-
   const fileUrl = await uploadFileToSpace(file, "message-file");
   return fileUrl;
 };

@@ -7,6 +7,7 @@ import { io } from "../../server";
 import { MessageService } from "../messages/messages.service";
 import { INotification } from "./notification.interface";
 import { Notification } from "./notification.model";
+import { OfferService } from "../offers/offer.service";
 
 const createNotification = async (payload: INotification, event: string) => {
   const result = await Notification.create(payload);
@@ -15,6 +16,8 @@ const createNotification = async (payload: INotification, event: string) => {
     count = await MessageService.countMessages(payload.recipient);
   }
   else if(payload.type===ENUM_NOTIFICATION_TYPE.OFFER){
+
+     count=await OfferService.countOffer(payload.recipient)
     
   }
   if (result) {

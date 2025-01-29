@@ -256,7 +256,7 @@ const createPaymentIntentService = async (payload: any) => {
     customer: payload.customerId,
   });
 
-  // Step 2: Retrieve the payment method (attached to customer)
+ 
   const paymentMethodDetails = await stripe.paymentMethods.retrieve(
     payload.paymentMethodId
   );
