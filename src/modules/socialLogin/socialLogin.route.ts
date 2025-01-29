@@ -14,7 +14,7 @@ passport.use(
       callbackURL: config.sosial_login.google.redirect_uri as string,
     },
     function (accessToken, refreshToken, profile, cb) {
-      console.log("data");
+     // console.log("data");
     }
   )
 );
