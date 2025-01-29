@@ -6,10 +6,6 @@ import { OfferService } from "./offer.service";
 
 import { calculateTotalPrice } from "../../utilitis/calculateTotalPrice";
 import { generateOfferPDF } from "../../utilitis/generateOfferPdf";
-import { NotificationService } from "../notification/notification.service";
-import { NotificationType } from "../notification/notfication.const";
-import { INotification, INotificationType } from "../notification/notification.interface";
-import { ENUM_NOTIFICATION_STATUS, ENUM_NOTIFICATION_TYPE } from "../../enums/notificationStatus";
 
 const createOffer = catchAsync(async (req: Request, res: Response) => {
   const data = req.body;

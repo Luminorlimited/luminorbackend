@@ -52,7 +52,7 @@ io.on("connection", (socket) => {
       email,
     });
     // socket.emit("conversation-list", conversationList);
-    const updatedConversationList = conversationList.map((user) => {
+    const updatedConversationList = conversationList.map((user:any) => {
       return {
         ...user,
         isOnline: onlineUsers.get(user.email) || false,
@@ -66,9 +66,10 @@ io.on("connection", (socket) => {
 
   socket.on("privateMessage", async (data: any) => {
     // console.log(users);
-    const { toEmail, message , fromEmail, media } = JSON.parse(data);
+    const { toEmail, message , fromEmail, media,mediaUrl } = JSON.parse(data);
     const toSocketId = users[toEmail];
     // console.log(toSocketId);
+
 
     // const fromSocketId = users[fromEmail];
     // console.log(data, "check data")
@@ -82,14 +83,15 @@ io.on("connection", (socket) => {
     // console.log(media, "check media")
 
     try {
-      let mediaUrl = null;
 
-  
-      const savedMessage = await Message.create({
+      console.log(data,"check data")  
+      const savedMessage = await MessageService.createMessage({
         sender: fromEmail,
-        message: message,
-        media: mediaUrl,
+        message: message || null,
+        media: mediaUrl || null,
+      
         recipient: toEmail,
+      
       });
       console.log(savedMessage, "check saved message")
 
@@ -122,52 +124,7 @@ io.on("connection", (socket) => {
     
     catch (error) { }
   });
-  // const message = {
-  //   toEmail: "b@mail.com",
-  //   message: "Hello, this is a test message",
-  //   fromEmail: "a@mail.com",
 
-  // };
-  // socket.emit("privateMessage", JSON.stringify(message))
-  // Notification event
-  // socket.on("notification", async ({ toEmail, message, fromEmail, type }) => {
-  //   const toSocketId = users[toEmail];
-
-  //   // const fromSocketId = users[fromEmail];
-
-  //   if (!fromEmail) {
-  //     socket.send(JSON.stringify({ error: "email is required" }));
-  //   }
-
-  //   try {
-  //     const notification = await Notification.create({
-  //       recipient: toEmail,
-  //       sender: fromEmail,
-  //       message: message,
-  //       status: ENUM_NOTIFICATION_STATUS.UNSEEN,
-  //       type: type,
-  //     });
-
-  //     const notificationResponse: NotificationCreateResponse = {
-  //       success: true,
-  //       statusCode: 200,
-  //       message: "Notification saved successfully",
-  //       data: notification.toObject(),
-  //     };
-
-  //     // const notificationId = notificationData._id;
-  //     if (toSocketId) {
-  //       socket.to(toSocketId).emit("notification", {
-  //         from: fromEmail,
-  //         message,
-
-  //         type: type,
-  //       });
-  //     }
-  //   } catch (error) {
-  //     socket.emit("notificationError", "Failed to create notification");
-  //   }
-  // });
 
   socket.on("sendOffer", async (data: any) => {
     const { toEmail, offer, fromEmail } = JSON.parse(data);
@@ -187,7 +144,7 @@ io.on("connection", (socket) => {
         clientEmail: toEmail,
         professionalEmail: fromEmail,
       };
-      const newOffer = OfferService.createOffer(totalOffer);
+      const newOffer = await OfferService.createOffer(totalOffer);
 
       console.log(newOffer,"check new offer")
       if (toSocketId) {
@@ -195,6 +152,7 @@ io.on("connection", (socket) => {
           from: fromEmail,
           offer: newOffer,
         });
+     
       }
     } catch (error) {
       socket.emit("sendoffer error ", "Failed to create effor");
@@ -277,7 +235,7 @@ io.on("connection", (socket) => {
       socket.emit("user-offline", email);
 
       const conversationList = await MessageService.getConversationLists(email);
-      const updatedConversationList = conversationList.map((user) => {
+      const updatedConversationList = conversationList.map((user:any) => {
         return {
           ...user,
           isOnline: onlineUsers.get(user.email) || false,

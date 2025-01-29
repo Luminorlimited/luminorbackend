@@ -14,6 +14,9 @@ const createNotification = async (payload: INotification, event: string) => {
   if (payload.type === ENUM_NOTIFICATION_TYPE.PRIVATEMESSAGE) {
     count = await MessageService.countMessages(payload.recipient);
   }
+  else if(payload.type===ENUM_NOTIFICATION_TYPE.OFFER){
+    
+  }
   if (result) {
     io.emit(event, {
       toEmail: payload.recipient,
