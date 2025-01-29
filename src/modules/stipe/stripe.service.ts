@@ -245,9 +245,9 @@ const refundPaymentToCustomer = async (payload: {
 //   return orderResult;
 // };
 const createPaymentIntentService = async (payload: any) => {
-  console.log(payload, "check payload");
+  //console.log(payload, "check payload");
   const { offer } = await OfferService.getSingleOffer(payload.offerId);
-  console.log(offer, "check offer");
+//  console.log(offer, "check offer");
   if (!offer) {
     throw new ApiError(StatusCodes.NOT_FOUND, "Offer not found");
   }

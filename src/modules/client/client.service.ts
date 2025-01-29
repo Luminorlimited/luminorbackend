@@ -127,7 +127,7 @@ const getClients = async (
           const parseArray = Array.isArray(value)
             ? value
             : JSON.parse(value as string);
-          console.log(parseArray, "check parse arrya");
+          //console.log(parseArray, "check parse arrya");
           return {
             industry: { $in: parseArray },
           };

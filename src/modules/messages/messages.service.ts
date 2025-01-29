@@ -114,7 +114,7 @@ const getConversationLists = async (email: string) => {
   if (!user) {
     throw new ApiError(StatusCodes.NOT_FOUND, "user not found");
   }
-  console.log(user,"check user")
+  //console.log(user,"check user")
   const convirsationList = await Convirsation.find({
     $or: [{ user1: user._id }, { user2: user._id }],
   })

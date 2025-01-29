@@ -57,17 +57,12 @@ io.on("connection", (socket) => {
     const conversationList = await MessageService.getConversationLists(email);
     const count = await MessageService.countMessages(email);
 
-  
-
     socket.emit("conversation-list", conversationList);
   });
 
   socket.on("privateMessage", async (data: any) => {
     // console.log(users);
     const { toEmail, message, fromEmail, media, mediaUrl } = JSON.parse(data);
-   
-  
-    
 
     const toSocketId = users[toEmail];
 
@@ -83,16 +78,17 @@ io.on("connection", (socket) => {
 
         recipient: toEmail,
       });
-  console.log(toSocketId,"check to socket id",)
+      console.log(toSocketId, "check to socket id");
       if (toSocketId) {
         socket.to(toSocketId).emit("privateMessage", {
           message: savedMessage,
           fromEmail: fromEmail,
         });
-      
-        const toEmailConvisationList=await MessageService.getConversationLists(toEmail)
-        console.log(toEmailConvisationList,"check to email convirsation list")
-        socket.to(toSocketId).emit("convirsation-list",toEmailConvisationList)
+
+        const toEmailConvisationList =
+          await MessageService.getConversationLists(toEmail);
+        console.log(toEmailConvisationList, "check to email convirsation list");
+        socket.to(toSocketId).emit("convirsation-list", toEmailConvisationList);
 
         const notificatnionBody: INotification = {
           recipient: toEmail as string,
@@ -106,16 +102,19 @@ io.on("connection", (socket) => {
           notificatnionBody,
           "message-notification"
         );
-      
       }
 
       socket.emit("privateMessage", {
         message: savedMessage,
         fromEmail: fromEmail,
       });
-      const fromEmailConvirsationList=await MessageService.getConversationLists(fromEmail)
-      console.log(fromEmailConvirsationList,"from email convirsationlist basically who is listening")
-      socket.emit("convirsation-list",fromEmailConvirsationList)
+      const fromEmailConvirsationList =
+        await MessageService.getConversationLists(fromEmail);
+      console.log(
+        fromEmailConvirsationList,
+        "from email convirsationlist basically who is listening"
+      );
+      socket.emit("convirsation-list", fromEmailConvirsationList);
     } catch (error) {}
   });
 
@@ -210,8 +209,6 @@ io.on("connection", (socket) => {
     if (email) {
       onlineUsers.set(email, false);
       delete users[email];
-
-    
     }
   });
 
