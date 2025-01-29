@@ -20,16 +20,16 @@ const createNotification = async (payload: INotification, event: string) => {
      count=await OfferService.countOffer(payload.recipient)
     
   }
-  if (result) {
-    io.emit(event, {
-      toEmail: payload.recipient,
-      message: payload.message,
-      fromEmail: payload.sender,
-      type: payload.type,
-      status: payload.status,
-      count: count,
-    });
-  }
+  // if (result) {
+  //   io.emit(event, {
+  //     toEmail: payload.recipient,
+  //     message: payload.message,
+  //     fromEmail: payload.sender,
+  //     type: payload.type,
+  //     status: payload.status,
+  //     count: count,
+  //   });
+  // }
   return result;
 };
 
@@ -81,9 +81,25 @@ const updateMessageNotification= async (ids: string[]) => {
   );
   return result;
 };
+const updateSingleUserMessageNotification= async (sender:string,recipient: string) => {
+
+  const result = await Notification.updateMany(
+    {
+      recipient: recipient, 
+      sender:sender,
+      type:ENUM_NOTIFICATION_TYPE.PRIVATEMESSAGE
+    },
+    { status: ENUM_NOTIFICATION_STATUS.SEEN },
+    {
+      new: true,
+    }
+  );
+  return result;
+};
 export const NotificationService = {
   createNotification,
   getUserNotification,
   updateNotification,
-  updateMessageNotification
+  updateMessageNotification,
+  updateSingleUserMessageNotification
 };
