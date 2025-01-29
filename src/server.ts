@@ -5,8 +5,14 @@ import app from "./app";
 import { Server } from "socket.io";
 import { Message } from "./modules/messages/messages.model";
 import { Notification } from "./modules/notification/notification.model";
-import { ENUM_NOTIFICATION_STATUS, ENUM_NOTIFICATION_TYPE } from "./enums/notificationStatus";
-import { INotification, NotificationCreateResponse } from "./modules/notification/notification.interface";
+import {
+  ENUM_NOTIFICATION_STATUS,
+  ENUM_NOTIFICATION_TYPE,
+} from "./enums/notificationStatus";
+import {
+  INotification,
+  NotificationCreateResponse,
+} from "./modules/notification/notification.interface";
 import { calculateTotalPrice } from "./utilitis/calculateTotalPrice";
 import { generateOfferPDF } from "./utilitis/generateOfferPdf";
 import { Offer } from "./modules/offers/offer.model";
@@ -48,11 +54,9 @@ io.on("connection", (socket) => {
     // console.log(users[email]);
     onlineUsers.set(email, true);
 
-    const conversationList = await MessageService.getConversationLists({
-      email,
-    });
+    const conversationList = await MessageService.getConversationLists(email);
     // socket.emit("conversation-list", conversationList);
-    const updatedConversationList = conversationList.map((user:any) => {
+    const updatedConversationList = conversationList.map((user: any) => {
       return {
         ...user,
         isOnline: onlineUsers.get(user.email) || false,
@@ -60,71 +64,54 @@ io.on("connection", (socket) => {
     });
 
     socket.emit("conversation-list", updatedConversationList);
-
-    // socket.broadcast.emit("user-online", email);
   });
 
   socket.on("privateMessage", async (data: any) => {
     // console.log(users);
-    const { toEmail, message , fromEmail, media,mediaUrl } = JSON.parse(data);
+    const { toEmail, message, fromEmail, media, mediaUrl } = JSON.parse(data);
     const toSocketId = users[toEmail];
-    // console.log(toSocketId);
-
-
-    // const fromSocketId = users[fromEmail];
-    // console.log(data, "check data")
-    // console.log(media, "check media ")
 
     if (!fromEmail) {
       socket.send(JSON.stringify({ error: "email is required" }));
     }
 
-
-    // console.log(media, "check media")
-
     try {
-
-      console.log(data,"check data")  
+      console.log(data, "check data");
       const savedMessage = await MessageService.createMessage({
         sender: fromEmail,
         message: message || null,
         media: mediaUrl || null,
-      
+
         recipient: toEmail,
-      
       });
-      console.log(savedMessage, "check saved message")
+      console.log(savedMessage, "check saved message");
 
       if (toSocketId) {
         socket.to(toSocketId).emit("privateMessage", {
           message: savedMessage,
           fromEmail: fromEmail,
         });
-       
-         const notificatnionBody:INotification={
-            recipient:toEmail as string,
-            sender:fromEmail as string,
-            message:`${fromEmail} send you a message`,
-            type: ENUM_NOTIFICATION_TYPE.PRIVATEMESSAGE,
-            status:ENUM_NOTIFICATION_STATUS.UNSEEN,
-           
-          }
-        
-       await NotificationService.createNotification(notificatnionBody,"message-notification")
-       
-      
-      
+
+        const notificatnionBody: INotification = {
+          recipient: toEmail as string,
+          sender: fromEmail as string,
+          message: `${fromEmail} send you a message`,
+          type: ENUM_NOTIFICATION_TYPE.PRIVATEMESSAGE,
+          status: ENUM_NOTIFICATION_STATUS.UNSEEN,
+        };
+
+        await NotificationService.createNotification(
+          notificatnionBody,
+          "message-notification"
+        );
       }
-    
+
       socket.emit("privateMessage", {
         message: savedMessage,
         fromEmail: fromEmail,
       });
-    }
-    
-    catch (error) { }
+    } catch (error) {}
   });
-
 
   socket.on("sendOffer", async (data: any) => {
     const { toEmail, offer, fromEmail } = JSON.parse(data);
@@ -146,13 +133,24 @@ io.on("connection", (socket) => {
       };
       const newOffer = await OfferService.createOffer(totalOffer);
 
-      console.log(newOffer,"check new offer")
+      console.log(newOffer, "check new offer");
       if (toSocketId) {
         socket.to(toSocketId).emit("sendOffer", {
           from: fromEmail,
           offer: newOffer,
         });
-     
+        const notificatnionBody: INotification = {
+          recipient: offer.clientEmail as string,
+          sender: offer.professionalEmail as string,
+          message: `${offer.professionalEmail} send you a offer`,
+          type: ENUM_NOTIFICATION_TYPE.OFFER,
+          status: ENUM_NOTIFICATION_STATUS.UNSEEN,
+        };
+
+        await NotificationService.createNotification(
+          notificatnionBody,
+          "offer-notification"
+        );
       }
     } catch (error) {
       socket.emit("sendoffer error ", "Failed to create effor");
@@ -235,7 +233,7 @@ io.on("connection", (socket) => {
       socket.emit("user-offline", email);
 
       const conversationList = await MessageService.getConversationLists(email);
-      const updatedConversationList = conversationList.map((user:any) => {
+      const updatedConversationList = conversationList.map((user: any) => {
         return {
           ...user,
           isOnline: onlineUsers.get(user.email) || false,
@@ -247,7 +245,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("error", (error) => { });
+  socket.on("error", (error) => {});
 });
 
 async function bootstrap() {
@@ -259,7 +257,7 @@ async function bootstrap() {
     );
     // console.log(config.database_url, "check data base url");
     console.log("Connected to MongoDB successfully.");
-   await MessageService.countMessages("tamim@example.com")
+    await MessageService.countMessages("tamim@example.com");
     // Start the server
     httpServer.listen(config.port, () => {
       console.log(`Server running at port ${config.port}`);
