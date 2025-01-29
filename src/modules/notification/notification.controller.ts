@@ -6,21 +6,7 @@ import { Request, Response } from "express";
 import { NotificationService } from "./notification.service";
 import { INotification } from "./notification.interface";
 
-// const createNotification = catchAsync(async (req: Request, res: Response) => {
-//   const notification = req.body;
 
-//   const result = await NotificationService.createNotification(notification);
-
-  
-
-//   sendResponse<INotification>(res, {
-//     success: true,
-//     statusCode: StatusCodes.OK,
-
-//     message: "Notification saved    successfully",
-//     data: result,
-//   });
-// });
 const getUserNotification = catchAsync(async (req: Request, res: Response) => {
   const { recipient, status, type } = req.query;
 
@@ -65,7 +51,7 @@ const updateMessageNotification = catchAsync(async (req: Request, res: Response)
   });
 });
 export const NotificationController = {
-  // createNotification,
+
   getUserNotification,
   updateNotification,
   updateMessageNotification
