@@ -9,7 +9,7 @@ import {
   ENUM_NOTIFICATION_STATUS,
   ENUM_NOTIFICATION_TYPE,
 } from "../../enums/notificationStatus";
-import { NotificationService } from "../notification/notification.service";
+
 import { Notification } from "../notification/notification.model";
 
 const createOffer = async (offer: IOffer) => {

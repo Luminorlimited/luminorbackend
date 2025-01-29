@@ -114,7 +114,7 @@ const getConversationLists = async (email: string) => {
   if (!user) {
     throw new ApiError(StatusCodes.NOT_FOUND, "user not found");
   }
-  // console.log(user,"check user")
+  console.log(user,"check user")
   const convirsationList = await Convirsation.find({
     $or: [{ user1: user._id }, { user2: user._id }],
   })
@@ -127,7 +127,10 @@ const getConversationLists = async (email: string) => {
       select: "email name profileUrl",
     });
 
-  console.log(convirsationList, "check convirsationList");
+  // console.log(convirsationList, "check convirsationList");
+  
+
+  // console.log(onlineUsers,"check online users")
 
   const formattedData: any = convirsationList.map((conversation) => {
     const otherUser: any =
@@ -139,6 +142,7 @@ const getConversationLists = async (email: string) => {
       email: otherUser.email,
       name: `${otherUser.name.firstName.trim()} ${otherUser.name.lastName.trim()}`,
       profileUrl: otherUser.profileUrl || null,
+      isOnline: onlineUsers.get(email) || false
       
     };
   });
