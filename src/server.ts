@@ -55,20 +55,20 @@ io.on("connection", (socket) => {
     onlineUsers.set(email, true);
 
     const conversationList = await MessageService.getConversationLists(email);
-    // socket.emit("conversation-list", conversationList);
-    const updatedConversationList = conversationList.map((user: any) => {
-      return {
-        ...user,
-        isOnline: onlineUsers.get(user.email) || false,
-      };
-    });
+    const count = await MessageService.countMessages(email);
 
-    socket.emit("conversation-list", updatedConversationList);
+  
+
+    socket.emit("conversation-list", conversationList);
   });
 
   socket.on("privateMessage", async (data: any) => {
     // console.log(users);
     const { toEmail, message, fromEmail, media, mediaUrl } = JSON.parse(data);
+   
+  
+    
+
     const toSocketId = users[toEmail];
 
     if (!fromEmail) {
@@ -76,7 +76,6 @@ io.on("connection", (socket) => {
     }
 
     try {
-      console.log(data, "check data");
       const savedMessage = await MessageService.createMessage({
         sender: fromEmail,
         message: message || null,
@@ -84,13 +83,16 @@ io.on("connection", (socket) => {
 
         recipient: toEmail,
       });
-      console.log(savedMessage, "check saved message");
-
+  console.log(toSocketId,"check to socket id",)
       if (toSocketId) {
         socket.to(toSocketId).emit("privateMessage", {
           message: savedMessage,
           fromEmail: fromEmail,
         });
+      
+        const toEmailConvisationList=await MessageService.getConversationLists(toEmail)
+        console.log(toEmailConvisationList,"check to email convirsation list")
+        socket.to(toSocketId).emit("convirsation-list",toEmailConvisationList)
 
         const notificatnionBody: INotification = {
           recipient: toEmail as string,
@@ -104,12 +106,16 @@ io.on("connection", (socket) => {
           notificatnionBody,
           "message-notification"
         );
+      
       }
 
       socket.emit("privateMessage", {
         message: savedMessage,
         fromEmail: fromEmail,
       });
+      const fromEmailConvirsationList=await MessageService.getConversationLists(fromEmail)
+      console.log(fromEmailConvirsationList,"from email convirsationlist basically who is listening")
+      socket.emit("convirsation-list",fromEmailConvirsationList)
     } catch (error) {}
   });
 
@@ -133,7 +139,6 @@ io.on("connection", (socket) => {
       };
       const newOffer = await OfferService.createOffer(totalOffer);
 
-      console.log(newOffer, "check new offer");
       if (toSocketId) {
         socket.to(toSocketId).emit("sendOffer", {
           from: fromEmail,
@@ -192,32 +197,8 @@ io.on("connection", (socket) => {
       socket.emit("zoomMeetingError", "Failed to create Zoom meeting");
     }
   });
-  //   socket.on('user-online', async (userId) => {
-  //     try {
-  //         await User.findByIdAndUpdate(userId, { isOnline: true });
-  //         console.log(`User ${userId} is online`);
-  //     } catch (err) {
-  //         console.error(`Error setting user online: ${err}`);
-  //     }
-  // });
 
-  // Handle disconnection of users
   socket.on("disconnect", async (reason) => {
-    // for (const email in users) {
-    //   if (users[email] === socket.id) {
-    //     try {
-
-    //       // await User.findOneAndUpdate({ email }, { isOnline: false });
-    //       socket.broadcast.emit("user-offline", email);
-    //       console.log(`User ${email} is now offline.`);
-    //     } catch (err) {
-    //       console.error(`Error setting user offline for ${email}:`, err);
-    //     }
-
-    //     delete users[email];
-    //     break;
-    //   }
-    // }
     let email = "";
     for (let [userEmail, isOnline] of onlineUsers) {
       if (socket.id === users[userEmail]) {
@@ -228,20 +209,9 @@ io.on("connection", (socket) => {
 
     if (email) {
       onlineUsers.set(email, false);
-      // console.log(`User ${email} is now offline`);
+      delete users[email];
 
-      socket.emit("user-offline", email);
-
-      const conversationList = await MessageService.getConversationLists(email);
-      const updatedConversationList = conversationList.map((user: any) => {
-        return {
-          ...user,
-          isOnline: onlineUsers.get(user.email) || false,
-        };
-      });
-
-      // Emit the updated conversation list to the disconnected user
-      socket.emit("conversation-list", updatedConversationList);
+    
     }
   });
 
