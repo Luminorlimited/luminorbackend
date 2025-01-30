@@ -60,109 +60,115 @@ io.on("connection", (socket) => {
     socket.emit("conversation-list", conversationList);
   });
 
-  //   // console.log(users);
+
+  // socket.on("privateMessage", async (data: any) => {
   //   const { toEmail, message, fromEmail, media, mediaUrl } = JSON.parse(data);
+
+  //   if (!fromEmail) {
+  //     return socket.send(JSON.stringify({ error: "email is required" }));
+  //   }
 
   //   const toSocketId = users[toEmail];
 
-  //   if (!fromEmail) {
-  //     socket.send(JSON.stringify({ error: "email is required" }));
-  //   }
-
   //   try {
-  //     const savedMessage = await MessageService.createMessage({
-  //       sender: fromEmail,
-  //       message: message || null,
-  //       media: mediaUrl || null,
+  //     const [savedMessage, fromEmailConversationList, toEmailConversationList] =
+  //       await Promise.all([
+  //         MessageService.createMessage({
+  //           sender: fromEmail,
+  //           message: message || null,
+  //           media: mediaUrl || null,
+  //           recipient: toEmail,
+  //           isUnseen: false,
+  //         }),
+  //         MessageService.getConversationLists(fromEmail),
+  //         toEmail ? MessageService.getConversationLists(toEmail) : null,
+  //       ]);
+  //     const populatedMessage = await Message.findById(savedMessage._id)
+  //       .populate({ path: "sender", select: "name email _id" })
+  //       .populate({ path: "recipient", select: "name email _id" })
+  //       .lean();
 
-  //       recipient: toEmail,
-  //       isUnseen:false
-
-  //     });
-  //     // const notificatnionBody: INotification = {
-  //     //   recipient: toEmail as string,
-  //     //   sender: fromEmail as string,
-  //     //   message: `${fromEmail} send you a message`,
-  //     //   type: ENUM_NOTIFICATION_TYPE.PRIVATEMESSAGE,
-  //     //   status: ENUM_NOTIFICATION_STATUS.UNSEEN,
-  //     // };
-  //     // await NotificationService.createNotification(
-  //     //   notificatnionBody,
-  //     //   "message-notification"
-  //     // );
-
-  //     if (toSocketId) {
-  //       const toEmailConvisationList =
-  //         await MessageService.getConversationLists(toEmail);
-
-  //       socket.to(toSocketId).emit("privateMessage", {
-  //         message: savedMessage,
+  //       socket.emit("privateMessage", {
+  //         message: populatedMessage,
   //         fromEmail: fromEmail,
   //       });
-  //       socket.to(toSocketId).emit("conversation-list", toEmailConvisationList);
-  //     }
-  //     const fromEmailConvirsationList =
-  //       await MessageService.getConversationLists(fromEmail);
+  //       // console.log(fromEmailConversationList,"check from email conversationlist")
+  //       // console.log(toEmailConversationList,"chck to convirsationlist")
+  
+  //       socket.emit("conversation-list", fromEmailConversationList);
 
-  //     socket.emit("privateMessage", {
-  //       message: savedMessage,
-  //       fromEmail: fromEmail,
-  //       // convirsationList:fromEmailConvirsationList
-  //     });
-  //     socket.emit("conversation-list", fromEmailConvirsationList);
-  //   } catch (error) {}
+  //     if (toSocketId) {
+  //       socket.to(toSocketId).emit("privateMessage", {
+  //         message: populatedMessage,
+  //         fromEmail: fromEmail,
+  //       });
+
+  //       if (toEmailConversationList) {
+  //         socket
+  //           .to(toSocketId)
+  //           .emit("conversation-list", toEmailConversationList);
+  //       }
+  //     }
+ 
+  //   } catch (error) {
+  //     console.error("Error sending private message:", error);
+  //   }
   // });
   socket.on("privateMessage", async (data: any) => {
     const { toEmail, message, fromEmail, media, mediaUrl } = JSON.parse(data);
-
+  
     if (!fromEmail) {
       return socket.send(JSON.stringify({ error: "email is required" }));
     }
-
+  
     const toSocketId = users[toEmail];
-
+  
     try {
-      const [savedMessage, fromEmailConversationList, toEmailConversationList] =
+   
+      const savedMessage = await MessageService.createMessage({
+        sender: fromEmail,
+        message: message || null,
+        media: mediaUrl || null,
+        recipient: toEmail,
+        isUnseen: false,
+      });
+  
+     
+      const [fromEmailConversationList, toEmailConversationList] =
         await Promise.all([
-          MessageService.createMessage({
-            sender: fromEmail,
-            message: message || null,
-            media: mediaUrl || null,
-            recipient: toEmail,
-            isUnseen: false,
-          }),
           MessageService.getConversationLists(fromEmail),
           toEmail ? MessageService.getConversationLists(toEmail) : null,
         ]);
+  
       const populatedMessage = await Message.findById(savedMessage._id)
         .populate({ path: "sender", select: "name email _id" })
         .populate({ path: "recipient", select: "name email _id" })
         .lean();
-
+  
+    
       socket.emit("privateMessage", {
         message: populatedMessage,
         fromEmail: fromEmail,
       });
-
+  
+    
       socket.emit("conversation-list", fromEmailConversationList);
-
+  
       if (toSocketId) {
         socket.to(toSocketId).emit("privateMessage", {
           message: populatedMessage,
           fromEmail: fromEmail,
         });
-
+  
         if (toEmailConversationList) {
-          socket
-            .to(toSocketId)
-            .emit("conversation-list", toEmailConversationList);
+          socket.to(toSocketId).emit("conversation-list", toEmailConversationList);
         }
       }
     } catch (error) {
       console.error("Error sending private message:", error);
     }
   });
-
+  
   socket.on("sendOffer", async (data: any) => {
     const { toEmail, offer, fromEmail } = JSON.parse(data);
     // console.log(toEmail, "the reciver")
