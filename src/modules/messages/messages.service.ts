@@ -136,15 +136,14 @@ const getConversationLists = async (email: string) => {
   if (!user) {
     throw new ApiError(StatusCodes.NOT_FOUND, "User not found");
   }
-  console.log(user,"check user from service file")
-console.log(email,"check email from getconvirsation list service file")
+
   const conversations = await Convirsation.find({
     $or: [{ user1: user._id }, { user2: user._id }]
   })
     .populate("user1", "email name profileUrl _id")
     .populate("user2", "email name profileUrl _id")
     .sort({ lastMessageTimestamp: -1 });
-    console.log(conversations,"conversation list from service file to fined the room list")
+ 
 
   const conversationList = conversations.map((conversation: any) => {
     const otherUser =
@@ -159,7 +158,8 @@ console.log(email,"check email from getconvirsation list service file")
       profileUrl: otherUser.profileUrl || null,
       isOnline: onlineUsers.get(otherUser.email) || false,
       room: conversation._id,
-      lastMessage:conversation.lastMessage
+      lastMessage:conversation.lastMessage,
+      lastMessageTimestamp:conversation.lastMessageTimestamp
     };
   });
 

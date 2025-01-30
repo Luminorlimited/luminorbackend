@@ -22,6 +22,7 @@ const convirsationModel = new Schema<Iconvirsation>(
       type:String,
      
     }
+   
   
   },
   
