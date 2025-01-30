@@ -120,12 +120,13 @@ const getConversationLists = async (email: string) => {
   })
     .populate({
       path: "user1",
-      select: "email name profileUrl",
+      select: "email name profileUrl _id",
     })
     .populate({
       path: "user2",
-      select: "email name profileUrl",
+      select: "email name profileUrl _id",
     });
+    console.log(convirsationList,"check convirsation list")
 
   // const unreadCounts = await countMessageWithRecipient(otherUserEmails, email);
   const formattedData = await Promise.all(
@@ -138,10 +139,12 @@ const getConversationLists = async (email: string) => {
       const count = await countMessageWithRecipient(otherUser.email,email);
 
       return {
+        id:otherUser._id,
         email: otherUser.email,
         name: `${otherUser.name.firstName.trim()} ${otherUser.name.lastName.trim()}`,
         profileUrl: otherUser.profileUrl || null,
         isOnline: onlineUsers.get(otherUser.email) || false, 
+        room:conversation._id,
         count: count,
       };
     })
