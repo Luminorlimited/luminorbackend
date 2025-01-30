@@ -5,5 +5,6 @@ export type Iconvirsation = {
 
   user2: mongoose.Types.ObjectId;
   lastMessageTimestamp:Date;
-  lastMessage:String
+  lastMessage:String;
+
 };
