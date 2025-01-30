@@ -98,6 +98,7 @@ io.on("connection", (socket) => {
         socket.to(toSocketId).emit("privateMessage", {
           message: savedMessage,
           fromEmail: fromEmail,
+          
         });
       }
       const fromEmailConvirsationList =
@@ -106,6 +107,7 @@ io.on("connection", (socket) => {
       socket.emit("privateMessage", {
         message: savedMessage,
         fromEmail: fromEmail,
+        // convirsationList:fromEmailConvirsationList
       });
       
     

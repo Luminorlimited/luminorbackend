@@ -51,6 +51,14 @@ const createMessage = async (payload: IMessage) => {
 
   const message = await Message.create(data);
 
+  console.log(message,"check message")
+  console.log(checkRoom._id,"check check room id")
+ const result= await Convirsation.findByIdAndUpdate(
+    checkRoom._id, // Conversation Room ID
+    { lastMessageTimestamp: message.createdAt }, 
+    { new: true }
+  );
+console.log(result,"update convirsation")
   return message;
 };
 
@@ -108,50 +116,37 @@ const getMessages = async (senderId: string, recipientId: string) => {
 };
 
 const getConversationLists = async (email: string) => {
-  const user = await User.findOne({
-    email: email,
-  });
+  const user = await User.findOne({ email });
   if (!user) {
-    throw new ApiError(StatusCodes.NOT_FOUND, "user not found");
+    throw new ApiError(StatusCodes.NOT_FOUND, "User not found");
   }
-  //console.log(user,"check user")
-  const convirsationList = await Convirsation.find({
+
+
+  const conversations = await Convirsation.find({
     $or: [{ user1: user._id }, { user2: user._id }],
   })
-    .populate({
-      path: "user1",
-      select: "email name profileUrl _id",
-    })
-    .populate({
-      path: "user2",
-      select: "email name profileUrl _id",
-    });
-    console.log(convirsationList,"check convirsation list")
+    .populate('user1', 'email name profileUrl _id')
+    .populate('user2', 'email name profileUrl _id')
+    .sort({ lastMessageTimestamp: -1 }); 
 
-  // const unreadCounts = await countMessageWithRecipient(otherUserEmails, email);
-  const formattedData = await Promise.all(
-    convirsationList.map(async (conversation:any) => {
-      const otherUser =
-        conversation.user1._id.toString() !== user.id
-          ? conversation.user1
-          : conversation.user2;
+  const conversationList = await Promise.all(conversations.map(async (conversation: any) => {
+    const otherUser = conversation.user1._id.toString() !== user._id.toString() ? conversation.user1 : conversation.user2;
+    const count = await countMessageWithRecipient(otherUser.email, email);  
 
-      const count = await countMessageWithRecipient(otherUser.email,email);
+    return {
+      id: otherUser._id,
+      email: otherUser.email,
+      name: `${otherUser.name.firstName.trim()} ${otherUser.name.lastName.trim()}`,
+      profileUrl: otherUser.profileUrl || null,
+      isOnline: onlineUsers.get(otherUser.email) || false,
+      room: conversation._id,
+      count, 
+    };
+  }));
 
-      return {
-        id:otherUser._id,
-        email: otherUser.email,
-        name: `${otherUser.name.firstName.trim()} ${otherUser.name.lastName.trim()}`,
-        profileUrl: otherUser.profileUrl || null,
-        isOnline: onlineUsers.get(otherUser.email) || false, 
-        room:conversation._id,
-        count: count,
-      };
-    })
-  );
-
-  return formattedData;
+  return conversationList;
 };
+
 // const getConversationLists = async (email: string) => {
 //   const user = await User.findOne({ email });
 //   if (!user) {

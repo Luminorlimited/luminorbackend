@@ -9,5 +9,7 @@ export type IMessage = {
   media?: string;
   meetingLink?: string;
   room?:mongoose.Types.ObjectId
+  createdAt?: Date; 
+  updatedAt?: Date;
 
 };
