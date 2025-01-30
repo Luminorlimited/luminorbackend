@@ -26,7 +26,7 @@ passport.use(new GoogleStrategy({
   callbackURL: config.sosial_login.google.redirect_uri as string
 },
 function(accessToken, refreshToken, profile, cb) {
-console.log("data");
+
 }
 ));
 passport.use(

@@ -34,7 +34,7 @@ const postReviews = catchAsync(async (req: Request, res: Response) => {
 
 
    
-   console.log(review,"check review")
+  
    const result=await ReviewsService.getReviews(user.id)
   
     sendResponse(res, {

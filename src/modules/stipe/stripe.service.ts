@@ -336,7 +336,7 @@ const createPaymentIntentService = async (payload: any) => {
 };
 
 const handleAccountUpdated = async (event: any) => {
-  console.log(event, "check even from handle account updated");
+
 };
 
 const deliverProject = async (orderId: string) => {

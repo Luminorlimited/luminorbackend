@@ -22,7 +22,7 @@ const messageSchema = new Schema<IMessage>(
 
     message: {
       type: String,
-      defaul: null,
+      default: null,
     },
     media: {
       type: String,
@@ -32,6 +32,11 @@ const messageSchema = new Schema<IMessage>(
       type: String,
       default: null,
     },
+    isUnseen:{
+      type:Boolean,
+      default:false
+    }
+
   },
 
   {
