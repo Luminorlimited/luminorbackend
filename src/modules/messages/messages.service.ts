@@ -16,6 +16,7 @@ import { Notification } from "../notification/notification.model";
 import { RetireProfessional } from "../professional/professional.model";
 import { IMessage } from "./messages.interface";
 import { Message } from "./messages.model";
+import mongoose from "mongoose";
 
 const createMessage = async (payload: IMessage) => {
   const [sender, recipient] = await Promise.all([
@@ -38,8 +39,10 @@ const createMessage = async (payload: IMessage) => {
     checkRoom = await Convirsation.create({
       user1: sender._id,
       user2: recipient._id,
+      lastMessage:""
     });
   }
+
   const data = {
     sender: sender._id,
     recipient: recipient._id,
@@ -50,13 +53,25 @@ const createMessage = async (payload: IMessage) => {
   };
 
   const message = await Message.create(data);
-
-  const result = await Convirsation.findByIdAndUpdate(
+  let lastMessageContent = payload.message
+  ? payload.message
+  : payload.media
+  ? "📷 Image"
+  : payload.meetingLink
+  ? "🔗 Meeting Link"
+  : "";
+ const convirsation= await Convirsation.findByIdAndUpdate(
     checkRoom._id, // Conversation Room ID
-    { lastMessageTimestamp: message.createdAt },
+    {
+      lastMessageTimestamp: message.createdAt,
+      lastMessage: lastMessageContent
+    },
+
     { new: true }
   );
-  
+//   console.log(convirsation,"check from post message")
+// console.log(message)
+
   return message;
 };
 
@@ -113,26 +128,29 @@ const getMessages = async (senderId: string, recipientId: string) => {
   return { userDetails, messages };
 };
 
+
+
 const getConversationLists = async (email: string) => {
+  console.log(email,"check email from service file")
   const user = await User.findOne({ email });
   if (!user) {
     throw new ApiError(StatusCodes.NOT_FOUND, "User not found");
   }
-
+  console.log(user,"check user from service file")
+console.log(email,"check email from getconvirsation list service file")
   const conversations = await Convirsation.find({
-    $or: [{ user1: user._id }, { user2: user._id }],
+    $or: [{ user1: user._id }, { user2: user._id }]
   })
     .populate("user1", "email name profileUrl _id")
     .populate("user2", "email name profileUrl _id")
-    .sort({ lastMessageTimestamp: -1 })
-    .lean();
+    .sort({ lastMessageTimestamp: -1 });
+    console.log(conversations,"conversation list from service file to fined the room list")
 
   const conversationList = conversations.map((conversation: any) => {
     const otherUser =
       conversation.user1._id.toString() !== user._id.toString()
         ? conversation.user1
         : conversation.user2;
-    //   const count = await countMessageWithRecipient(otherUser.email, email);
 
     return {
       id: otherUser._id,
@@ -141,50 +159,13 @@ const getConversationLists = async (email: string) => {
       profileUrl: otherUser.profileUrl || null,
       isOnline: onlineUsers.get(otherUser.email) || false,
       room: conversation._id,
+      lastMessage:conversation.lastMessage
     };
   });
 
   return conversationList;
 };
 
-// const getConversationLists = async (email: string) => {
-//   const user = await User.findOne({ email });
-//   if (!user) {
-//     throw new ApiError(StatusCodes.NOT_FOUND, "user not found");
-//   }
-
-//   // Fetch conversations in one go
-//   const conversationList = await Convirsation.find({
-//     $or: [{ user1: user._id }, { user2: user._id }],
-//   })
-//     .populate("user1", "email name profileUrl")
-//     .populate("user2", "email name profileUrl");
-
-//   const otherUserEmails = conversationList.map(conversation =>
-//     conversation.user1._id.toString() !== user.id
-//       ? conversation.user1.email
-//       : conversation.user2.email
-//   );
-
-//   // Fetch all unread counts in a single query
-//   const unreadCounts = await getUnreadMessageCounts(otherUserEmails, email);
-
-//   // Format conversation list
-//   return conversationList.map(conversation => {
-//     const otherUser =
-//       conversation.user1._id.toString() !== user.id
-//         ? conversation.user1
-//         : conversation.user2;
-
-//     return {
-//       email: otherUser.email,
-//       name: `${otherUser.name.firstName.trim()} ${otherUser.name.lastName.trim()}`,
-//       profileUrl: otherUser.profileUrl || null,
-//       isOnline: onlineUsers.get(otherUser.email) || false,
-//       count: unreadCounts[otherUser.email] || 0, // Use pre-fetched counts
-//     };
-//   });
-// };
 
 const uploadMessagefile = async (file: any) => {
   const fileUrl = await uploadFileToSpace(file, "message-file");
@@ -235,6 +216,8 @@ const getUnreadMessageCounts = async (
     return acc;
   }, {});
 };
+
+ 
 export const MessageService = {
   createMessage,
   getMessages,
