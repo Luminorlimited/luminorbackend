@@ -14,7 +14,12 @@ const convirsationModel = new Schema<Iconvirsation>(
       required: true,
       ref: "User",
     },
+    lastMessageTimestamp:{
+      type: Date,
+      default: null,
+    }
   },
+  
 
   {
     timestamps: true,
