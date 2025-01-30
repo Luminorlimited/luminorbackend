@@ -86,7 +86,7 @@ const deleteSingleOffer = async (id: string) => {
 };
 
 const countOffer = async (email: string) => {
-  console.log(email, "chcekc email");
+
   const totalUnseen = await Notification.find({
     recipient: email,
     status: ENUM_NOTIFICATION_STATUS.UNSEEN,

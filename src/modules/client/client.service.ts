@@ -35,7 +35,7 @@ const createClient = async (user: IUser, clientData: IClient) => {
       name: user.name.firstName + " " + user.name.lastName,
     });
     // console.log(account,"check account")
-    console.log(customer, "check customer");
+  
 
     if (user.stripe) {
       user.stripe.customerId = customer.id;

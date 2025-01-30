@@ -7,7 +7,7 @@ export const parseBodyData = (
 ): void => {
   try {
 
-    console.log(req.body, "check req body")
+  
     if (req.body.data) {
       req.body = JSON.parse(req.body.data); // Parse the nested JSON
     }
