@@ -171,13 +171,9 @@ io.on("connection", (socket) => {
   
   socket.on("sendOffer", async (data: any) => {
     const { toEmail, offer, fromEmail } = JSON.parse(data);
-    // console.log(toEmail, "the reciver")
-    // console.log(fromEmail, "the initator")
-    // console.log(offer, "the check offer")
+
     const toSocketId = users[toEmail];
-    // console.log(data,"from send offer")
-    // console.log(offer,"check offer")
-    // console.log(toSocketId, "check socket id to email")
+
     try {
       offer.totalPrice = calculateTotalPrice(offer);
       const offerPDFPath = await generateOfferPDF(offer);
@@ -213,7 +209,7 @@ io.on("connection", (socket) => {
   });
   socket.on("createZoomMeeting", async (data: any) => {
     const { fromEmail, toEmail } = JSON.parse(data);
-    // console.log(data, "from zoom meeting")
+    console.log(data, "from zoom meeting")
     const toSocketId = users[toEmail];
 
     try {
@@ -222,13 +218,15 @@ io.on("connection", (socket) => {
         throw new Error("Invalid Zoom meeting data");
       }
       const { start_url, join_url } = meeting;
+      // console.log(meeting,"check meeting link")
 
-      const savedMessage = await Message.create({
+      const savedMessage = await MessageService.createMessage({
         sender: fromEmail,
         recipient: toEmail,
         message: join_url,
-        media: null,
-        meetingLink: join_url,
+        media: "",
+        meetingLink: start_url,
+        isUnseen: false
       });
 
       if (toSocketId) {
@@ -237,8 +235,8 @@ io.on("connection", (socket) => {
           savedMessage,
         });
       }
-      savedMessage.meetingLink = start_url;
-      savedMessage.message = start_url;
+      // savedMessage.meetingLink = start_url;
+      // savedMessage.message = start_url;
       socket.emit("createZoomMeeting", {
         savedMessage,
       });

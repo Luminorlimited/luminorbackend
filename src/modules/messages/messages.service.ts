@@ -19,6 +19,7 @@ import { Message } from "./messages.model";
 import mongoose from "mongoose";
 
 const createMessage = async (payload: IMessage) => {
+  // console.log(payload.message,"check puaload")
   const [sender, recipient] = await Promise.all([
     User.findOne({ email: payload.sender }),
     User.findOne({ email: payload.recipient }),
