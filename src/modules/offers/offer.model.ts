@@ -42,6 +42,11 @@ const offerSchema = new mongoose.Schema<IOffer>(
       type: Number,
       required: true,
     },
+    isSeen:{
+      type:Boolean,
+      default:false
+    },
+    
 
     isAccepted: { type: Boolean, default: false },
   },
