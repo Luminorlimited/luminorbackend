@@ -49,9 +49,9 @@ export const onlineUsers = new Map<string, boolean>();
 io.on("connection", (socket) => {
   socket.on("register", async (data: any) => {
     const { email } = JSON.parse(data);
-    // console.log(email)
+ 
     users[email] = socket.id;
-    // console.log(users[email]);
+ 
     onlineUsers.set(email, true);
 
     const conversationList = await MessageService.getConversationLists(email);
@@ -61,59 +61,7 @@ io.on("connection", (socket) => {
   });
 
 
-  // socket.on("privateMessage", async (data: any) => {
-  //   const { toEmail, message, fromEmail, media, mediaUrl } = JSON.parse(data);
 
-  //   if (!fromEmail) {
-  //     return socket.send(JSON.stringify({ error: "email is required" }));
-  //   }
-
-  //   const toSocketId = users[toEmail];
-
-  //   try {
-  //     const [savedMessage, fromEmailConversationList, toEmailConversationList] =
-  //       await Promise.all([
-  //         MessageService.createMessage({
-  //           sender: fromEmail,
-  //           message: message || null,
-  //           media: mediaUrl || null,
-  //           recipient: toEmail,
-  //           isUnseen: false,
-  //         }),
-  //         MessageService.getConversationLists(fromEmail),
-  //         toEmail ? MessageService.getConversationLists(toEmail) : null,
-  //       ]);
-  //     const populatedMessage = await Message.findById(savedMessage._id)
-  //       .populate({ path: "sender", select: "name email _id" })
-  //       .populate({ path: "recipient", select: "name email _id" })
-  //       .lean();
-
-  //       socket.emit("privateMessage", {
-  //         message: populatedMessage,
-  //         fromEmail: fromEmail,
-  //       });
-  //       // console.log(fromEmailConversationList,"check from email conversationlist")
-  //       // console.log(toEmailConversationList,"chck to convirsationlist")
-  
-  //       socket.emit("conversation-list", fromEmailConversationList);
-
-  //     if (toSocketId) {
-  //       socket.to(toSocketId).emit("privateMessage", {
-  //         message: populatedMessage,
-  //         fromEmail: fromEmail,
-  //       });
-
-  //       if (toEmailConversationList) {
-  //         socket
-  //           .to(toSocketId)
-  //           .emit("conversation-list", toEmailConversationList);
-  //       }
-  //     }
- 
-  //   } catch (error) {
-  //     console.error("Error sending private message:", error);
-  //   }
-  // });
   socket.on("privateMessage", async (data: any) => {
     const { toEmail, message, fromEmail, media, mediaUrl } = JSON.parse(data);
   
@@ -209,7 +157,7 @@ io.on("connection", (socket) => {
   });
   socket.on("createZoomMeeting", async (data: any) => {
     const { fromEmail, toEmail } = JSON.parse(data);
-    console.log(data, "from zoom meeting")
+    // console.log(data, "from zoom meeting")
     const toSocketId = users[toEmail];
 
     try {

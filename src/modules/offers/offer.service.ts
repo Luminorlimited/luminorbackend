@@ -11,18 +11,23 @@ import {
 } from "../../enums/notificationStatus";
 
 import { Notification } from "../notification/notification.model";
+import { StripeServices } from "../stipe/stripe.service";
 
 const createOffer = async (offer: IOffer) => {
-  // const totalPrice = calculateTotalPrice(offer);
-  // const clientOfferNotify = await getOffersByProfessional(
-  //   offer.clientEmail as string
-  // );
+  const user = await User.findOne({ email: offer.professionalEmail });
 
 
+
+  if (user?.stripe?.isOnboardingSucess === false) {
+    await StripeServices.generateNewAccountLink(user);
+    throw new ApiError(
+      StatusCodes.UNAUTHORIZED,
+      "we send you a onboaring url.please check your email"
+    );
+  }
   offer.serviceFee = offer.totalPrice * 0.2;
   offer.totalReceive = offer.totalPrice;
   offer.totalPrice = offer.totalPrice + offer.serviceFee;
- 
 
   if (offer.agreementType === AgreementType.FlatFee) {
     offer.totalDeliveryTime = offer.flatFee?.delivery || 0;
@@ -44,18 +49,15 @@ const createOffer = async (offer: IOffer) => {
     isSeen: false,
   });
 
-
- const result= await Offer.findByIdAndUpdate(newOffer._id, { count: unseenCount }, { new: true });
-
+  const result = await Offer.findByIdAndUpdate(
+    newOffer._id,
+    { count: unseenCount },
+    { new: true }
+  );
 
   return result;
 };
 
-// const getOffersByProfessional = async (email: string) => {
-//   const offer = await Offer.find({ clientEmail: email });
-
-//   return offer;
-// };
 const getOffersByProfessional = async (email: string) => {
   const offers = await Offer.find({ clientEmail: email });
 
@@ -80,7 +82,7 @@ const getOffersByProfessional = async (email: string) => {
   };
 };
 const getSingleOffer = async (id: string) => {
-  const offer = await Offer.findByIdAndUpdate(id,{isSeen:true});
+  const offer = await Offer.findByIdAndUpdate(id, { isSeen: true });
   if (!offer) {
     throw new ApiError(StatusCodes.UNAUTHORIZED, "offer not found");
   }
@@ -88,7 +90,6 @@ const getSingleOffer = async (id: string) => {
     User.findOne({ email: offer.clientEmail }).select("name "),
     User.findOne({ email: offer.professionalEmail }).select("name "),
   ]);
-
 
   return { offer, client, retireProfessional };
 };

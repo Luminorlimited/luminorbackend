@@ -37,10 +37,7 @@ export default {
     do_space_secret_key: process.env.DO_SPACE_SECRET_KEY,
     do_space_bucket: process.env.DO_SPACE_BUCKET,
   },
-  emailSender: {
-    email: process.env.EMAIL,
-    app_pass: process.env.APP_PASS,
-  },
+
   paypal: {
     paypalClientId: process.env.PAYPAL_CLIENT_ID,
     paypalSecretId: process.env.PAYPAL_SECRET_ID,
@@ -62,5 +59,9 @@ export default {
     merchantId:process.env.BRAINTREE_MERCHANT_ID,
     publicKey:process.env.BRAINTREE_PUBLIC_KEY,
     privateKey:process.env.BRAITREE_PRIVATE_KEY
-  }
+  },
+  emailSender: {
+    email: process.env.EMAIL,
+    app_pass: process.env.APP_PASS,
+  },
 };

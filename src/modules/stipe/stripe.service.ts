@@ -14,6 +14,8 @@ import { Transaction } from "../transaction/transaction.model";
 import mongoose from "mongoose";
 import { PAYMENTSTATUS } from "../transaction/transaction.interface";
 import { Offer } from "../offers/offer.model";
+import { IUser } from "../auth/auth.interface";
+import emailSender from "../../utilitis/emailSender";
 
 // Initialize Stripe with your secret API key
 const stripe = new Stripe(config.stripe_key as string, {
@@ -377,52 +379,99 @@ const deliverProject = async (orderId: string) => {
   return { transfer, updateTransaction };
 };
 
-const generateAccountLink = async (id: string) => {
-  // Find the user by ID
-  const user = await User.findById(id);
+// const generateAccountLink = async (id: string) => {
+//   // Find the user by ID
+//   const user = await User.findById(id);
 
-  if (!user) {
-    throw new ApiError(StatusCodes.NOT_FOUND, "User not found");
-  }
+//   if (!user) {
+//     throw new ApiError(StatusCodes.NOT_FOUND, "User not found");
+//   }
 
-  if (!user.stripe?.customerId) {
-    throw new ApiError(
-      StatusCodes.BAD_REQUEST,
-      "User does not have a Stripe customer ID"
-    );
-  }
+//   if (!user.stripe?.customerId) {
+//     throw new ApiError(
+//       StatusCodes.BAD_REQUEST,
+//       "User does not have a Stripe customer ID"
+//     );
+//   }
 
-  try {
-    // Create the account link
-    const accountLink = await stripe.accountLinks.create({
-      account: user.stripe.customerId,
-      refresh_url: "https://your-platform.com/reauth",
-      return_url: "https://your-platform.com/return",
-      type: "account_onboarding",
-    });
+//   try {
+//     // Create the account link
+//     const accountLink = await stripe.accountLinks.create({
+//       account: user.stripe.customerId,
+//       refresh_url: "https://your-platform.com/reauth",
+//       return_url: "https://your-platform.com/return",
+//       type: "account_onboarding",
+//     });
 
-    // Update the user with the new onboarding URL
-    const updatedUser = await User.findByIdAndUpdate(
-      id,
-      { "stripe.onboardingUrl": accountLink.url },
-      { new: true } // Return the updated document
-    );
+//     // Update the user with the new onboarding URL
+//     const updatedUser = await User.findByIdAndUpdate(
+//       id,
+//       { "stripe.onboardingUrl": accountLink.url },
+//       { new: true } // Return the updated document
+//     );
 
-    if (!updatedUser) {
-      throw new ApiError(
-        StatusCodes.INTERNAL_SERVER_ERROR,
-        "Failed to update the user with the onboarding URL"
-      );
-    }
+//     if (!updatedUser) {
+//       throw new ApiError(
+//         StatusCodes.INTERNAL_SERVER_ERROR,
+//         "Failed to update the user with the onboarding URL"
+//       );
+//     }
 
-    return updatedUser;
-  } catch (error) {
-    console.error("Error generating account link:", error);
-    throw new ApiError(
-      StatusCodes.INTERNAL_SERVER_ERROR,
-      "Failed to generate account link"
-    );
-  }
+//     return updatedUser;
+//   } catch (error) {
+//     console.error("Error generating account link:", error);
+//     throw new ApiError(
+//       StatusCodes.INTERNAL_SERVER_ERROR,
+//       "Failed to generate account link"
+//     );
+//   }
+// };
+const generateNewAccountLink = async (user: IUser) => {
+
+  console.log(user,"check user from generate new account link")
+
+
+
+ 
+  const accountLink = await stripe.accountLinks.create({
+    account: user.stripe?.customerId as string,
+    refresh_url: "https://your-platform.com/reauth",
+    return_url: "https://your-platform.com/return",
+    type: "account_onboarding",
+  });
+  // console.log(accountLink.url,"check account link")
+  const html = `
+  <div style="max-width: 600px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif; color: #333; border: 1px solid #ddd; border-radius: 10px;">
+    <h2 style="color: #007bff; text-align: center;">Complete Your Onboarding</h2>
+  
+    <p>Dear <b>${user.name.firstName}</b>,</p>
+  
+    <p>We’re excited to have you onboard! To get started, please complete your onboarding process by clicking the link below:</p>
+  
+    <div style="text-align: center; margin: 20px 0;">
+      <a href=${accountLink.url} style="background-color: #007bff; color: #fff; padding: 12px 20px; border-radius: 5px; text-decoration: none; font-weight: bold;">
+        Complete Onboarding
+      </a>
+    </div>
+  
+    <p>If the button above doesn’t work, you can also copy and paste this link into your browser:</p>
+    <p style="word-break: break-all; background-color: #f4f4f4; padding: 10px; border-radius: 5px;">
+      ${accountLink.url}
+    </p>
+  
+    <p><b>Note:</b> This link is valid for a limited time. Please complete your onboarding as soon as possible.</p>
+  
+    <p>Thank you,</p>
+    <p><b>The Support Team</b></p>
+  
+    <hr style="border: 0; height: 1px; background: #ddd; margin: 20px 0;">
+    <p style="font-size: 12px; color: #777; text-align: center;">
+      If you didn’t request this, please ignore this email or contact support.
+    </p>
+  </div>
+  `;
+    await emailSender( "Your Onboarding Url", user.email,html);
+  
 };
 export const StripeServices = {
   // saveCardWithCustomerInfoIntoStripe,
@@ -435,5 +484,6 @@ export const StripeServices = {
   createPaymentIntentService,
   handleAccountUpdated,
   deliverProject,
-  generateAccountLink,
+
+  generateNewAccountLink
 };

@@ -174,7 +174,7 @@ const uploadMessagefile = async (file: any) => {
 };
 
 const countMessages = async (email: string) => {
-  console.log(email, "chcekc email");
+
   const totalUnseen = await Notification.find({
     recipient: email,
     status: ENUM_NOTIFICATION_STATUS.UNSEEN,
