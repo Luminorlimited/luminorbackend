@@ -14,11 +14,15 @@ import { Notification } from "../notification/notification.model";
 
 const createOffer = async (offer: IOffer) => {
   // const totalPrice = calculateTotalPrice(offer);
- 
+  // const clientOfferNotify = await getOffersByProfessional(
+  //   offer.clientEmail as string
+  // );
+
+
   offer.serviceFee = offer.totalPrice * 0.2;
   offer.totalReceive = offer.totalPrice;
   offer.totalPrice = offer.totalPrice + offer.serviceFee;
-
+ 
 
   if (offer.agreementType === AgreementType.FlatFee) {
     offer.totalDeliveryTime = offer.flatFee?.delivery || 0;
@@ -35,8 +39,16 @@ const createOffer = async (offer: IOffer) => {
   }
 
   const newOffer = await Offer.create(offer);
+  const unseenCount = await Offer.countDocuments({
+    clientEmail: offer.clientEmail,
+    isSeen: false,
+  });
 
-  return newOffer;
+
+ const result= await Offer.findByIdAndUpdate(newOffer._id, { count: unseenCount }, { new: true });
+
+
+  return result;
 };
 
 // const getOffersByProfessional = async (email: string) => {
@@ -68,7 +80,7 @@ const getOffersByProfessional = async (email: string) => {
   };
 };
 const getSingleOffer = async (id: string) => {
-  const offer = await Offer.findById(id);
+  const offer = await Offer.findByIdAndUpdate(id,{isSeen:true});
   if (!offer) {
     throw new ApiError(StatusCodes.UNAUTHORIZED, "offer not found");
   }
@@ -77,7 +89,7 @@ const getSingleOffer = async (id: string) => {
     User.findOne({ email: offer.professionalEmail }).select("name "),
   ]);
 
-  // console.log(offer, "offer");
+
   return { offer, client, retireProfessional };
 };
 const deleteSingleOffer = async (id: string) => {
@@ -87,7 +99,6 @@ const deleteSingleOffer = async (id: string) => {
 };
 
 const countOffer = async (email: string) => {
-
   const totalUnseen = await Notification.find({
     recipient: email,
     status: ENUM_NOTIFICATION_STATUS.UNSEEN,
