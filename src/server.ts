@@ -194,18 +194,18 @@ io.on("connection", (socket) => {
           from: fromEmail,
           offer: newOffer,
         });
-        const notificatnionBody: INotification = {
-          recipient: offer.clientEmail as string,
-          sender: offer.professionalEmail as string,
-          message: `${offer.professionalEmail} send you a offer`,
-          type: ENUM_NOTIFICATION_TYPE.OFFER,
-          status: ENUM_NOTIFICATION_STATUS.UNSEEN,
-        };
+        // const notificatnionBody: INotification = {
+        //   recipient: offer.clientEmail as string,
+        //   sender: offer.professionalEmail as string,
+        //   message: `${offer.professionalEmail} send you a offer`,
+        //   type: ENUM_NOTIFICATION_TYPE.OFFER,
+        //   status: ENUM_NOTIFICATION_STATUS.UNSEEN,
+        // };
 
-        await NotificationService.createNotification(
-          notificatnionBody,
-          "offer-notification"
-        );
+        // await NotificationService.createNotification(
+        //   notificatnionBody,
+        //   "offer-notification"
+        // );
       }
     } catch (error) {
       socket.emit("sendoffer error ", "Failed to create effor");
