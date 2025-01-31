@@ -13,11 +13,12 @@ import {
 import { Notification } from "../notification/notification.model";
 
 const createOffer = async (offer: IOffer) => {
-  const totalPrice = calculateTotalPrice(offer);
-
+  // const totalPrice = calculateTotalPrice(offer);
+ 
   offer.serviceFee = offer.totalPrice * 0.2;
-  offer.totalPrice = totalPrice + offer.serviceFee;
-  offer.totalReceive = totalPrice;
+  offer.totalReceive = offer.totalPrice;
+  offer.totalPrice = offer.totalPrice + offer.serviceFee;
+
 
   if (offer.agreementType === AgreementType.FlatFee) {
     offer.totalDeliveryTime = offer.flatFee?.delivery || 0;

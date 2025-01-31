@@ -31,7 +31,8 @@ export type IOffer = {
   isAccepted: boolean;
   serviceFee: number;
   totalDeliveryTime: number;
-  isSeen:boolean
+  isSeen:boolean;
+  count:number
   // transactionNumber:string
 };
 export enum AgreementType {
