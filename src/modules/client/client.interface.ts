@@ -43,32 +43,8 @@ export type IClient = {
   projectListing?: string;
   // projectUrl?: string;
   projectPreference?:string[]
-  // reviews?: IReview;
-  //   averageRating: number;
+  averageRating: number;
+  reviewCount:number
+
 };
 
-// export type IUpdateClient = {
-//   name?: {
-//     firstName?: string;
-//     lastName?: string;
-//   };
-//   companyName: string;
-
-//   problemAreas: string;
-//   location: {
-//     lang: string;
-//     lat: string;
-//   };
-//   description: string;
-//   industry: string;
-//   servicePreferences: string[];
-//   budgetRange: {
-//     min: number;
-//     max: number;
-//   };
-//   projectDurationRange: {
-//     min: number;
-//     max: number;
-//   };
-//   projectListing?: string;
-// };
