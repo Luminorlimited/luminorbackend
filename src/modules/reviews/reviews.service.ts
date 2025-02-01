@@ -7,7 +7,7 @@ import ApiError from "../../errors/handleApiError";
 import { StatusCodes } from "http-status-codes";
 
 const postReviews = async (
-  clientId: string,
+  receiverId: string,
   retireProfessionalId: string,
   reviewData: any
 ) => {
@@ -21,7 +21,7 @@ const postReviews = async (
     if (!retireProfessional) {
       throw new Error("RetireProfessional not found");
     }
-    const client = await Client.findOne({ client: clientId });
+    const client = await Client.findOne({ client: receiverId });
     if (!client) {
       throw new ApiError(StatusCodes.UNAUTHORIZED, "client not found");
     }

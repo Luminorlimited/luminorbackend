@@ -9,13 +9,13 @@ import { Client } from "../client/client.model";
 
 const postReviews = catchAsync(async (req: Request, res: Response) => {
     const review=req.body
-    const professionalId=req.params.id
+    const reviewerId=req.params.id
     const user = req.user as any;
 
 
    
    //console.log(review,"check review")
-   const result=await ReviewsService.postReviews(user.id,professionalId,review)
+   const result=await ReviewsService.postReviews(user.id,reviewerId,review)
   
     sendResponse(res, {
       success: true,
