@@ -5,7 +5,7 @@ import {
 } from "../../enums/notificationStatus";
 import { ENUM_USER_ROLE } from "../../enums/user";
 import ApiError from "../../errors/handleApiError";
-import { onlineUsers } from "../../server";
+import { io, onlineUsers, userInChat, users } from "../../server";
 import { uploadFileToSpace } from "../../utilitis/uploadTos3";
 import { IUser } from "../auth/auth.interface";
 
@@ -19,7 +19,6 @@ import { Message } from "./messages.model";
 import mongoose from "mongoose";
 
 const createMessage = async (payload: IMessage) => {
-  // console.log(payload.message,"check puaload")
   const [sender, recipient] = await Promise.all([
     User.findOne({ email: payload.sender }),
     User.findOne({ email: payload.recipient }),
@@ -40,7 +39,7 @@ const createMessage = async (payload: IMessage) => {
     checkRoom = await Convirsation.create({
       user1: sender._id,
       user2: recipient._id,
-      lastMessage:""
+      lastMessage: "",
     });
   }
 
@@ -54,29 +53,43 @@ const createMessage = async (payload: IMessage) => {
   };
 
   const message = await Message.create(data);
-  let lastMessageContent = payload.message
-  ? payload.message
-  : payload.media
-  ? "📷 Image"
-  : payload.meetingLink
-  ? "🔗 Meeting Link"
-  : "";
- const convirsation= await Convirsation.findByIdAndUpdate(
-    checkRoom._id, // Conversation Room ID
-    {
-      lastMessageTimestamp: message.createdAt,
-      lastMessage: lastMessageContent
-    },
 
-    { new: true }
-  );
-//   console.log(convirsation,"check from post message")
-// console.log(message)
+  let lastMessageContent = payload.message
+    ? payload.message
+    : payload.media
+    ? "📷 Image"
+    : payload.meetingLink
+    ? "🔗 Meeting Link"
+    : "";
+
+  let updateFields: any = {
+    lastMessageTimestamp: message.createdAt,
+    lastMessage: lastMessageContent,
+  };
+
+  const recipientInChat = userInChat.get(recipient.email);
+
+  if (sender._id.toString() === checkRoom.user1.toString()) {
+    if (!recipientInChat || recipientInChat !== sender.email) {
+      updateFields.$inc = { user2UnseenCount: 1 };
+    }
+  } else {
+    if (!recipientInChat || recipientInChat !== sender.email) {
+      updateFields.$inc = { user1UnseenCount: 1 };
+    }
+  }
+
+  await Convirsation.findByIdAndUpdate(checkRoom._id, updateFields, {
+    new: true,
+  });
 
   return message;
 };
-
-const getMessages = async (senderId: string, recipientId: string) => {
+const getMessages = async (
+  senderId: string,
+  recipientId: string,
+  loggedInUser: string
+) => {
   const [sender, recipient] = await Promise.all([
     User.findOne({ email: senderId }),
     User.findOne({ email: recipientId }),
@@ -104,7 +117,7 @@ const getMessages = async (senderId: string, recipientId: string) => {
       path: "recipient",
       select: "name email profileUrl",
     });
-  // console.log(messages[0].room,"check messages")
+  console.log(messages[0].room, "check messages");
   const convirsationRoom = await Convirsation.findById(messages[0].room)
     .populate({
       path: "user1",
@@ -118,6 +131,13 @@ const getMessages = async (senderId: string, recipientId: string) => {
     throw new ApiError(StatusCodes.NOT_FOUND, "room not found");
   }
 
+  await Message.updateMany({
+    $or: [
+      { sender: loggedInUser, recipient: loggedInUser },
+      { sender: loggedInUser, recipient: loggedInUser },
+    ],
+    $set: { isUnseen: true },
+  });
   const userDetails = [convirsationRoom.user1, convirsationRoom.user2].map(
     (user: any) => ({
       name: `${user.name.firstName} ${user.name.lastName}`,
@@ -128,29 +148,26 @@ const getMessages = async (senderId: string, recipientId: string) => {
 
   return { userDetails, messages };
 };
-
-
-
 const getConversationLists = async (email: string) => {
-  console.log(email,"check email from service file")
+  console.log(email, "check email from service file");
   const user = await User.findOne({ email });
   if (!user) {
     throw new ApiError(StatusCodes.NOT_FOUND, "User not found");
   }
 
   const conversations = await Convirsation.find({
-    $or: [{ user1: user._id }, { user2: user._id }]
+    $or: [{ user1: user._id }, { user2: user._id }],
   })
     .populate("user1", "email name profileUrl _id")
     .populate("user2", "email name profileUrl _id")
     .sort({ lastMessageTimestamp: -1 });
- 
 
   const conversationList = conversations.map((conversation: any) => {
-    const otherUser =
-      conversation.user1._id.toString() !== user._id.toString()
-        ? conversation.user1
-        : conversation.user2;
+    const isUser1 = conversation.user1._id.toString() === user._id.toString();
+    const otherUser = isUser1 ? conversation.user2 : conversation.user1;
+    const unseenMessageCount = isUser1
+      ? conversation.user1UnseenCount
+      : conversation.user2UnseenCount;
 
     return {
       id: otherUser._id,
@@ -159,14 +176,14 @@ const getConversationLists = async (email: string) => {
       profileUrl: otherUser.profileUrl || null,
       isOnline: onlineUsers.get(otherUser.email) || false,
       room: conversation._id,
-      lastMessage:conversation.lastMessage,
-      lastMessageTimestamp:conversation.lastMessageTimestamp
+      lastMessage: conversation.lastMessage,
+      lastMessageTimestamp: conversation.lastMessageTimestamp,
+      unseenMessageCount,
     };
   });
 
   return conversationList;
 };
-
 
 const uploadMessagefile = async (file: any) => {
   const fileUrl = await uploadFileToSpace(file, "message-file");
@@ -174,7 +191,6 @@ const uploadMessagefile = async (file: any) => {
 };
 
 const countMessages = async (email: string) => {
-
   const totalUnseen = await Notification.find({
     recipient: email,
     status: ENUM_NOTIFICATION_STATUS.UNSEEN,
@@ -218,7 +234,6 @@ const getUnreadMessageCounts = async (
   }, {});
 };
 
- 
 export const MessageService = {
   createMessage,
   getMessages,

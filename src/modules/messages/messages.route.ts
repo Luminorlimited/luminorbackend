@@ -16,11 +16,7 @@ router.post(
 
   MessageController.createMessage
 );
-router.get(
-  "/",
-
-  MessageController.getMessages
-);
+router.get("/", auth(), MessageController.getMessages);
 router.post(
   "/file-upload",
   multerUpload.single("file"),

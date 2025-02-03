@@ -43,80 +43,89 @@ export const io = new Server(httpServer, {
 });
 
 // Store socket IDs for users
-const users: { [key: string]: string } = {};
+export const users: { [key: string]: string } = {};
 export const onlineUsers = new Map<string, boolean>();
+export const userInChat = new Map<string, string | null>();
 
 io.on("connection", (socket) => {
   socket.on("register", async (data: any) => {
     const { email } = JSON.parse(data);
- 
+
     users[email] = socket.id;
- 
+
     onlineUsers.set(email, true);
 
     const conversationList = await MessageService.getConversationLists(email);
 
-
     socket.emit("conversation-list", conversationList);
   });
 
-
-
   socket.on("privateMessage", async (data: any) => {
     const { toEmail, message, fromEmail, media, mediaUrl } = JSON.parse(data);
-  
+
     if (!fromEmail) {
       return socket.send(JSON.stringify({ error: "email is required" }));
     }
-  
+
     const toSocketId = users[toEmail];
-  
+
+    const recipientInChatWith = userInChat.get(toEmail);
+
     try {
-   
+      const isUnseen = recipientInChatWith === fromEmail ? false : true;
       const savedMessage = await MessageService.createMessage({
         sender: fromEmail,
         message: message || null,
         media: mediaUrl || null,
         recipient: toEmail,
-        isUnseen: false,
+        isUnseen: isUnseen,
       });
-  
-     
+
       const [fromEmailConversationList, toEmailConversationList] =
         await Promise.all([
           MessageService.getConversationLists(fromEmail),
           toEmail ? MessageService.getConversationLists(toEmail) : null,
         ]);
-  
+
       const populatedMessage = await Message.findById(savedMessage._id)
         .populate({ path: "sender", select: "name email _id" })
         .populate({ path: "recipient", select: "name email _id" })
         .lean();
-  
-    
+
       socket.emit("privateMessage", {
         message: populatedMessage,
         fromEmail: fromEmail,
       });
-  
-    
+
       socket.emit("conversation-list", fromEmailConversationList);
-  
+
       if (toSocketId) {
         socket.to(toSocketId).emit("privateMessage", {
           message: populatedMessage,
           fromEmail: fromEmail,
         });
-  
+
         if (toEmailConversationList) {
-          socket.to(toSocketId).emit("conversation-list", toEmailConversationList);
+          socket
+            .to(toSocketId)
+            .emit("conversation-list", toEmailConversationList);
         }
       }
     } catch (error) {
       console.error("Error sending private message:", error);
     }
   });
-  
+  socket.on("userInChat", (data: any) => {
+    const { userEmail, chattingWith } = JSON.parse(data);
+    // console.log(userEmail, "from user inchat user email");
+    // console.log(chattingWith, "from user in chat chatting with");
+    if (chattingWith) {
+      userInChat.set(userEmail, chattingWith);
+    } else {
+      userInChat.delete(userEmail);
+    }
+  });
+
   socket.on("sendOffer", async (data: any) => {
     const { toEmail, offer, fromEmail } = JSON.parse(data);
 
@@ -174,7 +183,7 @@ io.on("connection", (socket) => {
         message: join_url,
         media: "",
         meetingLink: start_url,
-        isUnseen: false
+        isUnseen: false,
       });
 
       if (toSocketId) {

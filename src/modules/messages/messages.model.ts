@@ -32,11 +32,10 @@ const messageSchema = new Schema<IMessage>(
       type: String,
       default: null,
     },
-    isUnseen:{
-      type:Boolean,
-      default:false
-    }
-
+    isUnseen: {
+      type: Boolean,
+      default: true,
+    },
   },
 
   {

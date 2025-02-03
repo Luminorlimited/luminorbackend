@@ -21,10 +21,11 @@ const createMessage = catchAsync(async (req: Request, res: Response) => {
 });
 const getMessages = catchAsync(async (req: Request, res: Response) => {
   const { user1, user2 } = req.query;
-
+  const user = req.user as any;
   const messages = await MessageService.getMessages(
     user1 as string,
-    user2 as string
+    user2 as string,
+    user.id
   );
 
   sendResponse(res, {
@@ -36,12 +37,13 @@ const getMessages = catchAsync(async (req: Request, res: Response) => {
   });
 });
 const getConversationLists = catchAsync(async (req: Request, res: Response) => {
-  if (!req.user ) {
+  if (!req.user) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "header not found");
   }
 
-
-  const list = await MessageService.getConversationLists((req.user as any).email as string);
+  const list = await MessageService.getConversationLists(
+    (req.user as any).email as string
+  );
 
   sendResponse(res, {
     success: true,
