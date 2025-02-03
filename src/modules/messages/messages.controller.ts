@@ -22,6 +22,7 @@ const createMessage = catchAsync(async (req: Request, res: Response) => {
 const getMessages = catchAsync(async (req: Request, res: Response) => {
   const { user1, user2 } = req.query;
   const user = req.user as any;
+  // console.log(user,"check user")
   const messages = await MessageService.getMessages(
     user1 as string,
     user2 as string,

@@ -29,6 +29,8 @@ const convirsationModel = new Schema<Iconvirsation>(
       type: Number,
       default: 0,
     },
+    user1UnseenMessages: [{ type: mongoose.Schema.ObjectId, ref: "Message" }],
+    user2UnseenMessages: [{ type: mongoose.Schema.ObjectId, ref: "Message" }]
   },
 
   {
