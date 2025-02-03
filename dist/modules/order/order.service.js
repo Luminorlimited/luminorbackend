@@ -10,15 +10,25 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OrderService = void 0;
+const auth_model_1 = require("../auth/auth.model");
 const order_model_1 = require("./order.model");
 const createOrder = (payload) => __awaiter(void 0, void 0, void 0, function* () {
     const result = yield order_model_1.Order.create(payload);
     return result;
 });
 const getOrderByProfessional = (email) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield order_model_1.Order.find({ orderReciver: email }).populate("project").populate("transaction");
-    return result;
+    try {
+        const result = yield order_model_1.Order.find({ orderReciver: email })
+            .populate("project")
+            .populate("transaction");
+        return result;
+    }
+    catch (error) {
+        console.error("Error fetching orders by professional:", error);
+        throw error;
+    }
 });
+;
 const getOrderByClient = (email) => __awaiter(void 0, void 0, void 0, function* () {
     const result = yield order_model_1.Order.find({ orderFrom: email }).populate("project").populate("transaction");
     return result;
@@ -32,7 +42,11 @@ const getSpecificOrderBYClientAndProfessional = (clientId, professionalId) => __
 });
 const getOrderById = (orderId) => __awaiter(void 0, void 0, void 0, function* () {
     const result = yield order_model_1.Order.findById(orderId).populate("project").populate("transaction");
-    return result;
+    const [client, retireProfessional] = yield Promise.all([
+        auth_model_1.User.find({ email: result === null || result === void 0 ? void 0 : result.orderReciver }).select("name.firstName name.lastName"),
+        auth_model_1.User.find({ email: result === null || result === void 0 ? void 0 : result.orderFrom }).select("name.firstName name.lastName")
+    ]);
+    return { result, client, retireProfessional };
 });
 exports.OrderService = {
     createOrder,

@@ -47,7 +47,6 @@ const createProfessional = (user, professionalData, file) => __awaiter(void 0, v
             country: "US",
             email: user.email,
         });
-        // console.log(account,"check account")
         const accountLink = yield stripe.accountLinks.create({
             account: account.id,
             refresh_url: "https://your-platform.com/reauth",
@@ -55,7 +54,6 @@ const createProfessional = (user, professionalData, file) => __awaiter(void 0, v
             type: "account_onboarding",
         });
         if (user.stripe) {
-            // console.log(user.stripe, "check stripe");
             user.stripe.onboardingUrl = accountLink.url;
             user.stripe.customerId = account.id;
         }
@@ -250,6 +248,7 @@ const updateProfessionalStripeAccount = (payload) => __awaiter(void 0, void 0, v
         $set: {
             "stripe.customerId": payload.id,
             "stripe.isOnboardingSucess": true,
+            "stripe.onboardingUrl": null,
         },
     });
 });

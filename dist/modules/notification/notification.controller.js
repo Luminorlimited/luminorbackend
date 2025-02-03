@@ -17,16 +17,6 @@ const http_status_codes_1 = require("http-status-codes");
 const catchAsync_1 = __importDefault(require("../../shared/catchAsync"));
 const sendResponse_1 = __importDefault(require("../../shared/sendResponse"));
 const notification_service_1 = require("./notification.service");
-const createNotification = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const notification = req.body;
-    const result = yield notification_service_1.NotificationService.createNotification(notification);
-    (0, sendResponse_1.default)(res, {
-        success: true,
-        statusCode: http_status_codes_1.StatusCodes.OK,
-        message: "Notification saved    successfully",
-        data: result,
-    });
-}));
 const getUserNotification = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { recipient, status, type } = req.query;
     const messages = yield notification_service_1.NotificationService.getUserNotification(recipient, status, type);
@@ -47,8 +37,18 @@ const updateNotification = (0, catchAsync_1.default)((req, res) => __awaiter(voi
         data: messages,
     });
 }));
+const updateMessageNotification = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const ids = req.body.ids;
+    const messages = yield notification_service_1.NotificationService.updateMessageNotification(ids);
+    (0, sendResponse_1.default)(res, {
+        success: true,
+        statusCode: http_status_codes_1.StatusCodes.OK,
+        message: "user notification  update    successfully",
+        data: messages,
+    });
+}));
 exports.NotificationController = {
-    createNotification,
     getUserNotification,
     updateNotification,
+    updateMessageNotification
 };

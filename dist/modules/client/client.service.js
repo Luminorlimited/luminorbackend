@@ -51,7 +51,6 @@ const createClient = (user, clientData) => __awaiter(void 0, void 0, void 0, fun
             name: user.name.firstName + " " + user.name.lastName,
         });
         // console.log(account,"check account")
-        console.log(customer, "check customer");
         if (user.stripe) {
             user.stripe.customerId = customer.id;
         }
@@ -127,7 +126,7 @@ const getClients = (filters, paginationOptions) => __awaiter(void 0, void 0, voi
                 const parseArray = Array.isArray(value)
                     ? value
                     : JSON.parse(value);
-                console.log(parseArray, "check parse arrya");
+                //console.log(parseArray, "check parse arrya");
                 return {
                     industry: { $in: parseArray },
                 };

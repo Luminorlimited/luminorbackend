@@ -12,21 +12,39 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ReviewsService = exports.getReviews = void 0;
+exports.ReviewsService = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const professional_model_1 = require("../professional/professional.model");
-const postReviews = (id, review) => __awaiter(void 0, void 0, void 0, function* () {
+const client_model_1 = require("../client/client.model");
+const review_model_1 = require("./review.model");
+const handleApiError_1 = __importDefault(require("../../errors/handleApiError"));
+const http_status_codes_1 = require("http-status-codes");
+const postReviews = (receiverId, retireProfessionalId, reviewData) => __awaiter(void 0, void 0, void 0, function* () {
     const session = yield mongoose_1.default.startSession();
     session.startTransaction();
     try {
-        const result = yield professional_model_1.RetireProfessional.findOneAndUpdate({ _id: id }, { $push: { reviews: review } }, { new: true, session }).populate("retireProfessional");
-        if ((result === null || result === void 0 ? void 0 : result.reviews) && Array.isArray(result.reviews)) {
-            const totalRatings = result.reviews.reduce((sum, r) => sum + r.rating, 0);
-            const averageRating = totalRatings / result.reviews.length;
-            yield professional_model_1.RetireProfessional.updateOne({ _id: id }, { $set: { averageRating: averageRating } }, { session });
+        const retireProfessional = yield professional_model_1.RetireProfessional.findOne({
+            retireProfessional: retireProfessionalId,
+        }).session(session);
+        if (!retireProfessional) {
+            throw new Error("RetireProfessional not found");
         }
+        const client = yield client_model_1.Client.findOne({ client: receiverId });
+        if (!client) {
+            throw new handleApiError_1.default(http_status_codes_1.StatusCodes.UNAUTHORIZED, "client not found");
+        }
+        const newReview = yield review_model_1.Review.create([
+            Object.assign(Object.assign({}, reviewData), { retireProfessionalId: retireProfessional._id, clientId: client._id }),
+        ], { session });
+        const reviews = yield review_model_1.Review.find({
+            retireProfessionalId: retireProfessional._id,
+        }).session(session);
+        const totalRatings = reviews.reduce((sum, review) => sum + review.rating, 0);
+        const averageRating = totalRatings / reviews.length;
+        // console.log(averageRating,"check average rating")
+        yield professional_model_1.RetireProfessional.updateOne({ _id: retireProfessional._id }, { averageRating, reviewCount: reviews.length }, { session });
         yield session.commitTransaction();
-        return result;
+        return newReview;
     }
     catch (error) {
         yield session.abortTransaction();
@@ -36,9 +54,18 @@ const postReviews = (id, review) => __awaiter(void 0, void 0, void 0, function* 
         session.endSession();
     }
 });
-const getReviews = () => {
-};
-exports.getReviews = getReviews;
+const getReviews = (retireProfessionalId) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const reviews = yield review_model_1.Review.find({ retireProfessionalId })
+            .populate("clientId", "name email")
+            .sort({ createdAt: -1 });
+        return reviews;
+    }
+    catch (error) {
+        throw error;
+    }
+});
 exports.ReviewsService = {
-    postReviews
+    postReviews,
+    getReviews,
 };

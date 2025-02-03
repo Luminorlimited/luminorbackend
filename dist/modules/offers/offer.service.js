@@ -8,64 +8,88 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OfferService = void 0;
-const calculateTotalPrice_1 = require("../../utilitis/calculateTotalPrice");
+const http_status_codes_1 = require("http-status-codes");
+const handleApiError_1 = __importDefault(require("../../errors/handleApiError"));
 const auth_model_1 = require("../auth/auth.model");
 const offer_interface_1 = require("./offer.interface");
 const offer_model_1 = require("./offer.model");
+const stripe_service_1 = require("../stipe/stripe.service");
 const createOffer = (offer) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
-    const totalPrice = (0, calculateTotalPrice_1.calculateTotalPrice)(offer);
+    var _a, _b, _c;
+    const user = yield auth_model_1.User.findOne({ email: offer.professionalEmail });
+    if (((_a = user === null || user === void 0 ? void 0 : user.stripe) === null || _a === void 0 ? void 0 : _a.isOnboardingSucess) === false) {
+        yield stripe_service_1.StripeServices.generateNewAccountLink(user);
+        throw new handleApiError_1.default(http_status_codes_1.StatusCodes.UNAUTHORIZED, "we send you a onboaring url.please check your email");
+    }
     offer.serviceFee = offer.totalPrice * 0.2;
-    offer.totalPrice = totalPrice;
-    offer.totalReceive = totalPrice - offer.totalPrice * 0.2;
+    offer.totalReceive = offer.totalPrice;
+    offer.totalPrice = offer.totalPrice + offer.serviceFee;
     if (offer.agreementType === offer_interface_1.AgreementType.FlatFee) {
-        offer.totalDeliveryTime = ((_a = offer.flatFee) === null || _a === void 0 ? void 0 : _a.delivery) || 0;
+        offer.totalDeliveryTime = ((_b = offer.flatFee) === null || _b === void 0 ? void 0 : _b.delivery) || 0;
     }
     else if (offer.agreementType === offer_interface_1.AgreementType.HourlyFee) {
-        offer.totalDeliveryTime = ((_b = offer.hourlyFee) === null || _b === void 0 ? void 0 : _b.delivery) || 0;
+        offer.totalDeliveryTime = ((_c = offer.hourlyFee) === null || _c === void 0 ? void 0 : _c.delivery) || 0;
     }
     else if (offer.agreementType === offer_interface_1.AgreementType.Milestone &&
         offer.milestones) {
         offer.totalDeliveryTime = offer === null || offer === void 0 ? void 0 : offer.milestones.reduce((total, milestone) => total + (milestone.delivery || 0), 0);
     }
     const newOffer = yield offer_model_1.Offer.create(offer);
-    return newOffer;
+    const unseenCount = yield offer_model_1.Offer.countDocuments({
+        clientEmail: offer.clientEmail,
+        isSeen: false,
+    });
+    const result = yield offer_model_1.Offer.findByIdAndUpdate(newOffer._id, { count: unseenCount }, { new: true });
+    return result;
 });
-// const getOffersByProfessional = async (email: string) => {
-//   const offer = await Offer.find({ clientEmail: email });
-//   return offer;
-// };
 const getOffersByProfessional = (email) => __awaiter(void 0, void 0, void 0, function* () {
     const offers = yield offer_model_1.Offer.find({ clientEmail: email });
-    let totalDeliverTime;
     const offersWithUserInfo = yield Promise.all(offers.map((offer) => __awaiter(void 0, void 0, void 0, function* () {
         const professionalInfo = yield auth_model_1.User.findOne({
             email: offer.professionalEmail,
         }).select("name.firstName name.lastName email");
         return Object.assign(Object.assign({}, offer.toObject()), { pofessionalInfo: professionalInfo || null });
     })));
+    const count = yield countOffer(email);
     return {
         success: true,
         statusCode: 200,
         message: "Retrieve Professional Offers successfully",
-        data: offersWithUserInfo,
+        data: { offersWithUserInfo, count },
     };
 });
 const getSingleOffer = (id) => __awaiter(void 0, void 0, void 0, function* () {
-    const offer = yield offer_model_1.Offer.findById(id);
-    // console.log(offer, "offer");
-    return offer;
+    const offer = yield offer_model_1.Offer.findByIdAndUpdate(id, { isSeen: true });
+    if (!offer) {
+        throw new handleApiError_1.default(http_status_codes_1.StatusCodes.UNAUTHORIZED, "offer not found");
+    }
+    const [client, retireProfessional] = yield Promise.all([
+        auth_model_1.User.findOne({ email: offer.clientEmail }).select("name "),
+        auth_model_1.User.findOne({ email: offer.professionalEmail }).select("name "),
+    ]);
+    return { offer, client, retireProfessional };
 });
 const deleteSingleOffer = (id) => __awaiter(void 0, void 0, void 0, function* () {
     const offer = yield offer_model_1.Offer.findByIdAndDelete({ _id: id });
     // console.log(offer, "offer");
     return offer;
 });
+const countOffer = (email) => __awaiter(void 0, void 0, void 0, function* () {
+    const totalUnseen = yield offer_model_1.Offer.find({
+        clientEmail: email,
+        isSeen: false
+    }).select("_id");
+    return totalUnseen.length;
+});
 exports.OfferService = {
     createOffer,
     getOffersByProfessional,
     getSingleOffer,
     deleteSingleOffer,
+    countOffer,
 };

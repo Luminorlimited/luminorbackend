@@ -24,6 +24,8 @@ const order_service_1 = require("../order/order.service");
 const transaction_model_1 = require("../transaction/transaction.model");
 const mongoose_1 = __importDefault(require("mongoose"));
 const transaction_interface_1 = require("../transaction/transaction.interface");
+const offer_model_1 = require("../offers/offer.model");
+const emailSender_1 = __importDefault(require("../../utilitis/emailSender"));
 // Initialize Stripe with your secret API key
 const stripe = new stripe_1.default(config_1.default.stripe_key, {
     //   apiVersion: "2024-06-20",
@@ -176,7 +178,6 @@ const refundPaymentToCustomer = (payload) => __awaiter(void 0, void 0, void 0, f
         throw new handleApiError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, error.message);
     }
 });
-// const createPaymentIntentService = async (payload: any) => {
 //   // console.log(payload, "check payload");
 //   if (!payload.amount) {
 //     throw new ApiError(StatusCodes.BAD_REQUEST, "Amount is required");
@@ -223,20 +224,17 @@ const refundPaymentToCustomer = (payload) => __awaiter(void 0, void 0, void 0, f
 //   return orderResult;
 // };
 const createPaymentIntentService = (payload) => __awaiter(void 0, void 0, void 0, function* () {
-    // if (!payload.amount) {
-    //   throw new ApiError(StatusCodes.BAD_REQUEST, "Amount is required");
-    // }
-    // if (!isValidAmount(payload.amount)) {
-    //   throw new ApiError(
-    //     StatusCodes.BAD_REQUEST,
-    //     `Amount '${payload.amount}' is not a valid amount`
-    //   );
-    // }
-    const offer = yield offer_service_1.OfferService.getSingleOffer(payload.offerId);
+    const { offer } = yield offer_service_1.OfferService.getSingleOffer(payload.offerId);
     if (!offer) {
         throw new handleApiError_1.default(http_status_codes_1.StatusCodes.NOT_FOUND, "Offer not found");
     }
-    // Create a PaymentIntent with Stripe
+    yield stripe.paymentMethods.attach(payload.paymentMethodId, {
+        customer: payload.customerId,
+    });
+    const paymentMethodDetails = yield stripe.paymentMethods.retrieve(payload.paymentMethodId);
+    if (paymentMethodDetails.customer !== payload.customerId) {
+        throw new Error("PaymentMethod does not belong to this customer.");
+    }
     const paymentIntent = yield stripe.paymentIntents.create({
         amount: offer.totalPrice * 100,
         currency: "usd",
@@ -276,6 +274,7 @@ const createPaymentIntentService = (payload) => __awaiter(void 0, void 0, void 0
         };
         orderResult = yield order_model_1.Order.create([order], { session });
         yield transaction_model_1.Transaction.updateOne({ _id: transaction[0]._id }, { orderId: orderResult[0]._id }, { session });
+        yield offer_model_1.Offer.deleteOne({ id: offer.id }), { session };
         yield session.commitTransaction();
     }
     catch (error) {
@@ -287,13 +286,18 @@ const createPaymentIntentService = (payload) => __awaiter(void 0, void 0, void 0
     }
     return orderResult[0];
 });
-const handleAccountUpdated = (event) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log(event, "check even from handle account updated");
-});
+const handleAccountUpdated = (event) => __awaiter(void 0, void 0, void 0, function* () { });
 const deliverProject = (orderId) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
+    // console.log(orderId, "check orderId")
     const order = yield order_service_1.OrderService.getOrderById(orderId);
-    const retireProfessional = yield auth_model_1.User.findOne({ email: order === null || order === void 0 ? void 0 : order.orderReciver });
+    // console.log(order, "check order")
+    if (!order || !order.result) {
+        throw new handleApiError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "order not found");
+    }
+    const retireProfessional = yield auth_model_1.User.findOne({
+        email: order === null || order === void 0 ? void 0 : order.result.orderReciver,
+    });
     if (!retireProfessional) {
         throw new handleApiError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "user not found");
     }
@@ -301,22 +305,59 @@ const deliverProject = (orderId) => __awaiter(void 0, void 0, void 0, function* 
     if (!order) {
         throw new handleApiError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "order not found");
     }
-    const totalAmount = Math.round(parseFloat(order === null || order === void 0 ? void 0 : order.totalPrice) * 100);
-    const platformFee = Math.round((parseFloat(order.totalPrice) * 20) / 100) * 100;
+    const totalAmount = Math.round(parseFloat(order === null || order === void 0 ? void 0 : order.result.totalPrice) * 100);
+    const platformFee = Math.round((parseFloat(order.result.totalPrice) * 20) / 100) * 100;
     const transferAmount = totalAmount - platformFee;
     const transfer = yield stripe.transfers.create({
         amount: transferAmount,
         currency: "usd",
         destination: (_a = retireProfessional === null || retireProfessional === void 0 ? void 0 : retireProfessional.stripe) === null || _a === void 0 ? void 0 : _a.customerId,
-        transfer_group: `DELIVERY_${order === null || order === void 0 ? void 0 : order.paymentIntentId}`,
+        transfer_group: `DELIVERY_${order === null || order === void 0 ? void 0 : order.result.paymentIntentId}`,
     });
-    const updateTransaction = yield transaction_model_1.Transaction.updateOne({
-        orderId: orderId,
-        $set: {
-            paymentStatus: transaction_interface_1.PAYMENTSTATUS.COMPLETED,
-        },
-    });
+    // console.lo
+    const updateTransaction = yield transaction_model_1.Transaction.findOneAndUpdate({ _id: order.result.transaction }, { $set: { paymentStatus: transaction_interface_1.PAYMENTSTATUS.COMPLETED } }, { new: true });
+    console.log(updateTransaction, "check update transaction");
     return { transfer, updateTransaction };
+});
+const generateNewAccountLink = (user) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    const accountLink = yield stripe.accountLinks.create({
+        account: (_a = user.stripe) === null || _a === void 0 ? void 0 : _a.customerId,
+        refresh_url: "https://your-platform.com/reauth",
+        return_url: "https://luminoor.vercel.app",
+        type: "account_onboarding",
+    });
+    const html = `
+  <div style="max-width: 600px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif; color: #333; border: 1px solid #ddd; border-radius: 10px;">
+    <h2 style="color: #007bff; text-align: center;">Complete Your Onboarding</h2>
+  
+    <p>Dear <b>${user.name.firstName}</b>,</p>
+  
+    <p>We’re excited to have you onboard! To get started, please complete your onboarding process by clicking the link below:</p>
+  
+    <div style="text-align: center; margin: 20px 0;">
+      <a href=${accountLink.url} style="background-color: #007bff; color: #fff; padding: 12px 20px; border-radius: 5px; text-decoration: none; font-weight: bold;">
+        Complete Onboarding
+      </a>
+    </div>
+  
+    <p>If the button above doesn’t work, you can also copy and paste this link into your browser:</p>
+    <p style="word-break: break-all; background-color: #f4f4f4; padding: 10px; border-radius: 5px;">
+      ${accountLink.url}
+    </p>
+  
+    <p><b>Note:</b> This link is valid for a limited time. Please complete your onboarding as soon as possible.</p>
+  
+    <p>Thank you,</p>
+    <p><b>The Support Team</b></p>
+  
+    <hr style="border: 0; height: 1px; background: #ddd; margin: 20px 0;">
+    <p style="font-size: 12px; color: #777; text-align: center;">
+      If you didn’t request this, please ignore this email or contact support.
+    </p>
+  </div>
+  `;
+    yield (0, emailSender_1.default)("Your Onboarding Url", user.email, html);
 });
 exports.StripeServices = {
     // saveCardWithCustomerInfoIntoStripe,
@@ -329,4 +370,5 @@ exports.StripeServices = {
     createPaymentIntentService,
     handleAccountUpdated,
     deliverProject,
+    generateNewAccountLink,
 };

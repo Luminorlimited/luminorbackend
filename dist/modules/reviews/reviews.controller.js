@@ -19,8 +19,10 @@ const http_status_codes_1 = require("http-status-codes");
 const reviews_service_1 = require("./reviews.service");
 const postReviews = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const review = req.body;
-    const professionalId = req.params.id;
-    const result = yield reviews_service_1.ReviewsService.postReviews(professionalId, review);
+    const reviewerId = req.params.id;
+    const user = req.user;
+    //console.log(review,"check review")
+    const result = yield reviews_service_1.ReviewsService.postReviews(user.id, reviewerId, review);
     (0, sendResponse_1.default)(res, {
         success: true,
         statusCode: http_status_codes_1.StatusCodes.OK,
@@ -28,6 +30,19 @@ const postReviews = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, vo
         data: result,
     });
 }));
+const getReviews = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const review = req.body;
+    const professionalId = req.params.id;
+    const user = req.user;
+    const result = yield reviews_service_1.ReviewsService.getReviews(user.id);
+    (0, sendResponse_1.default)(res, {
+        success: true,
+        statusCode: http_status_codes_1.StatusCodes.OK,
+        message: "your review get successfully",
+        data: result,
+    });
+}));
 exports.ReviewController = {
-    postReviews
+    postReviews,
+    getReviews
 };

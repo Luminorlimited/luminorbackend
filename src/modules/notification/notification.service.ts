@@ -9,29 +9,29 @@ import { INotification } from "./notification.interface";
 import { Notification } from "./notification.model";
 import { OfferService } from "../offers/offer.service";
 
-const createNotification = async (payload: INotification, event: string) => {
-  const result = await Notification.create(payload);
-  let count;
-  if (payload.type === ENUM_NOTIFICATION_TYPE.PRIVATEMESSAGE) {
-    count = await MessageService.countMessages(payload.recipient);
-  }
-  else if(payload.type===ENUM_NOTIFICATION_TYPE.OFFER){
+// const createNotification = async (payload: INotification, event: string) => {
+//   const result = await Notification.create(payload);
+//   let count;
+//   if (payload.type === ENUM_NOTIFICATION_TYPE.PRIVATEMESSAGE) {
+//     count = await MessageService.countMessages(payload.recipient);
+//   }
+//   else if(payload.type===ENUM_NOTIFICATION_TYPE.OFFER){
 
-     count=await OfferService.countOffer(payload.recipient)
+//      count=await OfferService.countOffer(payload.recipient)
     
-  }
-  // if (result) {
-  //   io.emit(event, {
-  //     toEmail: payload.recipient,
-  //     message: payload.message,
-  //     fromEmail: payload.sender,
-  //     type: payload.type,
-  //     status: payload.status,
-  //     count: count,
-  //   });
-  // }
-  return result;
-};
+//   }
+//   // if (result) {
+//   //   io.emit(event, {
+//   //     toEmail: payload.recipient,
+//   //     message: payload.message,
+//   //     fromEmail: payload.sender,
+//   //     type: payload.type,
+//   //     status: payload.status,
+//   //     count: count,
+//   //   });
+//   // }
+//   return result;
+// };
 
 const getUserNotification = async (
   recipient: string,
@@ -97,7 +97,7 @@ const updateSingleUserMessageNotification= async (sender:string,recipient: strin
   return result;
 };
 export const NotificationService = {
-  createNotification,
+  // createNotification,
   getUserNotification,
   updateNotification,
   updateMessageNotification,

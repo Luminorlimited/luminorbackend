@@ -45,6 +45,13 @@ const offerSchema = new mongoose_1.default.Schema({
         type: Number,
         required: true,
     },
+    isSeen: {
+        type: Boolean,
+        default: false
+    },
+    count: {
+        type: Number,
+    },
     isAccepted: { type: Boolean, default: false },
 }, { timestamps: true, versionKey: false });
 exports.Offer = mongoose_1.default.model("Offer", offerSchema);

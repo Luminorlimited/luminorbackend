@@ -13,8 +13,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const nodemailer_1 = __importDefault(require("nodemailer"));
-const handleApiError_1 = __importDefault(require("../errors/handleApiError"));
 const config_1 = __importDefault(require("../config"));
+const handleApiError_1 = __importDefault(require("../errors/handleApiError"));
 const emailSender = (subject, email, html) => __awaiter(void 0, void 0, void 0, function* () {
     const transporter = nodemailer_1.default.createTransport({
         service: "gmail",
@@ -23,9 +23,10 @@ const emailSender = (subject, email, html) => __awaiter(void 0, void 0, void 0, 
             pass: config_1.default.emailSender.app_pass,
         },
     });
+    // 
     const emailTransport = transporter;
     const mailOptions = {
-        from: `"How's" <${config_1.default.emailSender.email}>`,
+        from: `"Luminor" <${config_1.default.emailSender.email}>`,
         to: email,
         subject,
         html,
@@ -33,7 +34,6 @@ const emailSender = (subject, email, html) => __awaiter(void 0, void 0, void 0, 
     // Send the email
     try {
         const info = yield emailTransport.sendMail(mailOptions);
-        // console.log("Email sent: " + info.response);
     }
     catch (error) {
         console.error("Error sending email:", error);

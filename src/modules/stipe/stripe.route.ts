@@ -60,6 +60,6 @@ router.post(
   StripeController.createPaymentIntent
 );
 router.patch("/deliver-project/:id", StripeController.deliverProject);
-router.patch("/update-url",auth(),StripeController.generateAccountLink)
+
 
 export const StripeRoutes = router;

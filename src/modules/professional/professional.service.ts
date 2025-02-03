@@ -33,7 +33,7 @@ const createProfessional = async (
       country: "US",
       email: user.email,
     });
-    // console.log(account,"check account")
+ 
     const accountLink = await stripe.accountLinks.create({
       account: account.id,
       refresh_url: "https://your-platform.com/reauth",
@@ -42,7 +42,7 @@ const createProfessional = async (
     });
 
     if (user.stripe) {
-      // console.log(user.stripe, "check stripe");
+  
       user.stripe.onboardingUrl = accountLink.url;
       user.stripe.customerId = account.id;
     }

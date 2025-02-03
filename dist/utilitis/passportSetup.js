@@ -26,7 +26,6 @@ passport_1.default.use(new passport_google_oauth20_1.Strategy({
     clientSecret: config_1.default.sosial_login.google.client_secret,
     callbackURL: config_1.default.sosial_login.google.redirect_uri
 }, function (accessToken, refreshToken, profile, cb) {
-    console.log("data");
 }));
 passport_1.default.use(new passport_facebook_1.Strategy({
     clientID: config_1.default.sosial_login.facebook.client_id,
