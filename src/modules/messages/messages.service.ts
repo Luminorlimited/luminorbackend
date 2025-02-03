@@ -138,14 +138,14 @@ const getMessages = async (
     let updateFields: any = {};
 
     if (loggedInUser === convirsationRoom.user1._id.toString()) {
-      console.log("i am user 1")
+ 
       unseenMessageIds = convirsationRoom.user1UnseenMessages;
       updateFields = { 
         user1UnseenMessages: [], 
         user1UnseenCount: 0 
       };
     } else if (loggedInUser === convirsationRoom.user2._id.toString()) {
-      console.log("i am user 2")
+    
       unseenMessageIds = convirsationRoom.user2UnseenMessages;
       updateFields = { 
         user2UnseenMessages: [], 
