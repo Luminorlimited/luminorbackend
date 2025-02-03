@@ -150,6 +150,7 @@ io.on("connection", (socket) => {
         });
     
       }
+      socket.emit("sendOfferSuccess", { message: "Offer sent successfully!" });
     } catch (error:any) {
       socket.emit("sendOfferError", { 
         message: error.message || "Failed to create offer", 
