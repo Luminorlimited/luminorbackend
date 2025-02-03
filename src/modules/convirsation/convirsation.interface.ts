@@ -7,5 +7,7 @@ export type Iconvirsation = {
   lastMessageTimestamp: Date;
   lastMessage: String;
   user1UnseenCount: Number;
+  user1UnseenMessages: mongoose.Types.ObjectId[];
+  user2UnseenMessages: mongoose.Types.ObjectId[];
   user2UnseenCount: Number;
 };

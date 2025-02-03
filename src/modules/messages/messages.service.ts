@@ -72,10 +72,12 @@ const createMessage = async (payload: IMessage) => {
   if (sender._id.toString() === checkRoom.user1.toString()) {
     if (!recipientInChat || recipientInChat !== sender.email) {
       updateFields.$inc = { user2UnseenCount: 1 };
+      updateFields.$push = { user2UnseenMessages: message._id };
     }
   } else {
     if (!recipientInChat || recipientInChat !== sender.email) {
       updateFields.$inc = { user1UnseenCount: 1 };
+      updateFields.$push = { user1UnseenMessages: message._id };
     }
   }
 
@@ -117,36 +119,55 @@ const getMessages = async (
       path: "recipient",
       select: "name email profileUrl",
     });
-  console.log(messages[0].room, "check messages");
-  const convirsationRoom = await Convirsation.findById(messages[0].room)
-    .populate({
-      path: "user1",
-      select: "name email profileUrl",
-    })
-    .populate({
-      path: "user2",
-      select: "name email profileUrl",
-    });
-  if (!convirsationRoom) {
-    throw new ApiError(StatusCodes.NOT_FOUND, "room not found");
-  }
 
-  await Message.updateMany({
-    $or: [
-      { sender: loggedInUser, recipient: loggedInUser },
-      { sender: loggedInUser, recipient: loggedInUser },
-    ],
-    $set: { isUnseen: true },
-  });
-  const userDetails = [convirsationRoom.user1, convirsationRoom.user2].map(
-    (user: any) => ({
-      name: `${user.name.firstName} ${user.name.lastName}`,
-      email: user.email,
-      profileUrl: user.profileUrl || null,
-    })
-  );
+  if (messages.length) {
+    const convirsationRoom = await Convirsation.findById(messages[0].room)
+      .populate({
+        path: "user1",
+        select: "name email profileUrl",
+      })
+      .populate({
+        path: "user2",
+        select: "name email profileUrl",
+      });
+    if (!convirsationRoom) {
+      throw new ApiError(StatusCodes.NOT_FOUND, "room not found");
+    }
 
-  return { userDetails, messages };
+    let unseenMessageIds: any = [];
+    let updateFields: any = {};
+
+    if (loggedInUser === convirsationRoom.user1._id.toString()) {
+      console.log("i am user 1")
+      unseenMessageIds = convirsationRoom.user1UnseenMessages;
+      updateFields = { 
+        user1UnseenMessages: [], 
+        user1UnseenCount: 0 
+      };
+    } else if (loggedInUser === convirsationRoom.user2._id.toString()) {
+      console.log("i am user 2")
+      unseenMessageIds = convirsationRoom.user2UnseenMessages;
+      updateFields = { 
+        user2UnseenMessages: [], 
+        user2UnseenCount: 0 
+      };
+    }
+
+    await Message.updateMany(
+      { _id: { $in: unseenMessageIds } },
+      { $set: { isUnseen: false } }
+    );
+    await Convirsation.findOneAndUpdate({_id:convirsationRoom.id},{$set:updateFields})
+    const userDetails = [convirsationRoom.user1, convirsationRoom.user2].map(
+      (user: any) => ({
+        name: `${user.name.firstName} ${user.name.lastName}`,
+        email: user.email,
+        profileUrl: user.profileUrl || null,
+      })
+    );
+
+    return { userDetails, messages };
+  } else return [];
 };
 const getConversationLists = async (email: string) => {
   console.log(email, "check email from service file");
