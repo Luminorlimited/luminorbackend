@@ -12,18 +12,20 @@ import {
 
 import { Notification } from "../notification/notification.model";
 import { StripeServices } from "../stipe/stripe.service";
+import { io } from "../../server";
 
 const createOffer = async (offer: IOffer) => {
   const user = await User.findOne({ email: offer.professionalEmail });
 
 
-
+    console.log(offer,"check offer from service file")
   if (user?.stripe?.isOnboardingSucess === false) {
     await StripeServices.generateNewAccountLink(user);
     throw new ApiError(
       StatusCodes.UNAUTHORIZED,
       "we send you a onboaring url.please check your email"
     );
+    
   }
   offer.serviceFee = offer.totalPrice * 0.2;
   offer.totalReceive = offer.totalPrice;
