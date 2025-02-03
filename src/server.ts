@@ -141,6 +141,7 @@ io.on("connection", (socket) => {
         professionalEmail: fromEmail,
       };
       const newOffer = await OfferService.createOffer(totalOffer);
+      console.log(newOffer,"check new offer")
 
       if (toSocketId) {
         socket.to(toSocketId).emit("sendOffer", {
@@ -149,8 +150,12 @@ io.on("connection", (socket) => {
         });
     
       }
-    } catch (error) {
-      socket.emit("sendoffer error ", "Failed to create effor");
+    } catch (error:any) {
+      socket.emit("sendOfferError", { 
+        message: error.message || "Failed to create offer", 
+        statusCode: error.statusCode || 500 
+      });
+      // console.log(error,"check error")
     }
   });
   socket.on("createZoomMeeting", async (data: any) => {
