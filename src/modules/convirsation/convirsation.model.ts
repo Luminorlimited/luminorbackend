@@ -14,18 +14,22 @@ const convirsationModel = new Schema<Iconvirsation>(
       required: true,
       ref: "User",
     },
-    lastMessageTimestamp:{
+    lastMessageTimestamp: {
       type: Date,
       default: null,
     },
-    lastMessage:{
-      type:String,
-     
-    }
-   
-  
+    lastMessage: {
+      type: String,
+    },
+    user1UnseenCount: {
+      type: Number,
+      default: 0,
+    },
+    user2UnseenCount: {
+      type: Number,
+      default: 0,
+    },
   },
-  
 
   {
     timestamps: true,

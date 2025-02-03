@@ -8,9 +8,8 @@ export type IMessage = {
   message?: string;
   media?: string;
   meetingLink?: string;
-  room?:mongoose.Types.ObjectId;
-  isUnseen:boolean
-  createdAt?: Date; 
+  room?: mongoose.Types.ObjectId;
+  isUnseen: boolean;
+  createdAt?: Date;
   updatedAt?: Date;
-
 };
