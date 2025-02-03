@@ -117,6 +117,7 @@ io.on("connection", (socket) => {
   });
   socket.on("userInChat", (data: any) => {
     const { userEmail, chattingWith } = JSON.parse(data);
+     
     // console.log(userEmail, "from user inchat user email");
     // console.log(chattingWith, "from user in chat chatting with");
     if (chattingWith) {
@@ -150,7 +151,7 @@ io.on("connection", (socket) => {
         });
     
       }
-      socket.emit("sendOfferSuccess", { message: "Offer sent successfully!" });
+      socket.emit("sendOfferSuccess", { message: "Offer sent successfully!",statusCode: 200 });
     } catch (error:any) {
       socket.emit("sendOfferError", { 
         message: error.message || "Failed to create offer", 
