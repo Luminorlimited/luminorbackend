@@ -30,7 +30,9 @@ const createMessage = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, 
 }));
 const getMessages = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { user1, user2 } = req.query;
-    const messages = yield messages_service_1.MessageService.getMessages(user1, user2);
+    const user = req.user;
+    // console.log(user,"check user")
+    const messages = yield messages_service_1.MessageService.getMessages(user1, user2, user.id);
     (0, sendResponse_1.default)(res, {
         success: true,
         statusCode: http_status_codes_1.StatusCodes.OK,
@@ -42,8 +44,7 @@ const getConversationLists = (0, catchAsync_1.default)((req, res) => __awaiter(v
     if (!req.user) {
         throw new handleApiError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "header not found");
     }
-    // console.log(req.user)
-    const list = yield messages_service_1.MessageService.getConversationLists(req.user);
+    const list = yield messages_service_1.MessageService.getConversationLists(req.user.email);
     (0, sendResponse_1.default)(res, {
         success: true,
         statusCode: http_status_codes_1.StatusCodes.OK,
@@ -51,8 +52,23 @@ const getConversationLists = (0, catchAsync_1.default)((req, res) => __awaiter(v
         data: list,
     });
 }));
+const uploadMessagefile = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const file = req.file;
+    //  console.log(req.file,"check req.file")
+    if (!file) {
+        throw new handleApiError_1.default(http_status_codes_1.StatusCodes.UNAUTHORIZED, "choose a file");
+    }
+    const fileUrl = yield messages_service_1.MessageService.uploadMessagefile(file);
+    (0, sendResponse_1.default)(res, {
+        success: true,
+        statusCode: http_status_codes_1.StatusCodes.OK,
+        message: "file upload    successfully",
+        data: fileUrl,
+    });
+}));
 exports.MessageController = {
     createMessage,
     getMessages,
     getConversationLists,
+    uploadMessagefile,
 };

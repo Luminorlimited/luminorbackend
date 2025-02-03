@@ -23,42 +23,29 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Message = void 0;
+exports.Review = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
-const messageSchema = new mongoose_1.Schema({
-    sender: {
+const reviewSchema = new mongoose_1.Schema({
+    clientId: {
         type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: "Client",
         required: true,
-        ref: "User",
     },
-    recipient: {
+    retireProfessionalId: {
         type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: "RetireProfessional",
         required: true,
-        ref: "User",
     },
-    room: {
-        type: mongoose_1.default.Schema.Types.ObjectId,
-        required: true,
-        ref: "Convirsation",
+    rating: {
+        type: Number,
+        enum: [1, 2, 3, 4, 5],
     },
-    message: {
+    feedback: {
         type: String,
         default: null,
-    },
-    media: {
-        type: String,
-        default: null,
-    },
-    meetingLink: {
-        type: String,
-        default: null,
-    },
-    isUnseen: {
-        type: Boolean,
-        default: true,
     },
 }, {
     timestamps: true,
     versionKey: false,
 });
-exports.Message = (0, mongoose_1.model)("Message", messageSchema);
+exports.Review = (0, mongoose_1.model)("Review", reviewSchema);

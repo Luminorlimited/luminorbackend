@@ -23,42 +23,38 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Message = void 0;
+exports.Convirsation = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
-const messageSchema = new mongoose_1.Schema({
-    sender: {
-        type: mongoose_1.default.Schema.Types.ObjectId,
+const convirsationModel = new mongoose_1.Schema({
+    user1: {
+        type: mongoose_1.default.Schema.ObjectId,
         required: true,
         ref: "User",
     },
-    recipient: {
-        type: mongoose_1.default.Schema.Types.ObjectId,
+    user2: {
+        type: mongoose_1.default.Schema.ObjectId,
         required: true,
         ref: "User",
     },
-    room: {
-        type: mongoose_1.default.Schema.Types.ObjectId,
-        required: true,
-        ref: "Convirsation",
-    },
-    message: {
-        type: String,
+    lastMessageTimestamp: {
+        type: Date,
         default: null,
     },
-    media: {
+    lastMessage: {
         type: String,
-        default: null,
     },
-    meetingLink: {
-        type: String,
-        default: null,
+    user1UnseenCount: {
+        type: Number,
+        default: 0,
     },
-    isUnseen: {
-        type: Boolean,
-        default: true,
+    user2UnseenCount: {
+        type: Number,
+        default: 0,
     },
+    user1UnseenMessages: [{ type: mongoose_1.default.Schema.ObjectId, ref: "Message" }],
+    user2UnseenMessages: [{ type: mongoose_1.default.Schema.ObjectId, ref: "Message" }]
 }, {
     timestamps: true,
     versionKey: false,
 });
-exports.Message = (0, mongoose_1.model)("Message", messageSchema);
+exports.Convirsation = (0, mongoose_1.model)("Convirsation", convirsationModel);

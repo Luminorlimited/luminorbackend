@@ -3,14 +3,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.RetireProfessionalValidation = void 0;
 const zod_1 = require("zod");
 const user_1 = require("../../enums/user");
-// Validation schema for reference objects
-// Validation schema for CV or cover letter objects
 const fileSchema = zod_1.z.object({
     fileName: zod_1.z.string().nullable(),
     filePath: zod_1.z.string().nullable(),
     fileType: zod_1.z.string().nullable(),
 });
-// Main sign-up validation schema
 const signUpZodSchema = zod_1.z.object({
     body: zod_1.z.object({
         name: zod_1.z.object({

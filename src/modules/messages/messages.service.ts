@@ -3,20 +3,19 @@ import {
   ENUM_NOTIFICATION_STATUS,
   ENUM_NOTIFICATION_TYPE,
 } from "../../enums/notificationStatus";
-import { ENUM_USER_ROLE } from "../../enums/user";
+
 import ApiError from "../../errors/handleApiError";
 import { io, onlineUsers, userInChat, users } from "../../server";
 import { uploadFileToSpace } from "../../utilitis/uploadTos3";
-import { IUser } from "../auth/auth.interface";
 
 import { User } from "../auth/auth.model";
-import { Client } from "../client/client.model";
+
 import { Convirsation } from "../convirsation/convirsation.model";
 import { Notification } from "../notification/notification.model";
-import { RetireProfessional } from "../professional/professional.model";
+
 import { IMessage } from "./messages.interface";
 import { Message } from "./messages.model";
-import mongoose from "mongoose";
+
 
 const createMessage = async (payload: IMessage) => {
   const [sender, recipient] = await Promise.all([
@@ -234,26 +233,7 @@ const countMessageWithRecipient = async (sender: string, recepient: string) => {
 
   return { count: totalUnseen.length, totalUnseenId: filterIds };
 };
-const getUnreadMessageCounts = async (
-  recipientEmails: string[],
-  senderEmail: string
-) => {
-  const unreadMessages = await Message.aggregate([
-    {
-      $match: {
-        recipient: { $in: recipientEmails },
-        sender: senderEmail,
-        isRead: false,
-      },
-    },
-    { $group: { _id: "$recipient", count: { $sum: 1 } } },
-  ]);
 
-  return unreadMessages.reduce((acc, { _id, count }) => {
-    acc[_id] = count;
-    return acc;
-  }, {});
-};
 
 export const MessageService = {
   createMessage,

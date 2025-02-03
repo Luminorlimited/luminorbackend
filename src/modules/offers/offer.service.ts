@@ -73,12 +73,14 @@ const getOffersByProfessional = async (email: string) => {
       };
     })
   );
+  const count=await countOffer(email)
+
 
   return {
     success: true,
     statusCode: 200,
     message: "Retrieve Professional Offers successfully",
-    data: offersWithUserInfo,
+    data: {offersWithUserInfo,count},
   };
 };
 const getSingleOffer = async (id: string) => {
@@ -100,15 +102,14 @@ const deleteSingleOffer = async (id: string) => {
 };
 
 const countOffer = async (email: string) => {
-  const totalUnseen = await Notification.find({
-    recipient: email,
-    status: ENUM_NOTIFICATION_STATUS.UNSEEN,
-    type: ENUM_NOTIFICATION_TYPE.OFFER,
+  const totalUnseen = await Offer.find({
+    clientEmail: email,
+    isSeen:false
   }).select("_id");
-  const filterIds = totalUnseen.map((offer) => offer._id.toString());
-  // console.log(filterIds,"check filter id")
+ 
 
-  return { count: totalUnseen.length, totalUnseenId: filterIds };
+
+  return totalUnseen.length;
 };
 export const OfferService = {
   createOffer,

@@ -12,10 +12,27 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.NotificationService = void 0;
 const notificationStatus_1 = require("../../enums/notificationStatus");
 const notification_model_1 = require("./notification.model");
-const createNotification = (payload) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield notification_model_1.Notification.create(payload);
-    return result;
-});
+// const createNotification = async (payload: INotification, event: string) => {
+//   const result = await Notification.create(payload);
+//   let count;
+//   if (payload.type === ENUM_NOTIFICATION_TYPE.PRIVATEMESSAGE) {
+//     count = await MessageService.countMessages(payload.recipient);
+//   }
+//   else if(payload.type===ENUM_NOTIFICATION_TYPE.OFFER){
+//      count=await OfferService.countOffer(payload.recipient)
+//   }
+//   // if (result) {
+//   //   io.emit(event, {
+//   //     toEmail: payload.recipient,
+//   //     message: payload.message,
+//   //     fromEmail: payload.sender,
+//   //     type: payload.type,
+//   //     status: payload.status,
+//   //     count: count,
+//   //   });
+//   // }
+//   return result;
+// };
 const getUserNotification = (recipient, status, type) => __awaiter(void 0, void 0, void 0, function* () {
     let filters = {};
     if (status && recipient && type) {
@@ -43,8 +60,28 @@ const updateNotification = (id) => __awaiter(void 0, void 0, void 0, function* (
     });
     return result;
 });
+const updateMessageNotification = (ids) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield notification_model_1.Notification.updateMany({
+        _id: { $in: ids },
+    }, { status: notificationStatus_1.ENUM_NOTIFICATION_STATUS.SEEN }, {
+        new: true,
+    });
+    return result;
+});
+const updateSingleUserMessageNotification = (sender, recipient) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield notification_model_1.Notification.updateMany({
+        recipient: recipient,
+        sender: sender,
+        type: notificationStatus_1.ENUM_NOTIFICATION_TYPE.PRIVATEMESSAGE
+    }, { status: notificationStatus_1.ENUM_NOTIFICATION_STATUS.SEEN }, {
+        new: true,
+    });
+    return result;
+});
 exports.NotificationService = {
-    createNotification,
+    // createNotification,
     getUserNotification,
     updateNotification,
+    updateMessageNotification,
+    updateSingleUserMessageNotification
 };

@@ -191,7 +191,6 @@ const refundPaymentToCustomer = async (payload: {
   }
 };
 
-// const createPaymentIntentService = async (payload: any) => {
 //   // console.log(payload, "check payload");
 
 //   if (!payload.amount) {
@@ -247,9 +246,8 @@ const refundPaymentToCustomer = async (payload: {
 //   return orderResult;
 // };
 const createPaymentIntentService = async (payload: any) => {
-  //console.log(payload, "check payload");
   const { offer } = await OfferService.getSingleOffer(payload.offerId);
-//  console.log(offer, "check offer");
+
   if (!offer) {
     throw new ApiError(StatusCodes.NOT_FOUND, "Offer not found");
   }
@@ -258,7 +256,6 @@ const createPaymentIntentService = async (payload: any) => {
     customer: payload.customerId,
   });
 
- 
   const paymentMethodDetails = await stripe.paymentMethods.retrieve(
     payload.paymentMethodId
   );
@@ -266,7 +263,6 @@ const createPaymentIntentService = async (payload: any) => {
     throw new Error("PaymentMethod does not belong to this customer.");
   }
 
-  // Create a PaymentIntent with Stripe
   const paymentIntent = await stripe.paymentIntents.create({
     amount: offer.totalPrice * 100,
     currency: "usd",
@@ -337,9 +333,7 @@ const createPaymentIntentService = async (payload: any) => {
   return orderResult[0];
 };
 
-const handleAccountUpdated = async (event: any) => {
-
-};
+const handleAccountUpdated = async (event: any) => {};
 
 const deliverProject = async (orderId: string) => {
   // console.log(orderId, "check orderId")
@@ -379,67 +373,14 @@ const deliverProject = async (orderId: string) => {
   return { transfer, updateTransaction };
 };
 
-// const generateAccountLink = async (id: string) => {
-//   // Find the user by ID
-//   const user = await User.findById(id);
-
-//   if (!user) {
-//     throw new ApiError(StatusCodes.NOT_FOUND, "User not found");
-//   }
-
-//   if (!user.stripe?.customerId) {
-//     throw new ApiError(
-//       StatusCodes.BAD_REQUEST,
-//       "User does not have a Stripe customer ID"
-//     );
-//   }
-
-//   try {
-//     // Create the account link
-//     const accountLink = await stripe.accountLinks.create({
-//       account: user.stripe.customerId,
-//       refresh_url: "https://your-platform.com/reauth",
-//       return_url: "https://your-platform.com/return",
-//       type: "account_onboarding",
-//     });
-
-//     // Update the user with the new onboarding URL
-//     const updatedUser = await User.findByIdAndUpdate(
-//       id,
-//       { "stripe.onboardingUrl": accountLink.url },
-//       { new: true } // Return the updated document
-//     );
-
-//     if (!updatedUser) {
-//       throw new ApiError(
-//         StatusCodes.INTERNAL_SERVER_ERROR,
-//         "Failed to update the user with the onboarding URL"
-//       );
-//     }
-
-//     return updatedUser;
-//   } catch (error) {
-//     console.error("Error generating account link:", error);
-//     throw new ApiError(
-//       StatusCodes.INTERNAL_SERVER_ERROR,
-//       "Failed to generate account link"
-//     );
-//   }
-// };
 const generateNewAccountLink = async (user: IUser) => {
-
-  console.log(user,"check user from generate new account link")
-
-
-
- 
   const accountLink = await stripe.accountLinks.create({
     account: user.stripe?.customerId as string,
     refresh_url: "https://your-platform.com/reauth",
-    return_url: "https://your-platform.com/return",
+    return_url: "https://luminoor.vercel.app",
     type: "account_onboarding",
   });
-  // console.log(accountLink.url,"check account link")
+
   const html = `
   <div style="max-width: 600px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif; color: #333; border: 1px solid #ddd; border-radius: 10px;">
     <h2 style="color: #007bff; text-align: center;">Complete Your Onboarding</h2>
@@ -470,8 +411,7 @@ const generateNewAccountLink = async (user: IUser) => {
     </p>
   </div>
   `;
-    await emailSender( "Your Onboarding Url", user.email,html);
-  
+  await emailSender("Your Onboarding Url", user.email, html);
 };
 export const StripeServices = {
   // saveCardWithCustomerInfoIntoStripe,
@@ -484,6 +424,5 @@ export const StripeServices = {
   createPaymentIntentService,
   handleAccountUpdated,
   deliverProject,
-
-  generateNewAccountLink
+  generateNewAccountLink,
 };

@@ -8,113 +8,207 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MessageService = void 0;
-const user_1 = require("../../enums/user");
+const http_status_codes_1 = require("http-status-codes");
+const notificationStatus_1 = require("../../enums/notificationStatus");
+const handleApiError_1 = __importDefault(require("../../errors/handleApiError"));
 const server_1 = require("../../server");
+const uploadTos3_1 = require("../../utilitis/uploadTos3");
 const auth_model_1 = require("../auth/auth.model");
-const client_model_1 = require("../client/client.model");
-const professional_model_1 = require("../professional/professional.model");
+const convirsation_model_1 = require("../convirsation/convirsation.model");
+const notification_model_1 = require("../notification/notification.model");
 const messages_model_1 = require("./messages.model");
 const createMessage = (payload) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield messages_model_1.Message.create(payload);
-    return result;
+    const [sender, recipient] = yield Promise.all([
+        auth_model_1.User.findOne({ email: payload.sender }),
+        auth_model_1.User.findOne({ email: payload.recipient }),
+    ]);
+    if (!sender || !recipient) {
+        throw new Error("Sender or recipient not found.");
+    }
+    let checkRoom = yield convirsation_model_1.Convirsation.findOne({
+        $and: [
+            { $or: [{ user1: sender._id }, { user1: recipient._id }] },
+            { $or: [{ user2: sender._id }, { user2: recipient._id }] },
+        ],
+    });
+    if (!checkRoom) {
+        checkRoom = yield convirsation_model_1.Convirsation.create({
+            user1: sender._id,
+            user2: recipient._id,
+            lastMessage: "",
+        });
+    }
+    const data = {
+        sender: sender._id,
+        recipient: recipient._id,
+        message: payload.message || null,
+        meetingLink: payload.meetingLink || null,
+        media: payload.media || null,
+        room: checkRoom._id,
+    };
+    const message = yield messages_model_1.Message.create(data);
+    let lastMessageContent = payload.message
+        ? payload.message
+        : payload.media
+            ? "📷 Image"
+            : payload.meetingLink
+                ? "🔗 Meeting Link"
+                : "";
+    let updateFields = {
+        lastMessageTimestamp: message.createdAt,
+        lastMessage: lastMessageContent,
+    };
+    const recipientInChat = server_1.userInChat.get(recipient.email);
+    if (sender._id.toString() === checkRoom.user1.toString()) {
+        if (!recipientInChat || recipientInChat !== sender.email) {
+            updateFields.$inc = { user2UnseenCount: 1 };
+            updateFields.$push = { user2UnseenMessages: message._id };
+        }
+    }
+    else {
+        if (!recipientInChat || recipientInChat !== sender.email) {
+            updateFields.$inc = { user1UnseenCount: 1 };
+            updateFields.$push = { user1UnseenMessages: message._id };
+        }
+    }
+    yield convirsation_model_1.Convirsation.findByIdAndUpdate(checkRoom._id, updateFields, {
+        new: true,
+    });
+    return message;
 });
-const getMessages = (senderId, recipientId) => __awaiter(void 0, void 0, void 0, function* () {
-    // console.log(senderId, recipientId);
+const getMessages = (senderId, recipientId, loggedInUser) => __awaiter(void 0, void 0, void 0, function* () {
+    const [sender, recipient] = yield Promise.all([
+        auth_model_1.User.findOne({ email: senderId }),
+        auth_model_1.User.findOne({ email: recipientId }),
+    ]);
+    // console.log(sender,"check sender")
+    // console.log(recipient,"check receiptine")
+    if (!sender || !recipient) {
+        throw new Error("Sender or recipient not found.");
+    }
     const messages = yield messages_model_1.Message.find({
         $or: [
-            { sender: senderId, recipient: recipientId },
-            { sender: recipientId, recipient: senderId },
-            { sender: { $regex: `^${senderId}$`, $options: "i" } },
-            { sender: { $regex: `^${recipientId}$`, $options: "i" } },
-            { recipient: { $regex: `^${senderId}$`, $options: "i" } },
-            { recipient: { $regex: `^${recipientId}$`, $options: "i" } },
+            { sender: sender._id, recipient: recipient._id },
+            { sender: recipient._id, recipient: sender._id },
         ],
-    }).sort({ createdAt: 1 });
-    // console.log(messages, "check messages");
-    const emails = new Set();
-    messages.forEach((msg) => {
-        emails.add(msg.sender);
-        emails.add(msg.recipient);
+    })
+        .sort({ createdAt: 1 })
+        .populate({
+        path: "sender",
+        select: "name email profileUrl",
+    })
+        .populate({
+        path: "recipient",
+        select: "name email profileUrl",
     });
-    const users = yield auth_model_1.User.find({ email: { $in: Array.from(emails) } }).select("email name role");
-    const userDetails = yield Promise.all(users.map((user) => __awaiter(void 0, void 0, void 0, function* () {
-        let profileUrl = null;
-        if (user.role === user_1.ENUM_USER_ROLE.CLIENT) {
-            const client = yield client_model_1.Client.findOne({ client: user._id }).select("profileUrl");
-            profileUrl = (client === null || client === void 0 ? void 0 : client.profileUrl) || null;
-        }
-        else if (user.role === user_1.ENUM_USER_ROLE.RETIREPROFESSIONAL) {
-            const retireProfessional = yield professional_model_1.RetireProfessional.findOne({
-                retireProfessional: user._id,
-            }).select("profileUrl");
-            profileUrl = (retireProfessional === null || retireProfessional === void 0 ? void 0 : retireProfessional.profileUrl) || null;
-        }
-        return {
-            email: user.email,
-            name: `${user.name.firstName} ${user.name.lastName}`,
-            profileUrl,
-            userId: user._id,
-        };
-    })));
-    return { userDetails, messages };
-});
-const getConversationLists = (user) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        // console.log(user.email, "check email");
-        const messages = yield messages_model_1.Message.find({
-            $or: [
-                { sender: { $regex: `^${user.email}$`, $options: "i" } },
-                { recipient: { $regex: `^${user.email}$`, $options: "i" } },
-            ],
-        }).sort({ createdAt: -1 });
-        // console.log(messages, "check messages");
-        const emails = new Set();
-        messages.forEach((msg) => {
-            emails.add(msg.sender);
-            emails.add(msg.recipient);
+    if (messages.length) {
+        const convirsationRoom = yield convirsation_model_1.Convirsation.findById(messages[0].room)
+            .populate({
+            path: "user1",
+            select: "name email profileUrl",
+        })
+            .populate({
+            path: "user2",
+            select: "name email profileUrl",
         });
-        emails.delete(user.email);
-        const emailArray = Array.from(emails);
-        // console.log(emailArray, "check emails");
-        const users = yield auth_model_1.User.find({
-            email: { $in: emailArray },
-        }).select("email name role");
-        const userMap = new Map(users.map((user) => [user.email, user]));
-        const sortedUsers = emailArray
-            .map((email) => userMap.get(email))
-            .filter(Boolean);
-        const userDetails = yield Promise.all(sortedUsers.map((user) => __awaiter(void 0, void 0, void 0, function* () {
-            let profileUrl = null;
-            if (user.role === user_1.ENUM_USER_ROLE.CLIENT) {
-                const client = yield client_model_1.Client.findOne({ client: user._id }).select("profileUrl");
-                profileUrl = (client === null || client === void 0 ? void 0 : client.profileUrl) || null;
-            }
-            else if (user.role === user_1.ENUM_USER_ROLE.RETIREPROFESSIONAL) {
-                const retireProfessional = yield professional_model_1.RetireProfessional.findOne({
-                    retireProfessional: user._id,
-                }).select("profileUrl");
-                profileUrl = (retireProfessional === null || retireProfessional === void 0 ? void 0 : retireProfessional.profileUrl) || null;
-            }
-            const isOnline = server_1.onlineUsers === null || server_1.onlineUsers === void 0 ? void 0 : server_1.onlineUsers.has(user.email);
-            return {
-                email: user.email,
-                name: `${user.name.firstName} ${user.name.lastName}`,
-                profileUrl,
-                isOnline: isOnline || "false",
+        if (!convirsationRoom) {
+            throw new handleApiError_1.default(http_status_codes_1.StatusCodes.NOT_FOUND, "room not found");
+        }
+        let unseenMessageIds = [];
+        let updateFields = {};
+        if (loggedInUser === convirsationRoom.user1._id.toString()) {
+            unseenMessageIds = convirsationRoom.user1UnseenMessages;
+            updateFields = {
+                user1UnseenMessages: [],
+                user1UnseenCount: 0
             };
-        })));
-        return userDetails;
+        }
+        else if (loggedInUser === convirsationRoom.user2._id.toString()) {
+            unseenMessageIds = convirsationRoom.user2UnseenMessages;
+            updateFields = {
+                user2UnseenMessages: [],
+                user2UnseenCount: 0
+            };
+        }
+        yield messages_model_1.Message.updateMany({ _id: { $in: unseenMessageIds } }, { $set: { isUnseen: false } });
+        yield convirsation_model_1.Convirsation.findOneAndUpdate({ _id: convirsationRoom.id }, { $set: updateFields });
+        const userDetails = [convirsationRoom.user1, convirsationRoom.user2].map((user) => ({
+            name: `${user.name.firstName} ${user.name.lastName}`,
+            email: user.email,
+            profileUrl: user.profileUrl || null,
+        }));
+        return { userDetails, messages };
     }
-    catch (error) {
-        console.error("Error fetching conversation list:", error);
-        throw error;
-    }
+    else
+        return [];
 });
-// Import the `isOnline` function from your server file
+const getConversationLists = (email) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log(email, "check email from service file");
+    const user = yield auth_model_1.User.findOne({ email });
+    if (!user) {
+        throw new handleApiError_1.default(http_status_codes_1.StatusCodes.NOT_FOUND, "User not found");
+    }
+    const conversations = yield convirsation_model_1.Convirsation.find({
+        $or: [{ user1: user._id }, { user2: user._id }],
+    })
+        .populate("user1", "email name profileUrl _id")
+        .populate("user2", "email name profileUrl _id")
+        .sort({ lastMessageTimestamp: -1 });
+    const conversationList = conversations.map((conversation) => {
+        const isUser1 = conversation.user1._id.toString() === user._id.toString();
+        const otherUser = isUser1 ? conversation.user2 : conversation.user1;
+        const unseenMessageCount = isUser1
+            ? conversation.user1UnseenCount
+            : conversation.user2UnseenCount;
+        return {
+            id: otherUser._id,
+            email: otherUser.email,
+            name: `${otherUser.name.firstName.trim()} ${otherUser.name.lastName.trim()}`,
+            profileUrl: otherUser.profileUrl || null,
+            isOnline: server_1.onlineUsers.get(otherUser.email) || false,
+            room: conversation._id,
+            lastMessage: conversation.lastMessage,
+            lastMessageTimestamp: conversation.lastMessageTimestamp,
+            unseenMessageCount,
+        };
+    });
+    return conversationList;
+});
+const uploadMessagefile = (file) => __awaiter(void 0, void 0, void 0, function* () {
+    const fileUrl = yield (0, uploadTos3_1.uploadFileToSpace)(file, "message-file");
+    return fileUrl;
+});
+const countMessages = (email) => __awaiter(void 0, void 0, void 0, function* () {
+    const totalUnseen = yield notification_model_1.Notification.find({
+        recipient: email,
+        status: notificationStatus_1.ENUM_NOTIFICATION_STATUS.UNSEEN,
+        type: notificationStatus_1.ENUM_NOTIFICATION_TYPE.PRIVATEMESSAGE,
+    }).select("_id");
+    const filterIds = totalUnseen.map((message) => message._id.toString());
+    // console.log(filterIds,"check filter id")
+    return { count: totalUnseen.length, totalUnseenId: filterIds };
+});
+const countMessageWithRecipient = (sender, recepient) => __awaiter(void 0, void 0, void 0, function* () {
+    const totalUnseen = yield notification_model_1.Notification.find({
+        sender: sender,
+        recipient: recepient,
+        status: notificationStatus_1.ENUM_NOTIFICATION_STATUS.UNSEEN,
+        type: notificationStatus_1.ENUM_NOTIFICATION_TYPE.PRIVATEMESSAGE,
+    });
+    const filterIds = totalUnseen.map((message) => message._id.toString());
+    // console.log(filterIds,"check filter id")
+    return { count: totalUnseen.length, totalUnseenId: filterIds };
+});
 exports.MessageService = {
     createMessage,
     getMessages,
     getConversationLists,
+    uploadMessagefile,
+    countMessages,
+    countMessageWithRecipient,
 };
