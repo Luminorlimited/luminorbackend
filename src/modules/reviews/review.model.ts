@@ -3,14 +3,14 @@ import { IReview } from "./reviews.interface";
 
 const reviewSchema = new Schema<IReview>(
   {
-    clientId: {
+    reviewerId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Client",
+      ref: "User",
       required: true,
     },
-    retireProfessionalId: {
+    receiverId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "RetireProfessional",
+      ref: "User",
       required: true,
     },
     rating: {

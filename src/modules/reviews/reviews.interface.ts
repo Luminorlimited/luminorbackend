@@ -8,8 +8,11 @@ enum Rating {
   }
 
 export type IReview = {
-    clientId: mongoose.Types.ObjectId;
-    retireProfessionalId:mongoose.Types.ObjectId
+    // clientId: mongoose.Types.ObjectId;
+    // retireProfessionalId:mongoose.Types.ObjectId
+
+    reviewerId:mongoose.Types.ObjectId,
+    receiverId:mongoose.Types.ObjectId,
   
     rating: Rating; 
     feedback: string; 

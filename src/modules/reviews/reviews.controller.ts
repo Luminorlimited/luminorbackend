@@ -7,15 +7,37 @@ import { ReviewsService } from "./reviews.service";
 import ApiError from "../../errors/handleApiError";
 import { Client } from "../client/client.model";
 
-const postReviews = catchAsync(async (req: Request, res: Response) => {
+const postReviewsByClient = catchAsync(async (req: Request, res: Response) => {
     const review=req.body
-    const reviewerId=req.params.id
+    const receiverId=req.params.id
     const user = req.user as any;
 
 
    
    //console.log(review,"check review")
-   const result=await ReviewsService.postReviews(user.id,reviewerId,review)
+   console.log(user,"check user")
+   const result=await ReviewsService.postReviewsByClient(user.id,receiverId,review)
+  
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+  
+      message: "your review post successfully",
+     
+      data: result,
+    });
+  });
+  const postReviewsByRetireProfessional = catchAsync(async (req: Request, res: Response) => {
+    const review=req.body
+    const receiverId=req.params.id
+    const user = req.user as any;
+
+    console.log(user,"check user")
+
+
+   
+   //console.log(review,"check review")
+   const result=await ReviewsService.postReviewsByRetireProfessional(user.id,receiverId,review)
   
     sendResponse(res, {
       success: true,
@@ -48,6 +70,7 @@ const postReviews = catchAsync(async (req: Request, res: Response) => {
   });
 
   export const ReviewController={
-    postReviews,
+    postReviewsByClient,
+    postReviewsByRetireProfessional,
     getReviews
   }
