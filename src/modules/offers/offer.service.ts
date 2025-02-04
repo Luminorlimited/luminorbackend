@@ -27,20 +27,21 @@ const createOffer = async (offer: IOffer) => {
     );
     
   }
-  offer.serviceFee = offer.totalPrice * 0.2;
-  offer.totalReceive = offer.totalPrice;
-  offer.totalPrice = offer.totalPrice + offer.serviceFee;
+  offer.serviceFee = parseFloat(offer.totalPrice.toString()) * 0.2;
+  offer.totalReceive = parseFloat(offer.totalPrice.toString());
+  offer.totalPrice = parseFloat(offer.totalPrice.toString()) + parseFloat(offer.serviceFee.toString());
+
 
   if (offer.agreementType === AgreementType.FlatFee) {
-    offer.totalDeliveryTime = offer.flatFee?.delivery || 0;
+    offer.totalDeliveryTime = offer.flatFee?.delivery ? parseFloat(offer.flatFee.delivery.toString()) : 0;
   } else if (offer.agreementType === AgreementType.HourlyFee) {
-    offer.totalDeliveryTime = offer.hourlyFee?.delivery || 0;
+    offer.totalDeliveryTime = offer.hourlyFee ? parseFloat(offer.hourlyFee.delivery.toString()) || 0 : 0;
   } else if (
     offer.agreementType === AgreementType.Milestone &&
     offer.milestones
   ) {
     offer.totalDeliveryTime = offer?.milestones.reduce(
-      (total, milestone) => total + (milestone.delivery || 0),
+      (total, milestone) => parseFloat(total.toString()) + (parseFloat(milestone.delivery.toString()) || 0),
       0
     );
   }
