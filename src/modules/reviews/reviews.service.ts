@@ -6,9 +6,9 @@ import { Review } from "./review.model";
 import ApiError from "../../errors/handleApiError";
 import { StatusCodes } from "http-status-codes";
 
-const postReviews = async (
+const postReviewsByClient = async (
+  reviewerId: string,
   receiverId: string,
-  retireProfessionalId: string,
   reviewData: any
 ) => {
   const session = await mongoose.startSession();
@@ -16,31 +16,32 @@ const postReviews = async (
 
   try {
     const retireProfessional = await RetireProfessional.findOne({
-      retireProfessional: retireProfessionalId,
+      retireProfessional: receiverId,
     }).session(session);
     if (!retireProfessional) {
       throw new Error("RetireProfessional not found");
     }
-    const client = await Client.findOne({ client: receiverId });
-    if (!client) {
-      throw new ApiError(StatusCodes.UNAUTHORIZED, "client not found");
-    }
+
+    // const client = await Client.findOne({ client: reviewerId });
+    // if (!client) {
+    //   throw new ApiError(StatusCodes.UNAUTHORIZED, "client not found");
+    // }
 
     const newReview = await Review.create(
       [
         {
           ...reviewData,
-          retireProfessionalId: retireProfessional._id,
-          clientId: client._id,
+          receiverId: receiverId,
+          reviewerId: reviewerId,
         },
       ],
       { session }
     );
 
     const reviews = await Review.find({
-      retireProfessionalId: retireProfessional._id,
+      receiverId: receiverId,
     }).session(session);
-
+ 
     const totalRatings = reviews.reduce(
       (sum: number, review: { rating: number }) => sum + review.rating,
       0
@@ -50,6 +51,60 @@ const postReviews = async (
 
     await RetireProfessional.updateOne(
       { _id: retireProfessional._id },
+      { averageRating, reviewCount: reviews.length },
+
+      { session }
+    );
+
+    await session.commitTransaction();
+    return newReview;
+  } catch (error) {
+    await session.abortTransaction();
+    throw error;
+  } finally {
+    session.endSession();
+  }
+};
+
+const postReviewsByRetireProfessional = async (
+  reviewerId: string,
+  receiverId: string,
+  reviewData: any
+) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+   
+    const client = await Client.findOne({ client: receiverId });
+    if (!client) {
+      throw new ApiError(StatusCodes.UNAUTHORIZED, "client not found");
+    }
+
+    const newReview = await Review.create(
+      [
+        {
+          ...reviewData,
+          reviewerId: reviewerId,
+          receiverId: receiverId,
+        },
+      ],
+      { session }
+    );
+
+    const reviews = await Review.find({
+      receiverId: receiverId,
+    }).session(session);
+
+    const totalRatings = reviews.reduce(
+      (sum: number, review: { rating: number }) => sum + review.rating,
+      0
+    );
+    const averageRating = totalRatings / reviews.length;
+    // console.log(averageRating,"check average rating")
+
+    await Client.updateOne(
+      { _id: client._id },
       { averageRating, reviewCount: reviews.length },
 
       { session }
@@ -78,6 +133,7 @@ const getReviews = async (retireProfessionalId: string) => {
 };
 
 export const ReviewsService = {
-  postReviews,
+  postReviewsByClient,
+  postReviewsByRetireProfessional,
   getReviews,
 };
