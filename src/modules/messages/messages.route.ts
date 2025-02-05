@@ -28,3 +28,5 @@ router.get(
   auth(),
   MessageController.getConversationLists
 );
+
+router.get("/get-single-messages/:id",auth(),MessageController.getSingleMessages)

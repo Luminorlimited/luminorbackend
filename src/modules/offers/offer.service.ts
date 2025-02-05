@@ -10,7 +10,7 @@ import {
   ENUM_NOTIFICATION_TYPE,
 } from "../../enums/notificationStatus";
 
-import { Notification } from "../notification/notification.model";
+
 import { StripeServices } from "../stipe/stripe.service";
 import { io } from "../../server";
 
