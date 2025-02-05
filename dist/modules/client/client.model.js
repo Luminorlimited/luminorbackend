@@ -44,7 +44,7 @@ const clientSchema = new mongoose_1.default.Schema({
         enum: service_1.ENUM_SERVICE_PREFERENCE,
         default: null,
     },
-    industry: { type: String, defaul: null },
+    industry: { type: String, default: null },
     budgetRange: {
         min: { type: Number, default: null },
         max: { type: Number, default: null },
