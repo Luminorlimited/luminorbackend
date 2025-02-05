@@ -92,12 +92,12 @@ io.on("connection", (socket) => {
         .populate({ path: "recipient", select: "name email _id" })
         .lean();
 
-      socket.emit("privateMessage", {
-        message: populatedMessage,
-        fromEmail: fromEmail,
-      });
+      // socket.emit("privateMessage", {
+      //   message: populatedMessage,
+      //   fromEmail: fromEmail,
+      // });
 
-      socket.emit("conversation-list", fromEmailConversationList);
+      // socket.emit("conversation-list", fromEmailConversationList);
 
       if (toSocketId) {
         socket.to(toSocketId).emit("privateMessage", {

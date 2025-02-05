@@ -37,6 +37,24 @@ const getMessages = catchAsync(async (req: Request, res: Response) => {
     data: messages,
   });
 });
+const getSingleMessages = catchAsync(async (req: Request, res: Response) => {
+  const {  id:user2 } = req.params;
+  const user1 = req.user as any;
+  // console.log(user,"check user")
+  const messages = await MessageService.getSingleMessages(
+    user1.id as string,
+    user2  as string,
+  
+  );
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+
+    message: "Message get   successfully",
+    data: messages,
+  });
+});
 const getConversationLists = catchAsync(async (req: Request, res: Response) => {
   if (!req.user) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "header not found");
@@ -77,4 +95,5 @@ export const MessageController = {
   getMessages,
   getConversationLists,
   uploadMessagefile,
+  getSingleMessages
 };

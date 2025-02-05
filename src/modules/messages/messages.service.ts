@@ -16,68 +16,125 @@ import { Notification } from "../notification/notification.model";
 import { IMessage } from "./messages.interface";
 import { Message } from "./messages.model";
 
+// const createMessage = async (payload: IMessage) => {
+//   const [sender, recipient] = await Promise.all([
+//     User.findOne({ email: payload.sender }),
+//     User.findOne({ email: payload.recipient }),
+//   ]);
 
+//   if (!sender || !recipient) {
+//     throw new Error("Sender or recipient not found.");
+//   }
+
+//   let checkRoom = await Convirsation.findOne({
+//     $and: [
+//       { $or: [{ user1: sender._id }, { user1: recipient._id }] },
+//       { $or: [{ user2: sender._id }, { user2: recipient._id }] },
+//     ],
+//   });
+
+//   if (!checkRoom) {
+//     checkRoom = await Convirsation.create({
+//       user1: sender._id,
+//       user2: recipient._id,
+//       lastMessage: "",
+//     });
+//   }
+
+//   const data = {
+//     sender: sender._id,
+//     recipient: recipient._id,
+//     message: payload.message || null,
+//     meetingLink: payload.meetingLink || null,
+//     media: payload.media || null,
+//     room: checkRoom._id,
+//   };
+
+//   const message = await Message.create(data);
+
+//   let lastMessageContent = payload.message
+//     ? payload.message
+//     : payload.media
+//     ? "📷 Image"
+//     : payload.meetingLink
+//     ? "🔗 Meeting Link"
+//     : "";
+
+//   let updateFields: any = {
+//     lastMessageTimestamp: message.createdAt,
+//     lastMessage: lastMessageContent,
+//   };
+
+//   const recipientInChat = userInChat.get(recipient.email);
+
+//   if (sender._id.toString() === checkRoom.user1.toString()) {
+//     if (!recipientInChat || recipientInChat !== sender.email) {
+//       updateFields.$inc = { user2UnseenCount: 1 };
+//       updateFields.$push = { user2UnseenMessages: message._id };
+//     }
+//   } else {
+//     if (!recipientInChat || recipientInChat !== sender.email) {
+//       updateFields.$inc = { user1UnseenCount: 1 };
+//       updateFields.$push = { user1UnseenMessages: message._id };
+//     }
+//   }
+
+//   await Convirsation.findByIdAndUpdate(checkRoom._id, updateFields, {
+//     new: true,
+//   });
+
+//   return message;
+// };
 const createMessage = async (payload: IMessage) => {
-  const [sender, recipient] = await Promise.all([
-    User.findOne({ email: payload.sender }),
-    User.findOne({ email: payload.recipient }),
-  ]);
-
-  if (!sender || !recipient) {
-    throw new Error("Sender or recipient not found.");
-  }
-
-  let checkRoom = await Convirsation.findOne({
-    $and: [
-      { $or: [{ user1: sender._id }, { user1: recipient._id }] },
-      { $or: [{ user2: sender._id }, { user2: recipient._id }] },
-    ],
+  const users = await User.find({
+    email: { $in: [payload.sender, payload.recipient] },
   });
+  console.log(users, "check");
 
-  if (!checkRoom) {
-    checkRoom = await Convirsation.create({
-      user1: sender._id,
-      user2: recipient._id,
-      lastMessage: "",
-    });
-  }
+  const sender = users.find((u: any) => u.email === payload.sender);
+  const recipient = users.find((u: any) => u.email === payload.recipient);
 
-  const data = {
-    sender: sender._id,
-    recipient: recipient._id,
+  if (!sender || !recipient) throw new Error("Sender or recipient not found.");
+
+  const checkRoom = await Convirsation.findOneAndUpdate(
+    {
+      $or: [
+        { user1: sender!._id, user2: recipient!._id },
+        { user1: recipient!._id, user2: sender!._id },
+      ],
+    },
+    {
+      $setOnInsert: {
+        user1: sender!._id,
+        user2: recipient!._id,
+        lastMessage: "",
+      },
+    },
+    { upsert: true, new: true }
+  );
+
+  const messageData = {
+    sender: sender!._id,
+    recipient: recipient!._id,
     message: payload.message || null,
-    meetingLink: payload.meetingLink || null,
     media: payload.media || null,
     room: checkRoom._id,
   };
 
-  const message = await Message.create(data);
+  const message = await Message.create(messageData);
 
-  let lastMessageContent = payload.message
-    ? payload.message
-    : payload.media
-    ? "📷 Image"
-    : payload.meetingLink
-    ? "🔗 Meeting Link"
-    : "";
-
-  let updateFields: any = {
+  // Prepare conversation update fields
+  const updateFields: any = {
     lastMessageTimestamp: message.createdAt,
-    lastMessage: lastMessageContent,
+    lastMessage: payload.message || (payload.media ? "📷 Image" : ""),
   };
 
   const recipientInChat = userInChat.get(recipient.email);
-
-  if (sender._id.toString() === checkRoom.user1.toString()) {
-    if (!recipientInChat || recipientInChat !== sender.email) {
-      updateFields.$inc = { user2UnseenCount: 1 };
-      updateFields.$push = { user2UnseenMessages: message._id };
-    }
-  } else {
-    if (!recipientInChat || recipientInChat !== sender.email) {
-      updateFields.$inc = { user1UnseenCount: 1 };
-      updateFields.$push = { user1UnseenMessages: message._id };
-    }
+  if (!recipientInChat || recipientInChat !== sender.email) {
+    updateFields.$inc =
+      sender._id.toString() === checkRoom.user1.toString()
+        ? { user2UnseenCount: 1 }
+        : { user1UnseenCount: 1 };
   }
 
   await Convirsation.findByIdAndUpdate(checkRoom._id, updateFields, {
@@ -86,6 +143,7 @@ const createMessage = async (payload: IMessage) => {
 
   return message;
 };
+
 const getMessages = async (
   senderId: string,
   recipientId: string,
@@ -108,16 +166,15 @@ const getMessages = async (
       { sender: sender._id, recipient: recipient._id },
       { sender: recipient._id, recipient: sender._id },
     ],
+  }).sort({ createdAt: 1 })
+  .populate({
+    path: "sender",
+    select: "name email profileUrl",
   })
-    .sort({ createdAt: 1 })
-    .populate({
-      path: "sender",
-      select: "name email profileUrl",
-    })
-    .populate({
-      path: "recipient",
-      select: "name email profileUrl",
-    });
+  .populate({
+    path: "recipient",
+    select: "name email profileUrl",
+  });
 
   if (messages.length) {
     const convirsationRoom = await Convirsation.findById(messages[0].room)
@@ -137,18 +194,16 @@ const getMessages = async (
     let updateFields: any = {};
 
     if (loggedInUser === convirsationRoom.user1._id.toString()) {
- 
       unseenMessageIds = convirsationRoom.user1UnseenMessages;
-      updateFields = { 
-        user1UnseenMessages: [], 
-        user1UnseenCount: 0 
+      updateFields = {
+        user1UnseenMessages: [],
+        user1UnseenCount: 0,
       };
     } else if (loggedInUser === convirsationRoom.user2._id.toString()) {
-    
       unseenMessageIds = convirsationRoom.user2UnseenMessages;
-      updateFields = { 
-        user2UnseenMessages: [], 
-        user2UnseenCount: 0 
+      updateFields = {
+        user2UnseenMessages: [],
+        user2UnseenCount: 0,
       };
     }
 
@@ -156,7 +211,10 @@ const getMessages = async (
       { _id: { $in: unseenMessageIds } },
       { $set: { isUnseen: false } }
     );
-    await Convirsation.findOneAndUpdate({_id:convirsationRoom.id},{$set:updateFields})
+    await Convirsation.findOneAndUpdate(
+      { _id: convirsationRoom.id },
+      { $set: updateFields }
+    );
     const userDetails = [convirsationRoom.user1, convirsationRoom.user2].map(
       (user: any) => ({
         name: `${user.name.firstName} ${user.name.lastName}`,
@@ -167,6 +225,16 @@ const getMessages = async (
 
     return { userDetails, messages };
   } else return [];
+};
+
+const getSingleMessages = async (sender: string, recipient: string) => {
+  const messages = await Message.find({
+    $or: [
+      { sender: sender, recipient: recipient },
+      { sender: recipient, recipient: sender },
+    ],
+  }).sort({ createdAt: -1 })
+  return messages
 };
 const getConversationLists = async (email: string) => {
   console.log(email, "check email from service file");
@@ -234,7 +302,6 @@ const countMessageWithRecipient = async (sender: string, recepient: string) => {
   return { count: totalUnseen.length, totalUnseenId: filterIds };
 };
 
-
 export const MessageService = {
   createMessage,
   getMessages,
@@ -242,4 +309,5 @@ export const MessageService = {
   uploadMessagefile,
   countMessages,
   countMessageWithRecipient,
+  getSingleMessages
 };
