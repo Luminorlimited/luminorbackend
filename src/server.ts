@@ -81,11 +81,12 @@ io.on("connection", (socket) => {
         isUnseen: isUnseen,
       });
 
-      const [fromEmailConversationList, toEmailConversationList] =
-        await Promise.all([
-          MessageService.getConversationLists(fromEmail),
-          toEmail ? MessageService.getConversationLists(toEmail) : null,
-        ]);
+      // const [fromEmailConversationList, toEmailConversationList] =
+      //   await Promise.all([
+      //     MessageService.getConversationLists(fromEmail),
+      //     toEmail ? MessageService.getConversationLists(toEmail) : null,
+      //   ]);
+        const toEmailConversationList=await MessageService.getConversationLists(toEmail)
 
       const populatedMessage = await Message.findById(savedMessage._id)
         .populate({ path: "sender", select: "name email _id" })
@@ -103,6 +104,7 @@ io.on("connection", (socket) => {
         socket.to(toSocketId).emit("privateMessage", {
           message: populatedMessage,
           fromEmail: fromEmail,
+          toEmail:toEmail
         });
 
         if (toEmailConversationList) {

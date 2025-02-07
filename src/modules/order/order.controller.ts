@@ -100,10 +100,25 @@ const getOrderById = catchAsync(async (req: Request, res: Response) => {
     data: list,
   });
 });
+
+const getAllOrders= catchAsync(async (req: Request, res: Response) => {
+  // console.log(req.user)
+
+  const list = await OrderService.getAllOrders();
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+
+    message: "get all  orders get successfull",
+    data: list,
+  });
+});
 export const OrderController = {
   createOrder,
   getOrderByProfessional,
   getSpecificOrderBYClientAndProfessional,
   getOrderById,
-  getOrderByClient
+  getOrderByClient,
+  getAllOrders
 };

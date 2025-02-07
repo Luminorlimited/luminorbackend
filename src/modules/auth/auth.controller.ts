@@ -70,12 +70,53 @@ const getSingleUserById = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getAllUsers=catchAsync(async (req: Request, res: Response) => {
 
+
+
+  // console.log(user,"check user")
+  // res.cookie("token", result.accessToken, { httpOnly: true });
+  const result = await AuthService.getAllUsers()
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "All  user  get successfully",
+    data: result,
+  });
+});
+
+const getAllRetireProfiessional=catchAsync(async (req: Request, res: Response) => {
+
+
+  const result = await AuthService.getAllRetireProfiessional()
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "All  Retire Professional   get successfully",
+    data: result,
+  });
+});
+const getAllClients=catchAsync(async (req: Request, res: Response) => {
+
+
+  const result = await AuthService.getAllClients()
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "All  Retire Clients   get successfully",
+    data: result,
+  });
+});
 
 export const AuthController = {
   loginUser,
   enterOtp,
   getProfile,
-  getSingleUserById
-
+  getSingleUserById,
+  getAllUsers,
+  getAllRetireProfiessional,
+  getAllClients
 };
