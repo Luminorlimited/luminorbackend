@@ -46,11 +46,16 @@ const userSchema = new mongoose.Schema<IUser>({
   otp: { type: String },
   otpExpiry: { type: Date },
   identifier: { type: String },
-  // status: {
-  //   online: { type: Boolean, default: false },
-  //   lastActive: { type: Date, default: null },
-  // },
+  profileUrl:{
+    type:String,
+   default:null
+  },
+  isDeleted:{
+    type:Boolean,
+    default:false
+  }
 },
+
 { timestamps: true, versionKey: false }
 );
 userSchema.statics.isUserExist = async function (
@@ -62,6 +67,10 @@ userSchema.statics.isPasswordMatched = async function (
   givenPassword: string,
   savedPassword: string
 ): Promise<boolean> {
+
+  // console.log(givenPassword,savedPassword)
+  const isTrue= await bcrypt.compare(givenPassword, savedPassword);
+  // console.log(isTrue,"check is true")
   return await bcrypt.compare(givenPassword, savedPassword);
 };
 userSchema.pre("save", async function (next) {

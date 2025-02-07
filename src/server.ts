@@ -24,6 +24,7 @@ import { User } from "./modules/auth/auth.model";
 import { MessageService } from "./modules/messages/messages.service";
 import { NotificationService } from "./modules/notification/notification.service";
 
+
 const options = {
   autoIndex: true,
 };
@@ -226,10 +227,9 @@ async function bootstrap() {
       "mongodb+srv://luminor:BYcHOYLQI2eiZ9IU@cluster0.v0ciw.mongodb.net/luminor?retryWrites=true&w=majority&appName=Cluster0" as string,
       options
     );
-    // console.log(config.database_url, "check data base url");
+  //  await initiateSuperAdmin()
     console.log("Connected to MongoDB successfully.");
-    await MessageService.countMessages("tamim@example.com");
-    // Start the server
+ 
     httpServer.listen(config.port, () => {
       console.log(`Server running at port ${config.port}`);
     });

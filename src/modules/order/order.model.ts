@@ -1,49 +1,49 @@
 import mongoose, { model } from "mongoose";
 import { IOrder } from "./order.interface";
 
-const orderSchema = new mongoose.Schema<IOrder>({
-  clientRequerment: {
-    type: String,
-    required: true,
+const orderSchema = new mongoose.Schema<IOrder>(
+  {
+    clientRequerment: {
+      type: String,
+      required: true,
+    },
+    orderFrom: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    orderReciver: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    deliveryDate: {
+      type: String,
+      required: true,
+    },
+    totalPrice: {
+      type: String,
+      required: true,
+    },
+    project: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Offer",
+      required: true,
+    },
+    paymentIntentId: {
+      type: String,
+      required: true,
+    },
+    transaction: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Transaction",
+      required: true,
+    },
   },
-  orderFrom: {
-    type: String,
-
-    required: true,
-  },
-  orderReciver: {
-    type: String,
-
-    required: true,
-  },
-  deliveryDate: {
-    type: String,
-    required: true,
-  },
-  totalPrice: {
-    type: String,
-    required: true,
-  },
-  project: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Offer",
-    required: true,
-  },
-  paymentIntentId: {
-    type: String,
-    required: true,
-  },
-  transaction: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Transaction", 
-    required: true,
-  },
-  
-},
-{
-  timestamps:true,
-  versionKey:false
-}
+  {
+    timestamps: true,
+    versionKey: false,
+  }
 );
 
 export const Order = model<IOrder>("Order", orderSchema);

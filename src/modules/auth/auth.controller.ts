@@ -111,6 +111,31 @@ const getAllClients=catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const createAdmin=catchAsync(async (req: Request, res: Response) => {
+   const data=req.body
+
+  const result = await AuthService.createAdmin(data)
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "admin created successfully",
+    data: result,
+  });
+});
+const delteUser=catchAsync(async (req: Request, res: Response) => {
+ const id=req.params.id
+ console.log()
+ const result = await AuthService.deleteUser(id)
+
+ sendResponse(res, {
+   statusCode: StatusCodes.OK,
+   success: true,
+   message: "user deleted successfully",
+   data: result,
+ });
+});
+
 export const AuthController = {
   loginUser,
   enterOtp,
@@ -118,5 +143,7 @@ export const AuthController = {
   getSingleUserById,
   getAllUsers,
   getAllRetireProfiessional,
-  getAllClients
+  getAllClients,
+  createAdmin,
+  delteUser
 };

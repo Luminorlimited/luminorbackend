@@ -22,7 +22,8 @@ export type IUser = {
      isOnboardingSucess:boolean
   }
   client?: mongoose.Schema.Types.ObjectId,
-//  isOnline?:boolean
+  profileUrl?:string
+  isDeleted?:boolean
 
 };
 
