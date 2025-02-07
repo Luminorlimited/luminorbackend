@@ -53,10 +53,19 @@ const getOrderById = async (orderId: string) => {
 
   return {result,client,retireProfessional};
 };
+
+const getAllOrders=async () => {
+  const result = await Order.find().populate("project").populate("transaction");
+
+ 
+
+  return {result};
+};
 export const OrderService = {
   createOrder,
   getOrderByProfessional,
   getSpecificOrderBYClientAndProfessional,
   getOrderById,
-  getOrderByClient
+  getOrderByClient,
+  getAllOrders
 };

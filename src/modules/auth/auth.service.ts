@@ -167,9 +167,25 @@ const getSingleUserById = async (id: string) => {
   return result;
 };
 
+ const getAllUsers=async()=>{
+  const users=await User.find({})
+  return users
+}
+const getAllRetireProfiessional=async()=>{
+    const users=await RetireProfessional.find({}).populate("retireProfessional")
+    return users
+}
+
+const getAllClients=async()=>{
+  const users=await Client.find({}).populate("client")
+  return users
+}
 export const AuthService = {
   loginUser,
   enterOtp,
   getProfile,
   getSingleUserById,
+  getAllUsers,
+  getAllRetireProfiessional,
+  getAllClients
 };
