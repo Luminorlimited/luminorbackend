@@ -16,125 +16,67 @@ import { Notification } from "../notification/notification.model";
 import { IMessage } from "./messages.interface";
 import { Message } from "./messages.model";
 
-// const createMessage = async (payload: IMessage) => {
-//   const [sender, recipient] = await Promise.all([
-//     User.findOne({ email: payload.sender }),
-//     User.findOne({ email: payload.recipient }),
-//   ]);
-
-//   if (!sender || !recipient) {
-//     throw new Error("Sender or recipient not found.");
-//   }
-
-//   let checkRoom = await Convirsation.findOne({
-//     $and: [
-//       { $or: [{ user1: sender._id }, { user1: recipient._id }] },
-//       { $or: [{ user2: sender._id }, { user2: recipient._id }] },
-//     ],
-//   });
-
-//   if (!checkRoom) {
-//     checkRoom = await Convirsation.create({
-//       user1: sender._id,
-//       user2: recipient._id,
-//       lastMessage: "",
-//     });
-//   }
-
-//   const data = {
-//     sender: sender._id,
-//     recipient: recipient._id,
-//     message: payload.message || null,
-//     meetingLink: payload.meetingLink || null,
-//     media: payload.media || null,
-//     room: checkRoom._id,
-//   };
-
-//   const message = await Message.create(data);
-
-//   let lastMessageContent = payload.message
-//     ? payload.message
-//     : payload.media
-//     ? "📷 Image"
-//     : payload.meetingLink
-//     ? "🔗 Meeting Link"
-//     : "";
-
-//   let updateFields: any = {
-//     lastMessageTimestamp: message.createdAt,
-//     lastMessage: lastMessageContent,
-//   };
-
-//   const recipientInChat = userInChat.get(recipient.email);
-
-//   if (sender._id.toString() === checkRoom.user1.toString()) {
-//     if (!recipientInChat || recipientInChat !== sender.email) {
-//       updateFields.$inc = { user2UnseenCount: 1 };
-//       updateFields.$push = { user2UnseenMessages: message._id };
-//     }
-//   } else {
-//     if (!recipientInChat || recipientInChat !== sender.email) {
-//       updateFields.$inc = { user1UnseenCount: 1 };
-//       updateFields.$push = { user1UnseenMessages: message._id };
-//     }
-//   }
-
-//   await Convirsation.findByIdAndUpdate(checkRoom._id, updateFields, {
-//     new: true,
-//   });
-
-//   return message;
-// };
 const createMessage = async (payload: IMessage) => {
-  const users = await User.find({
-    email: { $in: [payload.sender, payload.recipient] },
+  const [sender, recipient] = await Promise.all([
+    User.findOne({ email: payload.sender }),
+    User.findOne({ email: payload.recipient }),
+  ]);
+
+  if (!sender || !recipient) {
+    throw new Error("Sender or recipient not found.");
+  }
+
+  let checkRoom = await Convirsation.findOne({
+    $and: [
+      { $or: [{ user1: sender._id }, { user1: recipient._id }] },
+      { $or: [{ user2: sender._id }, { user2: recipient._id }] },
+    ],
   });
-  console.log(users, "check");
 
-  const sender = users.find((u: any) => u.email === payload.sender);
-  const recipient = users.find((u: any) => u.email === payload.recipient);
+  if (!checkRoom) {
+    checkRoom = await Convirsation.create({
+      user1: sender._id,
+      user2: recipient._id,
+      lastMessage: "",
+    });
+  }
 
-  if (!sender || !recipient) throw new Error("Sender or recipient not found.");
-
-  const checkRoom = await Convirsation.findOneAndUpdate(
-    {
-      $or: [
-        { user1: sender!._id, user2: recipient!._id },
-        { user1: recipient!._id, user2: sender!._id },
-      ],
-    },
-    {
-      $setOnInsert: {
-        user1: sender!._id,
-        user2: recipient!._id,
-        lastMessage: "",
-      },
-    },
-    { upsert: true, new: true }
-  );
-
-  const messageData = {
-    sender: sender!._id,
-    recipient: recipient!._id,
+  const data = {
+    sender: sender._id,
+    recipient: recipient._id,
     message: payload.message || null,
+    meetingLink: payload.meetingLink || null,
     media: payload.media || null,
     room: checkRoom._id,
   };
 
-  const message = await Message.create(messageData);
+  const message = await Message.create(data);
 
-  // Prepare conversation update fields
-  const updateFields: any = {
+  let lastMessageContent = payload.message
+    ? payload.message
+    : payload.media
+    ? "📷 Image"
+    : payload.meetingLink
+    ? "🔗 Meeting Link"
+    : "";
+
+  let updateFields: any = {
     lastMessageTimestamp: message.createdAt,
-    lastMessage: payload.message || (payload.media ? "📷 Image" : ""),
+    lastMessage: lastMessageContent,
   };
 
   const recipientInChat = userInChat.get(recipient.email);
-  if (!recipientInChat || recipientInChat !== sender.email) {
-    updateFields.$inc =
-      sender._id.toString() === checkRoom.user1.toString()
-        ? { user2UnseenCount: 1 }
-        : { user1UnseenCount: 1 };
+
+  if (sender._id.toString() === checkRoom.user1.toString()) {
+    if (!recipientInChat || recipientInChat !== sender.email) {
+      updateFields.$inc = { user2UnseenCount: 1 };
+      updateFields.$push = { user2UnseenMessages: message._id };
+    }
+  } else {
+    if (!recipientInChat || recipientInChat !== sender.email) {
+      updateFields.$inc = { user1UnseenCount: 1 };
+      updateFields.$push = { user1UnseenMessages: message._id };
+    }
   }
 
   await Convirsation.findByIdAndUpdate(checkRoom._id, updateFields, {
@@ -144,14 +86,72 @@ const createMessage = async (payload: IMessage) => {
   return message;
 };
 
+//   const users = await User.find({
+//     email: { $in: [payload.sender, payload.recipient] },
+//   });
+//   console.log(users, "check");
+
+//   const sender = users.find((u: any) => u.email === payload.sender);
+//   const recipient = users.find((u: any) => u.email === payload.recipient);
+
+//   if (!sender || !recipient) throw new Error("Sender or recipient not found.");
+
+//   const checkRoom = await Convirsation.findOneAndUpdate(
+//     {
+//       $or: [
+//         { user1: sender!._id, user2: recipient!._id },
+//         { user1: recipient!._id, user2: sender!._id },
+//       ],
+//     },
+//     {
+//       $setOnInsert: {
+//         user1: sender!._id,
+//         user2: recipient!._id,
+//         lastMessage: "",
+//       },
+//     },
+//     { upsert: true, new: true }
+//   );
+
+//   const messageData = {
+//     sender: sender!._id,
+//     recipient: recipient!._id,
+//     message: payload.message || null,
+//     media: payload.media || null,
+//     room: checkRoom._id,
+//   };
+
+//   const message = await Message.create(messageData);
+
+//   // Prepare conversation update fields
+//   const updateFields: any = {
+//     lastMessageTimestamp: message.createdAt,
+//     lastMessage: payload.message || (payload.media ? "📷 Image" : ""),
+//   };
+
+//   const recipientInChat = userInChat.get(recipient.email);
+//   if (!recipientInChat || recipientInChat !== sender.email) {
+//     updateFields.$inc =
+//       sender._id.toString() === checkRoom.user1.toString()
+//         ? { user2UnseenCount: 1 }
+//         : { user1UnseenCount: 1 };
+//   }
+
+//   await Convirsation.findByIdAndUpdate(checkRoom._id, updateFields, {
+//     new: true,
+//   });
+
+//   return message;
+// };
+
 const getMessages = async (senderId: string, recipientId: string, loggedInUser: string) => {
-  // Fetch both users in a single query
+
   const users = await User.find({ email: { $in: [senderId, recipientId] } });
   if (users.length < 2) throw new Error("Sender or recipient not found.");
 
   const [sender, recipient] = users;
 
-  // Fetch messages with populated sender and recipient details
+ 
   const messages = await Message.find({
     $or: [
       { sender: sender._id, recipient: recipient._id },
@@ -164,22 +164,26 @@ const getMessages = async (senderId: string, recipientId: string, loggedInUser: 
 
   if (!messages.length) return [];
 
-  // Fetch conversation room details
   const conversationRoom = await Convirsation.findById(messages[0].room)
     .populate("user1", "name email profileUrl")
     .populate("user2", "name email profileUrl");
 
   if (!conversationRoom) throw new ApiError(StatusCodes.NOT_FOUND, "Room not found");
 
-  // Determine the unseen messages for the logged-in user
+
   const isUser1 = loggedInUser === conversationRoom.user1._id.toString();
+  // console.log(isUser1,"check is user 1")
   const unseenMessageIds = isUser1
     ? conversationRoom.user1UnseenMessages
     : conversationRoom.user2UnseenMessages;
 
+
   // Update unseen messages
+  // console.log(unseenMessageIds,"check unseen message id")
+
   if (unseenMessageIds.length) {
-    await Message.updateMany({ _id: { $in: unseenMessageIds } }, { isUnseen: false });
+   const messageUpdate= await Message.updateMany({ _id: { $in: unseenMessageIds } }, { isUnseen: false });
+  //  console.log(messageUpdate,"check message update")
 
     await Convirsation.findByIdAndUpdate(conversationRoom.id, {
       $set: isUser1
@@ -188,7 +192,7 @@ const getMessages = async (senderId: string, recipientId: string, loggedInUser: 
     });
   }
 
-  // Format user details
+
   const userDetails = [conversationRoom.user1 as any, conversationRoom.user2 as any].map(user => ({
     name: `${user.name.firstName} ${user.name.lastName}`,
     email: user.email,
@@ -197,100 +201,6 @@ const getMessages = async (senderId: string, recipientId: string, loggedInUser: 
   
   return { userDetails, messages };
 };
-// const getMessages = async (
-//   senderId: string,
-//   recipientId: string,
-//   loggedInUser: string
-// ) => {
-//   // Fetch sender, recipient, and conversation in one go
-//   const users = await User.find(
-//     { email: { $in: [senderId, recipientId] } },
-//     "name email profileUrl"
-//   ).lean();
-
-//   if (users.length < 2) throw new Error("Sender or recipient not found.");
-
-//   const sender = users.find((u) => u.email === senderId);
-//   const recipient = users.find((u) => u.email === recipientId);
-
-//   // Fetch messages using aggregation for better performance
-//   const messages = await Message.aggregate([
-//     {
-//       $match: {
-//         $or: [
-//           { sender: sender._id, recipient: recipient._id },
-//           { sender: recipient._id, recipient: sender._id },
-//         ],
-//       },
-//     },
-//     { $sort: { createdAt: 1 } },
-//     {
-//       $lookup: {
-//         from: "users",
-//         localField: "sender",
-//         foreignField: "_id",
-//         as: "sender",
-//       },
-//     },
-//     {
-//       $lookup: {
-//         from: "users",
-//         localField: "recipient",
-//         foreignField: "_id",
-//         as: "recipient",
-//       },
-//     },
-//     { $unwind: "$sender" },
-//     { $unwind: "$recipient" },
-//     {
-//       $project: {
-//         "sender.name": 1,
-//         "sender.email": 1,
-//         "sender.profileUrl": 1,
-//         "recipient.name": 1,
-//         "recipient.email": 1,
-//         "recipient.profileUrl": 1,
-//         text: 1,
-//         createdAt: 1,
-//       },
-//     },
-//   ]);
-
-//   if (!messages.length) return [];
-
-//   // Fetch conversation room
-//   const conversationRoom = await Convirsation.findById(messages[0].room)
-//     .populate("user1", "name email profileUrl")
-//     .populate("user2", "name email profileUrl")
-//     .lean();
-
-//   if (!conversationRoom) throw new ApiError(StatusCodes.NOT_FOUND, "Room not found");
-
-//   // Unseen messages update logic
-//   const isUser1 = loggedInUser === conversationRoom.user1._id.toString();
-//   const unseenMessageIds = isUser1
-//     ? conversationRoom.user1UnseenMessages
-//     : conversationRoom.user2UnseenMessages;
-
-//   const updateFields = isUser1
-//     ? { user1UnseenMessages: [], user1UnseenCount: 0 }
-//     : { user2UnseenMessages: [], user2UnseenCount: 0 };
-
-//   // Run updates in parallel using Promise.all()
-//   await Promise.all([
-//     Message.updateMany({ _id: { $in: unseenMessageIds } }, { $set: { isUnseen: false } }),
-//     Convirsation.findByIdAndUpdate(conversationRoom._id, { $set: updateFields }),
-//   ]);
-
-//   // Prepare user details
-//   const userDetails = [conversationRoom.user1, conversationRoom.user2].map((user) => ({
-//     name: `${user.name.firstName} ${user.name.lastName}`,
-//     email: user.email,
-//     profileUrl: user.profileUrl || null,
-//   }));
-
-//   return { userDetails, messages };
-// };
 
 const getSingleMessages = async (sender: string, recipient: string) => {
   const messages = await Message.find({
@@ -302,7 +212,7 @@ const getSingleMessages = async (sender: string, recipient: string) => {
   return messages
 };
 const getConversationLists = async (email: string) => {
-  console.log(email, "check email from service file");
+  // console.log(email, "check email from service file");
   const user = await User.findOne({ email });
   if (!user) {
     throw new ApiError(StatusCodes.NOT_FOUND, "User not found");

@@ -10,6 +10,7 @@ import { socialLoginRoutes } from "./modules/socialLogin/socialLogin.route";
 import session from "express-session";
 import { StripeController } from "./modules/stipe/stripe.controller";
 
+
 const app: Application = express();
 
 export const corsOptions = {
@@ -32,6 +33,7 @@ app.use(
   StripeController.handleWebHook
 );
 //parser
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

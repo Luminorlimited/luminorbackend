@@ -2,8 +2,8 @@ import mongoose from "mongoose";
 
 export type IOrder = {
   clientRequerment: string;
-  orderFrom: string;
-  orderReciver: string;
+  orderFrom: mongoose.Types.ObjectId;
+  orderReciver: mongoose.Types.ObjectId;
   deliveryDate: string;
   totalPrice: string;
   project: mongoose.Types.ObjectId;

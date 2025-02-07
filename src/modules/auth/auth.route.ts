@@ -17,6 +17,9 @@ router.post(
 
   AuthController.loginUser
 );
+router.patch("/delete-user/:id",AuthController.delteUser)
+router.post("/admin-login")
+router.post("/create-admin",AuthController.createAdmin)
 router.get("/get-profile",  auth(ENUM_USER_ROLE.CLIENT,ENUM_USER_ROLE.RETIREPROFESSIONAL), AuthController.getProfile)
 router.post("/otp-enter", AuthController.enterOtp);
 router.get("/get-single-user/:id",AuthController.getSingleUserById)
