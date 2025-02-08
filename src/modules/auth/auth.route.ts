@@ -26,7 +26,7 @@ router.post("/otp-enter", AuthController.enterOtp);
 router.get("/get-single-user/:id",AuthController.getSingleUserById)
 
 router.get("/get-all-users",AuthController.getAllUsers)
-
+router.patch("/update-admin",auth(ENUM_USER_ROLE.ADMIN),AuthController.updateAdmin)
 router.get("/get-all-retireProfessionals",AuthController.getAllRetireProfiessional)
 
 router.get("/get-all-clients",AuthController.getAllClients)

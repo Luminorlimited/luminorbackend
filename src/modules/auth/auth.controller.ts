@@ -149,7 +149,21 @@ const updateCoverPhoto = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+const updateAdmin=catchAsync(async (req: Request, res: Response) => {
+  const user = req.user as any;
+  console.log();
 
+ 
+  const result = await AuthService.updateAdmin(user.id,req.body );
+ 
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "admin update his profile successfully",
+    data:result
+  });
+});
 export const AuthController = {
   loginUser,
   enterOtp,
@@ -161,4 +175,5 @@ export const AuthController = {
   createAdmin,
   delteUser,
   updateCoverPhoto,
+  updateAdmin
 };
