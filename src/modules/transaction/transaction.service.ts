@@ -22,7 +22,7 @@ const totalRevenue = async () => {
     {
       $group: {
         _id: null, 
-        totalRevenue: { $sum: "$amount" }, 
+        totalRevenue: { $sum: "$charge" }, 
       },
     },
   ]);

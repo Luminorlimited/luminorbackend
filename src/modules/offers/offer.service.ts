@@ -26,7 +26,7 @@ const createOffer = async (offer: IOffer) => {
   offer.professionalEmail = professional._id as mongoose.Types.ObjectId;
 
 
-    console.log(offer,"check offer from service file")
+    
   if (professional?.stripe?.isOnboardingSucess === false) {
     await StripeServices.generateNewAccountLink(professional);
     throw new ApiError(

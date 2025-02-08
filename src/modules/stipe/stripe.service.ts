@@ -295,6 +295,7 @@ const createPaymentIntentService = async (payload: any) => {
         {
           orderId: null,
           amount: offer.totalPrice,
+          charge: offer.serviceFee,
           paymentStatus: "pending",
           stripePaymentIntentId: paymentIntent.id,
         },
