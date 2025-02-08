@@ -199,10 +199,10 @@ const updateSingleClient = async (
   try {
     session.startTransaction();
     const clientAccount = await User.findById(id);
-    console.log(clientAccount, "check client account");
-    if (!clientAccount) {
-      throw new ApiError(404, "Client account not found");
-    }
+    // console.log(clientAccount, "check client account");
+    // if (!clientAccount) {
+    //   throw new ApiError(404, "Client account not found");
+    // }
 
     if (clientPayload.servicePreference) {
       const industries = getIndustryFromService(
@@ -213,7 +213,7 @@ const updateSingleClient = async (
 
     
     const updatedClient = await Client.findOneAndUpdate(
-      { client: clientAccount._id },
+      { client: clientAccount?._id },
       clientPayload,
       {
         new: true,

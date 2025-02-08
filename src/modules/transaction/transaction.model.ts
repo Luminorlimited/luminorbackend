@@ -18,6 +18,10 @@ const transactionSchema = new mongoose.Schema<ITransaction>({
     required: true,
    
   },
+  charge:{
+    type:Number,
+    required:true
+  }
   
  
 
