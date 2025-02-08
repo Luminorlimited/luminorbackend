@@ -16,3 +16,4 @@ router.post("/", (0, validateRequest_1.default)(messages_validation_1.MessageVal
 router.get("/", (0, auth_1.default)(), messages_controller_1.MessageController.getMessages);
 router.post("/file-upload", multer_1.multerUpload.single("file"), messages_controller_1.MessageController.uploadMessagefile);
 router.get("/get-convirsation-list", (0, auth_1.default)(), messages_controller_1.MessageController.getConversationLists);
+router.get("/get-single-messages/:id", (0, auth_1.default)(), messages_controller_1.MessageController.getSingleMessages);

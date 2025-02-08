@@ -17,12 +17,27 @@ const catchAsync_1 = __importDefault(require("../../shared/catchAsync"));
 const sendResponse_1 = __importDefault(require("../../shared/sendResponse"));
 const http_status_codes_1 = require("http-status-codes");
 const reviews_service_1 = require("./reviews.service");
-const postReviews = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const postReviewsByClient = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const review = req.body;
-    const reviewerId = req.params.id;
+    const receiverId = req.params.id;
     const user = req.user;
     //console.log(review,"check review")
-    const result = yield reviews_service_1.ReviewsService.postReviews(user.id, reviewerId, review);
+    console.log(user, "check user");
+    const result = yield reviews_service_1.ReviewsService.postReviewsByClient(user.id, receiverId, review);
+    (0, sendResponse_1.default)(res, {
+        success: true,
+        statusCode: http_status_codes_1.StatusCodes.OK,
+        message: "your review post successfully",
+        data: result,
+    });
+}));
+const postReviewsByRetireProfessional = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const review = req.body;
+    const receiverId = req.params.id;
+    const user = req.user;
+    console.log(user, "check user");
+    //console.log(review,"check review")
+    const result = yield reviews_service_1.ReviewsService.postReviewsByRetireProfessional(user.id, receiverId, review);
     (0, sendResponse_1.default)(res, {
         success: true,
         statusCode: http_status_codes_1.StatusCodes.OK,
@@ -43,6 +58,7 @@ const getReviews = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, voi
     });
 }));
 exports.ReviewController = {
-    postReviews,
+    postReviewsByClient,
+    postReviewsByRetireProfessional,
     getReviews
 };

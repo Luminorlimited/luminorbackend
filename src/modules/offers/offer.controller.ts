@@ -72,9 +72,22 @@ const deleteSingleOffer = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+const getAllOffers=catchAsync(async (req: Request, res: Response) => {
+  const id = req.params.id;
+  // console.log(id, "check params");
+  const result = await OfferService.getAllOffers();
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: `all   offer  get  successfully`,
+    data: result,
+  });
+});
 export const OfferController = {
   createOffer,
   getOffersByProfessional,
   getSingleOffer,
   deleteSingleOffer,
+  getAllOffers
 };

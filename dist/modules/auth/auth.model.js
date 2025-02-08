@@ -80,10 +80,14 @@ const userSchema = new mongoose_1.default.Schema({
     otp: { type: String },
     otpExpiry: { type: Date },
     identifier: { type: String },
-    // status: {
-    //   online: { type: Boolean, default: false },
-    //   lastActive: { type: Date, default: null },
-    // },
+    profileUrl: {
+        type: String,
+        default: null
+    },
+    isDeleted: {
+        type: Boolean,
+        default: false
+    }
 }, { timestamps: true, versionKey: false });
 userSchema.statics.isUserExist = function (email) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -92,6 +96,9 @@ userSchema.statics.isUserExist = function (email) {
 };
 userSchema.statics.isPasswordMatched = function (givenPassword, savedPassword) {
     return __awaiter(this, void 0, void 0, function* () {
+        // console.log(givenPassword,savedPassword)
+        const isTrue = yield bcrypt_1.default.compare(givenPassword, savedPassword);
+        // console.log(isTrue,"check is true")
         return yield bcrypt_1.default.compare(givenPassword, savedPassword);
     });
 };

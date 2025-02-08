@@ -74,7 +74,7 @@ const updateSingleClient = catchAsync(async (req: Request, res: Response) => {
   const { workSample, profileImage, ...others } = clientProfile;
   let updatedProfile = { ...others };
   // console.log(req.body);
-  const files = req.files as Express.Multer.File[]; // Get all files uploaded
+  const files = req.files as Express.Multer.File[]; 
   const fileMap: { [key: string]: Express.Multer.File } = {};
   if (files.length) {
     files.forEach((file) => {

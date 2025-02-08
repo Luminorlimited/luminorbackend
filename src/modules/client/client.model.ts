@@ -26,6 +26,10 @@ const clientSchema = new mongoose.Schema<IClient>(
     linkedinProfile: { type: String },
     //client profile field
     profileUrl: { type: String, default: null },
+    coverUrl:{
+      type:String,default:null
+    },
+    
     problemAreas: { type: String, default: null },
     location: {
       type: {

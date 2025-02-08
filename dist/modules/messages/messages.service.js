@@ -81,16 +81,59 @@ const createMessage = (payload) => __awaiter(void 0, void 0, void 0, function* (
     });
     return message;
 });
+//   const users = await User.find({
+//     email: { $in: [payload.sender, payload.recipient] },
+//   });
+//   console.log(users, "check");
+//   const sender = users.find((u: any) => u.email === payload.sender);
+//   const recipient = users.find((u: any) => u.email === payload.recipient);
+//   if (!sender || !recipient) throw new Error("Sender or recipient not found.");
+//   const checkRoom = await Convirsation.findOneAndUpdate(
+//     {
+//       $or: [
+//         { user1: sender!._id, user2: recipient!._id },
+//         { user1: recipient!._id, user2: sender!._id },
+//       ],
+//     },
+//     {
+//       $setOnInsert: {
+//         user1: sender!._id,
+//         user2: recipient!._id,
+//         lastMessage: "",
+//       },
+//     },
+//     { upsert: true, new: true }
+//   );
+//   const messageData = {
+//     sender: sender!._id,
+//     recipient: recipient!._id,
+//     message: payload.message || null,
+//     media: payload.media || null,
+//     room: checkRoom._id,
+//   };
+//   const message = await Message.create(messageData);
+//   // Prepare conversation update fields
+//   const updateFields: any = {
+//     lastMessageTimestamp: message.createdAt,
+//     lastMessage: payload.message || (payload.media ? "📷 Image" : ""),
+//   };
+//   const recipientInChat = userInChat.get(recipient.email);
+//   if (!recipientInChat || recipientInChat !== sender.email) {
+//     updateFields.$inc =
+//       sender._id.toString() === checkRoom.user1.toString()
+//         ? { user2UnseenCount: 1 }
+//         : { user1UnseenCount: 1 };
+//   }
+//   await Convirsation.findByIdAndUpdate(checkRoom._id, updateFields, {
+//     new: true,
+//   });
+//   return message;
+// };
 const getMessages = (senderId, recipientId, loggedInUser) => __awaiter(void 0, void 0, void 0, function* () {
-    const [sender, recipient] = yield Promise.all([
-        auth_model_1.User.findOne({ email: senderId }),
-        auth_model_1.User.findOne({ email: recipientId }),
-    ]);
-    // console.log(sender,"check sender")
-    // console.log(recipient,"check receiptine")
-    if (!sender || !recipient) {
+    const users = yield auth_model_1.User.find({ email: { $in: [senderId, recipientId] } });
+    if (users.length < 2)
         throw new Error("Sender or recipient not found.");
-    }
+    const [sender, recipient] = users;
     const messages = yield messages_model_1.Message.find({
         $or: [
             { sender: sender._id, recipient: recipient._id },
@@ -98,57 +141,49 @@ const getMessages = (senderId, recipientId, loggedInUser) => __awaiter(void 0, v
         ],
     })
         .sort({ createdAt: 1 })
-        .populate({
-        path: "sender",
-        select: "name email profileUrl",
-    })
-        .populate({
-        path: "recipient",
-        select: "name email profileUrl",
-    });
-    if (messages.length) {
-        const convirsationRoom = yield convirsation_model_1.Convirsation.findById(messages[0].room)
-            .populate({
-            path: "user1",
-            select: "name email profileUrl",
-        })
-            .populate({
-            path: "user2",
-            select: "name email profileUrl",
-        });
-        if (!convirsationRoom) {
-            throw new handleApiError_1.default(http_status_codes_1.StatusCodes.NOT_FOUND, "room not found");
-        }
-        let unseenMessageIds = [];
-        let updateFields = {};
-        if (loggedInUser === convirsationRoom.user1._id.toString()) {
-            unseenMessageIds = convirsationRoom.user1UnseenMessages;
-            updateFields = {
-                user1UnseenMessages: [],
-                user1UnseenCount: 0
-            };
-        }
-        else if (loggedInUser === convirsationRoom.user2._id.toString()) {
-            unseenMessageIds = convirsationRoom.user2UnseenMessages;
-            updateFields = {
-                user2UnseenMessages: [],
-                user2UnseenCount: 0
-            };
-        }
-        yield messages_model_1.Message.updateMany({ _id: { $in: unseenMessageIds } }, { $set: { isUnseen: false } });
-        yield convirsation_model_1.Convirsation.findOneAndUpdate({ _id: convirsationRoom.id }, { $set: updateFields });
-        const userDetails = [convirsationRoom.user1, convirsationRoom.user2].map((user) => ({
-            name: `${user.name.firstName} ${user.name.lastName}`,
-            email: user.email,
-            profileUrl: user.profileUrl || null,
-        }));
-        return { userDetails, messages };
-    }
-    else
+        .populate("sender", "name email profileUrl")
+        .populate("recipient", "name email profileUrl");
+    if (!messages.length)
         return [];
+    const conversationRoom = yield convirsation_model_1.Convirsation.findById(messages[0].room)
+        .populate("user1", "name email profileUrl")
+        .populate("user2", "name email profileUrl");
+    if (!conversationRoom)
+        throw new handleApiError_1.default(http_status_codes_1.StatusCodes.NOT_FOUND, "Room not found");
+    const isUser1 = loggedInUser === conversationRoom.user1._id.toString();
+    // console.log(isUser1,"check is user 1")
+    const unseenMessageIds = isUser1
+        ? conversationRoom.user1UnseenMessages
+        : conversationRoom.user2UnseenMessages;
+    // Update unseen messages
+    // console.log(unseenMessageIds,"check unseen message id")
+    if (unseenMessageIds.length) {
+        const messageUpdate = yield messages_model_1.Message.updateMany({ _id: { $in: unseenMessageIds } }, { isUnseen: false });
+        //  console.log(messageUpdate,"check message update")
+        yield convirsation_model_1.Convirsation.findByIdAndUpdate(conversationRoom.id, {
+            $set: isUser1
+                ? { user1UnseenMessages: [], user1UnseenCount: 0 }
+                : { user2UnseenMessages: [], user2UnseenCount: 0 },
+        });
+    }
+    const userDetails = [conversationRoom.user1, conversationRoom.user2].map(user => ({
+        name: `${user.name.firstName} ${user.name.lastName}`,
+        email: user.email,
+        profileUrl: user.profileUrl || null,
+    }));
+    return { userDetails, messages };
+});
+const getSingleMessages = (sender, recipient) => __awaiter(void 0, void 0, void 0, function* () {
+    const messages = yield messages_model_1.Message.find({
+        $or: [
+            { sender: sender, recipient: recipient },
+            { sender: recipient, recipient: sender },
+        ],
+    }).sort({ createdAt: -1 });
+    return messages;
 });
 const getConversationLists = (email) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log(email, "check email from service file");
+    // console.log(email, "check email from service file");
     const user = yield auth_model_1.User.findOne({ email });
     if (!user) {
         throw new handleApiError_1.default(http_status_codes_1.StatusCodes.NOT_FOUND, "User not found");
@@ -211,4 +246,5 @@ exports.MessageService = {
     uploadMessagefile,
     countMessages,
     countMessageWithRecipient,
+    getSingleMessages
 };

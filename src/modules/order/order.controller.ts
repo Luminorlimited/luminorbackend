@@ -40,26 +40,24 @@ const getOrderByProfessional = catchAsync(
     });
   }
 );
-const getOrderByClient = catchAsync(
-  async (req: Request, res: Response) => {
-    const user = req.user as { email: string };
-    // console.log(user)
+const getOrderByClient = catchAsync(async (req: Request, res: Response) => {
+  const user = req.user as { email: string };
+  // console.log(user)
 
-    if (!user) {
-      throw new ApiError(StatusCodes.UNAUTHORIZED, "user not found");
-    }
-
-    const order = await OrderService.getOrderByClient(user.email);
-
-    sendResponse(res, {
-      success: true,
-      statusCode: StatusCodes.OK,
-
-      message: "order get by client   successfull",
-      data: order,
-    });
+  if (!user) {
+    throw new ApiError(StatusCodes.UNAUTHORIZED, "user not found");
   }
-);
+
+  const order = await OrderService.getOrderByClient(user.email);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+
+    message: "order get by client   successfull",
+    data: order,
+  });
+});
 const getSpecificOrderBYClientAndProfessional = catchAsync(
   async (req: Request, res: Response) => {
     const professional = req.query.professional as string | undefined;
@@ -101,7 +99,7 @@ const getOrderById = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const getAllOrders= catchAsync(async (req: Request, res: Response) => {
+const getAllOrders = catchAsync(async (req: Request, res: Response) => {
   // console.log(req.user)
 
   const list = await OrderService.getAllOrders();
@@ -114,11 +112,33 @@ const getAllOrders= catchAsync(async (req: Request, res: Response) => {
     data: list,
   });
 });
+
+const getOrderCalculation = catchAsync(async (req: Request, res: Response) => {
+  // console.log(req.user)
+
+  const user = req.user as any;
+  const { timeframe } = req.query;
+  const list = await OrderService.getOrderCalculation(
+    user.id as string,
+    timeframe as "weekly" | "monthly" | "yearly"
+  );
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+
+    message: "getOrderCalculation work done ",
+    data: list,
+  });
+});
+
 export const OrderController = {
   createOrder,
   getOrderByProfessional,
   getSpecificOrderBYClientAndProfessional,
   getOrderById,
   getOrderByClient,
-  getAllOrders
+  getAllOrders,
+
+ 
 };

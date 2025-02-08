@@ -68,23 +68,26 @@ exports.io.on("connection", (socket) => {
                 recipient: toEmail,
                 isUnseen: isUnseen,
             });
-            const [fromEmailConversationList, toEmailConversationList] = yield Promise.all([
-                messages_service_1.MessageService.getConversationLists(fromEmail),
-                toEmail ? messages_service_1.MessageService.getConversationLists(toEmail) : null,
-            ]);
+            // const [fromEmailConversationList, toEmailConversationList] =
+            //   await Promise.all([
+            //     MessageService.getConversationLists(fromEmail),
+            //     toEmail ? MessageService.getConversationLists(toEmail) : null,
+            //   ]);
+            const toEmailConversationList = yield messages_service_1.MessageService.getConversationLists(toEmail);
             const populatedMessage = yield messages_model_1.Message.findById(savedMessage._id)
                 .populate({ path: "sender", select: "name email _id" })
                 .populate({ path: "recipient", select: "name email _id" })
                 .lean();
-            socket.emit("privateMessage", {
-                message: populatedMessage,
-                fromEmail: fromEmail,
-            });
-            socket.emit("conversation-list", fromEmailConversationList);
+            // socket.emit("privateMessage", {
+            //   message: populatedMessage,
+            //   fromEmail: fromEmail,
+            // });
+            // socket.emit("conversation-list", fromEmailConversationList);
             if (toSocketId) {
                 socket.to(toSocketId).emit("privateMessage", {
                     message: populatedMessage,
                     fromEmail: fromEmail,
+                    toEmail: toEmail
                 });
                 if (toEmailConversationList) {
                     socket
@@ -117,15 +120,21 @@ exports.io.on("connection", (socket) => {
             offer.orderAgreementPDF = offerPDFPath;
             const totalOffer = Object.assign(Object.assign({}, offer), { clientEmail: toEmail, professionalEmail: fromEmail });
             const newOffer = yield offer_service_1.OfferService.createOffer(totalOffer);
+            console.log(newOffer, "check new offer");
             if (toSocketId) {
                 socket.to(toSocketId).emit("sendOffer", {
                     from: fromEmail,
                     offer: newOffer,
                 });
             }
+            socket.emit("sendOfferSuccess", { message: "Offer sent successfully!", statusCode: 200 });
         }
         catch (error) {
-            socket.emit("sendoffer error ", "Failed to create effor");
+            socket.emit("sendOfferError", {
+                message: error.message || "Failed to create offer",
+                statusCode: error.statusCode || 500
+            });
+            // console.log(error,"check error")
         }
     }));
     socket.on("createZoomMeeting", (data) => __awaiter(void 0, void 0, void 0, function* () {
@@ -184,10 +193,8 @@ function bootstrap() {
         try {
             // Connect to MongoDB
             yield mongoose_1.default.connect("mongodb+srv://luminor:BYcHOYLQI2eiZ9IU@cluster0.v0ciw.mongodb.net/luminor?retryWrites=true&w=majority&appName=Cluster0", options);
-            // console.log(config.database_url, "check data base url");
+            //  await initiateSuperAdmin()
             console.log("Connected to MongoDB successfully.");
-            yield messages_service_1.MessageService.countMessages("tamim@example.com");
-            // Start the server
             httpServer.listen(config_1.default.port, () => {
                 console.log(`Server running at port ${config_1.default.port}`);
             });

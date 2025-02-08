@@ -81,10 +81,33 @@ const getOrderById = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, v
         data: list,
     });
 }));
+const getAllOrders = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    // console.log(req.user)
+    const list = yield order_service_1.OrderService.getAllOrders();
+    (0, sendResponse_1.default)(res, {
+        success: true,
+        statusCode: http_status_codes_1.StatusCodes.OK,
+        message: "get all  orders get successfull",
+        data: list,
+    });
+}));
+const getOrderCalculation = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    // console.log(req.user)
+    const user = req.user;
+    const { timeframe } = req.query;
+    const list = yield order_service_1.OrderService.getOrderCalculation(user.id, timeframe);
+    (0, sendResponse_1.default)(res, {
+        success: true,
+        statusCode: http_status_codes_1.StatusCodes.OK,
+        message: "getOrderCalculation work done ",
+        data: list,
+    });
+}));
 exports.OrderController = {
     createOrder,
     getOrderByProfessional,
     getSpecificOrderBYClientAndProfessional,
     getOrderById,
-    getOrderByClient
+    getOrderByClient,
+    getAllOrders,
 };

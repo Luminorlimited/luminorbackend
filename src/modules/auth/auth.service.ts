@@ -13,7 +13,6 @@ import { Client } from "../client/client.model";
 
 const loginUser = async (payload: ILoginUser) => {
   const { email, password } = payload;
- 
 
   const isUserExist = await User.isUserExist(email);
 
@@ -21,8 +20,8 @@ const loginUser = async (payload: ILoginUser) => {
     throw new ApiError(StatusCodes.NOT_FOUND, "User Doesn,t Exist");
   }
 
-  console.log(isUserExist.password,"check data base password")
-  console.log(password,"check payload password")
+  console.log(isUserExist.password, "check data base password");
+  console.log(password, "check payload password");
 
   if (
     isUserExist.password &&
@@ -36,7 +35,7 @@ const loginUser = async (payload: ILoginUser) => {
   const randomOtp = Math.floor(1000 + Math.random() * 9000).toString();
   const otpExpiry = new Date(Date.now() + 5 * 60 * 1000);
 
- if(isUserExist.role===ENUM_USER_ROLE.ADMIN){
+  if (isUserExist.role === ENUM_USER_ROLE.ADMIN) {
     const accessToken = jwtHelpers.createToken(
       {
         id: isUserExist._id,
@@ -46,9 +45,9 @@ const loginUser = async (payload: ILoginUser) => {
       config.jwt.secret as Secret,
       config.jwt.expires_in as string
     );
-     return {accessToken,isUserExist}
- }
- const html = `<!DOCTYPE html>
+    return { accessToken, isUserExist };
+  }
+  const html = `<!DOCTYPE html>
  <html lang="en">
  <head>
      <meta charset="UTF-8">
@@ -77,34 +76,30 @@ const loginUser = async (payload: ILoginUser) => {
  </body>
  </html>`;
 
- await emailSender("OTP", userEmail, html);
+  await emailSender("OTP", userEmail, html);
 
- const result = await User.updateOne(
-   { _id: userId }, // Filter object
-   {
-     $set: {
-       otp: randomOtp,
-       otpExpiry: otpExpiry,
-     },
-   } // Update object
- );
- if (result.modifiedCount === 0) {
-   throw new ApiError(
-     StatusCodes.INTERNAL_SERVER_ERROR,
-     "Failed to update OTP"
-   );
- }
- return randomOtp;
- 
+  const result = await User.updateOne(
+    { _id: userId }, // Filter object
+    {
+      $set: {
+        otp: randomOtp,
+        otpExpiry: otpExpiry,
+      },
+    } // Update object
+  );
+  if (result.modifiedCount === 0) {
+    throw new ApiError(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      "Failed to update OTP"
+    );
+  }
+  return randomOtp;
 };
 const enterOtp = async (payload: any) => {
- 
-
   const userData = await User.findOne({
     otp: payload.otp,
     email: payload.email.toLowerCase(),
   });
- 
 
   if (!userData) {
     throw new ApiError(404, "Your otp is incorrect");
@@ -163,7 +158,6 @@ const getProfile = async (id: string) => {
   return result;
 };
 const getSingleUserById = async (id: string) => {
-
   const user = await User.findById(id);
 
   if (!user) {
@@ -171,7 +165,6 @@ const getSingleUserById = async (id: string) => {
   }
   let result;
   if (user?.role === ENUM_USER_ROLE.RETIREPROFESSIONAL) {
-
     result = await RetireProfessional.findOne({
       retireProfessional: user._id,
     }).populate("retireProfessional");
@@ -181,19 +174,21 @@ const getSingleUserById = async (id: string) => {
   return result;
 };
 
- const getAllUsers=async()=>{
-  const users=await User.find({isDeleted:false})
-  return users
-}
-const getAllRetireProfiessional=async()=>{
-    const users=await RetireProfessional.find({}).populate("retireProfessional")
-    return users
-}
+const getAllUsers = async () => {
+  const users = await User.find({ isDeleted: false });
+  return users;
+};
+const getAllRetireProfiessional = async () => {
+  const users = await RetireProfessional.find({}).populate(
+    "retireProfessional"
+  );
+  return users;
+};
 
-const getAllClients=async()=>{
-  const users=await Client.find({}).populate("client")
-  return users
-}
+const getAllClients = async () => {
+  const users = await Client.find({}).populate("client");
+  return users;
+};
 
 const createAdmin = async (payload: any) => {
   const existingAdmin = await User.findOne({ email: payload.email });
@@ -203,7 +198,6 @@ const createAdmin = async (payload: any) => {
     return existingAdmin;
   }
 
-
   const admin = await User.create(payload);
   return admin;
 };
@@ -212,7 +206,7 @@ const deleteUser = async (id: string) => {
   const updatedUser = await User.findByIdAndUpdate(
     id,
     { isDeleted: true },
-    { new: true } 
+    { new: true }
   );
 
   if (!updatedUser) {
@@ -222,7 +216,26 @@ const deleteUser = async (id: string) => {
   return updatedUser;
 };
 
+const updateCoverPhoto = async (id: string, coverUrl: string) => {
+  // Try finding in Client model
+  let updatedUser = await Client.findOneAndUpdate(
+    { client: id },
+    { $set: { coverUrl } },
+    { new: true }
+  );
 
+  // If not found in Client, check RetireProfessional model
+  if (!updatedUser) {
+    updatedUser = await RetireProfessional.findOneAndUpdate(
+      { retireProfessional: id },
+      { $set: { coverUrl } },
+      { new: true }
+    );
+  }
+
+  console.log(updatedUser ? "Updated Successfully" : "User Not Found");
+  return updatedUser;
+};
 
 export const AuthService = {
   loginUser,
@@ -233,6 +246,6 @@ export const AuthService = {
   getAllRetireProfiessional,
   getAllClients,
   createAdmin,
-  deleteUser
-  
+  deleteUser,
+  updateCoverPhoto,
 };

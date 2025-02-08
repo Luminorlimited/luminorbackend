@@ -50,6 +50,8 @@ const userSchema = new mongoose.Schema<IUser>({
     type:String,
    default:null
   },
+  
+
   isDeleted:{
     type:Boolean,
     default:false

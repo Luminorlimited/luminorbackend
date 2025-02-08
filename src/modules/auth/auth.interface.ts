@@ -5,26 +5,26 @@ export type IUser = {
   password: string;
   email: string;
 
- name:{
-  firstName: string;
-  lastName: string;
- },
+  name: {
+    firstName: string;
+    lastName: string;
+  };
 
   role: ENUM_USER_ROLE;
-  googleId?:string;
-  facebookId?:string
-  otp?:string;
-  otpExpiry?:Date,
-  identifier?:string,
-  stripe? :{
-     customerId:string,
-     onboardingUrl:string,
-     isOnboardingSucess:boolean
-  }
-  client?: mongoose.Schema.Types.ObjectId,
-  profileUrl?:string
-  isDeleted?:boolean
-
+  googleId?: string;
+  facebookId?: string;
+  otp?: string;
+  otpExpiry?: Date;
+  identifier?: string;
+  stripe?: {
+    customerId: string;
+    onboardingUrl: string;
+    isOnboardingSucess: boolean;
+  };
+  client?: mongoose.Schema.Types.ObjectId;
+  profileUrl?: string;
+  isDeleted?: boolean;
+ 
 };
 
 export type IUserExistReturn = {
@@ -33,10 +33,10 @@ export type IUserExistReturn = {
 
   password: string;
   role: ENUM_USER_ROLE;
-  name:{
-    firstName:string,
-    lastName:string
-  }
+  name: {
+    firstName: string;
+    lastName: string;
+  };
 };
 
 export type ILoginUser = {
@@ -46,7 +46,7 @@ export type ILoginUser = {
 export type ILoginUserResponse = {
   refreshToken?: string;
   accessToken: string;
-  user:IUser
+  user: IUser;
 };
 export type IRefreshTokenResponse = {
   accessToken: string;
@@ -55,10 +55,11 @@ export type IRefreshTokenResponse = {
 export type UserModel = {
   isUserExist(
     email: string
-  ): Promise<Pick<IUserExistReturn, "email" | "password" | "_id" | "role"|"name">>;
+  ): Promise<
+    Pick<IUserExistReturn, "email" | "password" | "_id" | "role" | "name">
+  >;
   isPasswordMatched(
     givenPassword: string,
     savedPassword: string
   ): Promise<boolean>;
 } & Model<IUser>;
-

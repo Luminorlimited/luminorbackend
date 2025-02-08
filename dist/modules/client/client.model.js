@@ -28,6 +28,9 @@ const clientSchema = new mongoose_1.default.Schema({
     linkedinProfile: { type: String },
     //client profile field
     profileUrl: { type: String, default: null },
+    coverUrl: {
+        type: String, default: null
+    },
     problemAreas: { type: String, default: null },
     location: {
         type: {
@@ -44,7 +47,7 @@ const clientSchema = new mongoose_1.default.Schema({
         enum: service_1.ENUM_SERVICE_PREFERENCE,
         default: null,
     },
-    industry: { type: String, default: null },
+    industry: { type: String, defaul: null },
     budgetRange: {
         min: { type: Number, default: null },
         max: { type: Number, default: null },

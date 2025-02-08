@@ -4,8 +4,8 @@ import sendResponse from "../../shared/sendResponse";
 import { AuthService } from "./auth.service";
 
 import { StatusCodes } from "http-status-codes";
-
-
+import ApiError from "../../errors/handleApiError";
+import { uploadFileToSpace } from "../../utilitis/uploadTos3";
 
 const loginUser = catchAsync(async (req: Request, res: Response) => {
   const { ...loginData } = req.body;
@@ -22,7 +22,7 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
 
 const enterOtp = catchAsync(async (req: Request, res: Response) => {
   const result = await AuthService.enterOtp(req.body);
-  AuthService
+  AuthService;
   // res.cookie("token", result.accessToken, { httpOnly: true });
   // res.cookie("token", result.accessToken, {
   //   secure: config.env === "production",
@@ -39,12 +39,11 @@ const enterOtp = catchAsync(async (req: Request, res: Response) => {
   });
 });
 const getProfile = catchAsync(async (req: Request, res: Response) => {
-  const user = req.user as any
-
+  const user = req.user as any;
 
   // console.log(user,"check user")
   // res.cookie("token", result.accessToken, { httpOnly: true });
-  const result = await AuthService.getProfile(user.id)
+  const result = await AuthService.getProfile(user.id);
 
   sendResponse(res, {
     statusCode: StatusCodes.OK,
@@ -55,12 +54,9 @@ const getProfile = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getSingleUserById = catchAsync(async (req: Request, res: Response) => {
-
-
-
   // console.log(user,"check user")
   // res.cookie("token", result.accessToken, { httpOnly: true });
-  const result = await AuthService.getSingleUserById(req.params.id)
+  const result = await AuthService.getSingleUserById(req.params.id);
 
   sendResponse(res, {
     statusCode: StatusCodes.OK,
@@ -70,13 +66,10 @@ const getSingleUserById = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const getAllUsers=catchAsync(async (req: Request, res: Response) => {
-
-
-
+const getAllUsers = catchAsync(async (req: Request, res: Response) => {
   // console.log(user,"check user")
   // res.cookie("token", result.accessToken, { httpOnly: true });
-  const result = await AuthService.getAllUsers()
+  const result = await AuthService.getAllUsers();
 
   sendResponse(res, {
     statusCode: StatusCodes.OK,
@@ -86,22 +79,20 @@ const getAllUsers=catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const getAllRetireProfiessional=catchAsync(async (req: Request, res: Response) => {
+const getAllRetireProfiessional = catchAsync(
+  async (req: Request, res: Response) => {
+    const result = await AuthService.getAllRetireProfiessional();
 
-
-  const result = await AuthService.getAllRetireProfiessional()
-
-  sendResponse(res, {
-    statusCode: StatusCodes.OK,
-    success: true,
-    message: "All  Retire Professional   get successfully",
-    data: result,
-  });
-});
-const getAllClients=catchAsync(async (req: Request, res: Response) => {
-
-
-  const result = await AuthService.getAllClients()
+    sendResponse(res, {
+      statusCode: StatusCodes.OK,
+      success: true,
+      message: "All  Retire Professional   get successfully",
+      data: result,
+    });
+  }
+);
+const getAllClients = catchAsync(async (req: Request, res: Response) => {
+  const result = await AuthService.getAllClients();
 
   sendResponse(res, {
     statusCode: StatusCodes.OK,
@@ -111,10 +102,10 @@ const getAllClients=catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const createAdmin=catchAsync(async (req: Request, res: Response) => {
-   const data=req.body
+const createAdmin = catchAsync(async (req: Request, res: Response) => {
+  const data = req.body;
 
-  const result = await AuthService.createAdmin(data)
+  const result = await AuthService.createAdmin(data);
 
   sendResponse(res, {
     statusCode: StatusCodes.OK,
@@ -123,17 +114,40 @@ const createAdmin=catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
-const delteUser=catchAsync(async (req: Request, res: Response) => {
- const id=req.params.id
- console.log()
- const result = await AuthService.deleteUser(id)
+const delteUser = catchAsync(async (req: Request, res: Response) => {
+  const id = req.params.id;
+  console.log();
+  const result = await AuthService.deleteUser(id);
 
- sendResponse(res, {
-   statusCode: StatusCodes.OK,
-   success: true,
-   message: "user deleted successfully",
-   data: result,
- });
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "user deleted successfully",
+    data: result,
+  });
+});
+
+const updateCoverPhoto = catchAsync(async (req: Request, res: Response) => {
+  const user = req.user as any;
+  console.log();
+
+  const file = req.file;
+  if (!req.file) {
+    throw new ApiError(StatusCodes.UNAUTHORIZED, "file not found ");
+  }
+
+  const coverUrl = await uploadFileToSpace(req.file, "user-cover-photo");
+  const result = await AuthService.updateCoverPhoto(
+    user.id as string,
+    coverUrl
+  );
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "user cover photo updated  successfully",
+    data: result,
+  });
 });
 
 export const AuthController = {
@@ -145,5 +159,6 @@ export const AuthController = {
   getAllRetireProfiessional,
   getAllClients,
   createAdmin,
-  delteUser
+  delteUser,
+  updateCoverPhoto,
 };

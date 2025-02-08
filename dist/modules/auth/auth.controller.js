@@ -78,9 +78,64 @@ const getSingleUserById = (0, catchAsync_1.default)((req, res) => __awaiter(void
         data: result,
     });
 }));
+const getAllUsers = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    // console.log(user,"check user")
+    // res.cookie("token", result.accessToken, { httpOnly: true });
+    const result = yield auth_service_1.AuthService.getAllUsers();
+    (0, sendResponse_1.default)(res, {
+        statusCode: http_status_codes_1.StatusCodes.OK,
+        success: true,
+        message: "All  user  get successfully",
+        data: result,
+    });
+}));
+const getAllRetireProfiessional = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield auth_service_1.AuthService.getAllRetireProfiessional();
+    (0, sendResponse_1.default)(res, {
+        statusCode: http_status_codes_1.StatusCodes.OK,
+        success: true,
+        message: "All  Retire Professional   get successfully",
+        data: result,
+    });
+}));
+const getAllClients = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield auth_service_1.AuthService.getAllClients();
+    (0, sendResponse_1.default)(res, {
+        statusCode: http_status_codes_1.StatusCodes.OK,
+        success: true,
+        message: "All  Retire Clients   get successfully",
+        data: result,
+    });
+}));
+const createAdmin = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const data = req.body;
+    const result = yield auth_service_1.AuthService.createAdmin(data);
+    (0, sendResponse_1.default)(res, {
+        statusCode: http_status_codes_1.StatusCodes.OK,
+        success: true,
+        message: "admin created successfully",
+        data: result,
+    });
+}));
+const delteUser = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const id = req.params.id;
+    console.log();
+    const result = yield auth_service_1.AuthService.deleteUser(id);
+    (0, sendResponse_1.default)(res, {
+        statusCode: http_status_codes_1.StatusCodes.OK,
+        success: true,
+        message: "user deleted successfully",
+        data: result,
+    });
+}));
 exports.AuthController = {
     loginUser,
     enterOtp,
     getProfile,
-    getSingleUserById
+    getSingleUserById,
+    getAllUsers,
+    getAllRetireProfiessional,
+    getAllClients,
+    createAdmin,
+    delteUser
 };
