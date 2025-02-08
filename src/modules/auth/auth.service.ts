@@ -237,6 +237,19 @@ const updateCoverPhoto = async (id: string, coverUrl: string) => {
   return updatedUser;
 };
 
+const updateAdmin = async (id: string, payload: any) => {
+  try {
+    const result = await User.findByIdAndUpdate(
+      id, // Pass id directly
+      { $set: payload }, // Spread payload correctly
+      { new: true, runValidators: true } // Ensure updated document is returned & validation runs
+    );
+    return result;
+  } catch (error) {
+    console.error("Error updating admin:", error);
+    throw error;
+  }
+};
 export const AuthService = {
   loginUser,
   enterOtp,
@@ -248,4 +261,5 @@ export const AuthService = {
   createAdmin,
   deleteUser,
   updateCoverPhoto,
+  updateAdmin
 };
