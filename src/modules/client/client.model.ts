@@ -44,7 +44,7 @@ const clientSchema = new mongoose.Schema<IClient>(
 
     servicePreference: {
       type: String,
-      enum: ENUM_SERVICE_PREFERENCE,
+      // enum: ENUM_SERVICE_PREFERENCE,
       default: null,
     },
     industry: { type: String, defaul: null },

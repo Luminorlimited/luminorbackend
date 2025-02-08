@@ -81,11 +81,6 @@ const updateSingleRetireProfessional = catchAsync(
       };
     }
 
-    // Parse and update body fields
-
-    // Include uploaded file URLs in the update payload
-
-    // Call service to update
     const result =
       await RetireProfessionalService.updateSingleRetireProfessional(
         req.params.id,
