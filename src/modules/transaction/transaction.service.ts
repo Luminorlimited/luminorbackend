@@ -47,11 +47,55 @@ const totlaRefunded = async () => {
  return {totalRevenue}
 };
 
+const getTransactionCalculation = async () => {
+  const currentYear = new Date().getFullYear();
+
+
+  const monthlyIncome = await Transaction.aggregate([
+    {
+      $match: {
+        paymentStatus: "delivered", 
+        createdAt: {
+          $gte: new Date(`${currentYear}-01-01T00:00:00.000Z`),
+          $lt: new Date(`${currentYear + 1}-01-01T00:00:00.000Z`), 
+        },
+      },
+    },
+    {
+      $group: {
+        _id: { $month: "$createdAt" }, 
+        totalIncome: { $sum: "$amount" }, 
+      },
+    },
+    {
+      $sort: { _id: 1 }, 
+    },
+  ]);
+
+  const monthNames = [
+    "January", "February", "March", "April", "May", "June", 
+    "July", "August", "September", "October", "November", "December"
+  ];
+
+
+  const formattedIncome = monthNames.map((month, index) => {
+    const data = monthlyIncome.find((item) => item._id === index + 1);
+    return {
+      month,
+      totalIncome: data ? data.totalIncome : 0,
+    };
+  });
+
+  console.log("Monthly Income:", formattedIncome);
+
+  return { yearlyIncome: formattedIncome };
+};
 
 export const TransactionService = {
     getAllTransactions,
     lastTransaction,
     totalRevenue,
     totlaRefunded,
+    getTransactionCalculation
     
 };

@@ -26,6 +26,7 @@ export type IClient = {
 
   //client profile
   profileUrl?: string;
+  coverUrl?:string
   problemAreas?: string;
   location?: {
     type: string;

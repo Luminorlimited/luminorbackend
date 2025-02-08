@@ -13,14 +13,22 @@ import {
 
 import { StripeServices } from "../stipe/stripe.service";
 import { io } from "../../server";
+import mongoose from "mongoose";
 
 const createOffer = async (offer: IOffer) => {
-  const user = await User.findOne({ email: offer.professionalEmail });
+  const professional = await User.findOne({ email: offer.professionalEmail });
+  const client=await User.findOne({email:offer.clientEmail})
+  if (!client || !professional) {
+    throw new ApiError(StatusCodes.NOT_FOUND, "Client or Professional not found");
+  }
+
+  offer.clientEmail = client._id as mongoose.Types.ObjectId;
+  offer.professionalEmail = professional._id as mongoose.Types.ObjectId;
 
 
     console.log(offer,"check offer from service file")
-  if (user?.stripe?.isOnboardingSucess === false) {
-    await StripeServices.generateNewAccountLink(user);
+  if (professional?.stripe?.isOnboardingSucess === false) {
+    await StripeServices.generateNewAccountLink(professional);
     throw new ApiError(
       StatusCodes.UNAUTHORIZED,
       "we send you a onboaring url.please check your email"
@@ -114,10 +122,20 @@ const countOffer = async (email: string) => {
 
   return totalUnseen.length;
 };
+const getAllOffers=async () => {
+  const result = await Offer.find({
+  
+  }).populate("professionalEmail").populate("clientEmail")
+ 
+
+
+  return result;
+};
 export const OfferService = {
   createOffer,
   getOffersByProfessional,
   getSingleOffer,
   deleteSingleOffer,
   countOffer,
+  getAllOffers
 };

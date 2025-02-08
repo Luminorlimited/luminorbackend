@@ -7,9 +7,7 @@ import ApiError from "../../errors/handleApiError";
 import { TransactionService } from "./transaction.service";
 
 const getAllTransactions = catchAsync(async (req: Request, res: Response) => {
-
-
-  const result = await TransactionService.getAllTransactions() 
+  const result = await TransactionService.getAllTransactions();
 
   sendResponse(res, {
     success: true,
@@ -20,8 +18,7 @@ const getAllTransactions = catchAsync(async (req: Request, res: Response) => {
   });
 });
 const lastTransaction = catchAsync(async (req: Request, res: Response) => {
-
-  const result = await TransactionService.lastTransaction() 
+  const result = await TransactionService.lastTransaction();
 
   sendResponse(res, {
     success: true,
@@ -32,8 +29,7 @@ const lastTransaction = catchAsync(async (req: Request, res: Response) => {
   });
 });
 const totalRevenue = catchAsync(async (req: Request, res: Response) => {
-
-  const result = await TransactionService.totalRevenue() 
+  const result = await TransactionService.totalRevenue();
 
   sendResponse(res, {
     success: true,
@@ -44,8 +40,7 @@ const totalRevenue = catchAsync(async (req: Request, res: Response) => {
   });
 });
 const totlaRefunded = catchAsync(async (req: Request, res: Response) => {
-
-  const result = await TransactionService.totlaRefunded() 
+  const result = await TransactionService.totlaRefunded();
 
   sendResponse(res, {
     success: true,
@@ -55,10 +50,25 @@ const totlaRefunded = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
-export const TransactionController = {
-    getAllTransactions,
-    lastTransaction,
-    totalRevenue,
-    totlaRefunded
+const getTransactionCalculation = catchAsync(
+  async (req: Request, res: Response) => {
+    // console.log(req.user)
 
+    const list = await TransactionService.getTransactionCalculation();
+
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+
+      message: "getOrderCalculation work done ",
+      data: list,
+    });
+  }
+);
+export const TransactionController = {
+  getAllTransactions,
+  lastTransaction,
+  totalRevenue,
+  totlaRefunded,
+  getTransactionCalculation,
 };

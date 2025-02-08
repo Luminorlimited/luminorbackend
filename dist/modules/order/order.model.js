@@ -31,11 +31,13 @@ const orderSchema = new mongoose_1.default.Schema({
         required: true,
     },
     orderFrom: {
-        type: String,
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: "User",
         required: true,
     },
     orderReciver: {
-        type: String,
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: "User",
         required: true,
     },
     deliveryDate: {
@@ -62,7 +64,7 @@ const orderSchema = new mongoose_1.default.Schema({
     },
 }, {
     timestamps: true,
-    versionKey: false
+    versionKey: false,
 });
 exports.Order = (0, mongoose_1.model)("Order", orderSchema);
 // userSchema.set("autoIndex", true);

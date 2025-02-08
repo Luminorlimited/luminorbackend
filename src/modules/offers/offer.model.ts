@@ -32,8 +32,16 @@ const offerSchema = new mongoose.Schema<IOffer>(
     milestones: [milestoneSchema],
     totalPrice: { type: Number, required: true },
     totalReceive: { type: Number, required: true },
-    professionalEmail: { type: String, required: true },
-    clientEmail: { type: String, required: true },
+    professionalEmail: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    clientEmail: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
     totalDeliveryTime: {
       type: Number,
       required: true,
@@ -42,19 +50,16 @@ const offerSchema = new mongoose.Schema<IOffer>(
       type: Number,
       required: true,
     },
-    isSeen:{
-      type:Boolean,
-      default:false
+    isSeen: {
+      type: Boolean,
+      default: false,
     },
-    count:{
-      type:Number,
-
-    }
-    ,
-
+    count: {
+      type: Number,
+    },
     isAccepted: { type: Boolean, default: false },
   },
-  { timestamps: true ,versionKey:false}
+  { timestamps: true, versionKey: false }
 );
 
 export const Offer = mongoose.model<IOffer>("Offer", offerSchema);

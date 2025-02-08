@@ -35,8 +35,16 @@ const offerSchema = new mongoose_1.default.Schema({
     milestones: [milestoneSchema],
     totalPrice: { type: Number, required: true },
     totalReceive: { type: Number, required: true },
-    professionalEmail: { type: String, required: true },
-    clientEmail: { type: String, required: true },
+    professionalEmail: {
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: "User",
+        required: true,
+    },
+    clientEmail: {
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: "User",
+        required: true,
+    },
     totalDeliveryTime: {
         type: Number,
         required: true,
@@ -47,7 +55,7 @@ const offerSchema = new mongoose_1.default.Schema({
     },
     isSeen: {
         type: Boolean,
-        default: false
+        default: false,
     },
     count: {
         type: Number,

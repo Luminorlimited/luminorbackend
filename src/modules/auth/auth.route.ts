@@ -4,6 +4,7 @@ import express from "express";
 import { AuthController } from "./auth.controller";
 import auth from "../../middlewares/auth";
 import { ENUM_USER_ROLE } from "../../enums/user";
+import { multerUpload } from "../../middlewares/multer";
 
 const router = express.Router();
 export const AuthRoute = router;
@@ -17,7 +18,7 @@ router.post(
 
   AuthController.loginUser
 );
-router.patch("/delete-user/:id",AuthController.delteUser)
+
 router.post("/admin-login")
 router.post("/create-admin",AuthController.createAdmin)
 router.get("/get-profile",  auth(ENUM_USER_ROLE.CLIENT,ENUM_USER_ROLE.RETIREPROFESSIONAL), AuthController.getProfile)
@@ -29,3 +30,5 @@ router.get("/get-all-users",AuthController.getAllUsers)
 router.get("/get-all-retireProfessionals",AuthController.getAllRetireProfiessional)
 
 router.get("/get-all-clients",AuthController.getAllClients)
+router.patch("/update-cover-photo" , multerUpload.single("coverPhoto"),auth(),AuthController.updateCoverPhoto)
+router.patch("/delete-user/:id",AuthController.delteUser)

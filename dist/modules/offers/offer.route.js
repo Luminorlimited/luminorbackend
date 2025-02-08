@@ -9,6 +9,7 @@ const offer_controller_1 = require("./offer.controller");
 const router = express_1.default.Router();
 exports.OfferRoute = router;
 router.post("/", offer_controller_1.OfferController.createOffer);
+router.get("/get-all-offers", offer_controller_1.OfferController.getAllOffers);
 router.get("/professional/:id", offer_controller_1.OfferController.getOffersByProfessional);
 router.get("/:id", offer_controller_1.OfferController.getSingleOffer);
 router.delete("/delete/:id", offer_controller_1.OfferController.deleteSingleOffer);

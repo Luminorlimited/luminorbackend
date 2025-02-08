@@ -20,24 +20,31 @@ const offer_interface_1 = require("./offer.interface");
 const offer_model_1 = require("./offer.model");
 const stripe_service_1 = require("../stipe/stripe.service");
 const createOffer = (offer) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c;
-    const user = yield auth_model_1.User.findOne({ email: offer.professionalEmail });
-    if (((_a = user === null || user === void 0 ? void 0 : user.stripe) === null || _a === void 0 ? void 0 : _a.isOnboardingSucess) === false) {
-        yield stripe_service_1.StripeServices.generateNewAccountLink(user);
+    var _a, _b;
+    const professional = yield auth_model_1.User.findOne({ email: offer.professionalEmail });
+    const client = yield auth_model_1.User.findOne({ email: offer.clientEmail });
+    if (!client || !professional) {
+        throw new handleApiError_1.default(http_status_codes_1.StatusCodes.NOT_FOUND, "Client or Professional not found");
+    }
+    offer.clientEmail = client._id;
+    offer.professionalEmail = professional._id;
+    console.log(offer, "check offer from service file");
+    if (((_a = professional === null || professional === void 0 ? void 0 : professional.stripe) === null || _a === void 0 ? void 0 : _a.isOnboardingSucess) === false) {
+        yield stripe_service_1.StripeServices.generateNewAccountLink(professional);
         throw new handleApiError_1.default(http_status_codes_1.StatusCodes.UNAUTHORIZED, "we send you a onboaring url.please check your email");
     }
-    offer.serviceFee = offer.totalPrice * 0.2;
-    offer.totalReceive = offer.totalPrice;
-    offer.totalPrice = offer.totalPrice + offer.serviceFee;
+    offer.serviceFee = parseFloat(offer.totalPrice.toString()) * 0.2;
+    offer.totalReceive = parseFloat(offer.totalPrice.toString());
+    offer.totalPrice = parseFloat(offer.totalPrice.toString()) + parseFloat(offer.serviceFee.toString());
     if (offer.agreementType === offer_interface_1.AgreementType.FlatFee) {
-        offer.totalDeliveryTime = ((_b = offer.flatFee) === null || _b === void 0 ? void 0 : _b.delivery) || 0;
+        offer.totalDeliveryTime = ((_b = offer.flatFee) === null || _b === void 0 ? void 0 : _b.delivery) ? parseFloat(offer.flatFee.delivery.toString()) : 0;
     }
     else if (offer.agreementType === offer_interface_1.AgreementType.HourlyFee) {
-        offer.totalDeliveryTime = ((_c = offer.hourlyFee) === null || _c === void 0 ? void 0 : _c.delivery) || 0;
+        offer.totalDeliveryTime = offer.hourlyFee ? parseFloat(offer.hourlyFee.delivery.toString()) || 0 : 0;
     }
     else if (offer.agreementType === offer_interface_1.AgreementType.Milestone &&
         offer.milestones) {
-        offer.totalDeliveryTime = offer === null || offer === void 0 ? void 0 : offer.milestones.reduce((total, milestone) => total + (milestone.delivery || 0), 0);
+        offer.totalDeliveryTime = offer === null || offer === void 0 ? void 0 : offer.milestones.reduce((total, milestone) => parseFloat(total.toString()) + (parseFloat(milestone.delivery.toString()) || 0), 0);
     }
     const newOffer = yield offer_model_1.Offer.create(offer);
     const unseenCount = yield offer_model_1.Offer.countDocuments({
@@ -86,10 +93,15 @@ const countOffer = (email) => __awaiter(void 0, void 0, void 0, function* () {
     }).select("_id");
     return totalUnseen.length;
 });
+const getAllOffers = () => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield offer_model_1.Offer.find({}).populate("professionalEmail").populate("clientEmail");
+    return result;
+});
 exports.OfferService = {
     createOffer,
     getOffersByProfessional,
     getSingleOffer,
     deleteSingleOffer,
     countOffer,
+    getAllOffers
 };

@@ -1,5 +1,7 @@
 import express from "express";
 import { TransactionController } from "./transaction.controller";
+import { ENUM_USER_ROLE } from "../../enums/user";
+import auth from "../../middlewares/auth";
 
 
 
@@ -13,6 +15,11 @@ router.get(
 router.get("/last-transaction",TransactionController.lastTransaction)
 router.get("/total-revenue",TransactionController.totalRevenue)
 router.get("/total-refunded",TransactionController.totlaRefunded)
+router.get(
+  "/get-transaction-calculation",
+  auth(ENUM_USER_ROLE.ADMIN),
+  TransactionController.getTransactionCalculation
+);
 export const TransactionRoute = router;
 
 

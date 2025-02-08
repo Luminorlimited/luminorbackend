@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 
 export type IMilestone = {
   title: string;
@@ -25,8 +26,8 @@ export type IOffer = {
   milestones?: IMilestone[]; // Array of milestone objects
   totalPrice: number;
   totalReceive: number;
-  professionalEmail: String; // Refers to the RetireProfessional model
-  clientEmail: String; // Refers to the Client model
+  professionalEmail: mongoose.Types.ObjectId; 
+  clientEmail: mongoose.Types.ObjectId; 
   createdAt: Date;
   isAccepted: boolean;
   serviceFee: number;
