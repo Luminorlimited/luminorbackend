@@ -9,6 +9,7 @@ export type ITransaction = {
   paymentMethod:string;
   amount:number
   paymentStatus:PAYMENTSTATUS
+  charge:number
 
 }
 

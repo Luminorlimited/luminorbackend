@@ -27,7 +27,8 @@ const totalRevenue = async () => {
     },
   ]);
 
-  return result.length > 0 ? result[0].totalRevenue : 0;
+  const totalRevenue= result.length > 0 ? result[0].totalRevenue : 0;
+  return {totalRevenue}
 };
 const totlaRefunded = async () => {
   const result = await Transaction.aggregate([
@@ -42,9 +43,10 @@ const totlaRefunded = async () => {
     },
   ]);
 
- const totalRevenue= result.length > 0 ? result[0].totalRefunded : 0;
+ const totalRefund= result.length > 0 ? result[0].totalRefunded : 0;
+ console.log(totalRevenue,"check total revenue")
 
- return {totalRevenue}
+ return {totalRefund}
 };
 
 const getTransactionCalculation = async () => {
