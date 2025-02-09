@@ -27,8 +27,12 @@ router.get(
   auth(ENUM_USER_ROLE.CLIENT),
   OrderController.getOrderByProfessional
 );
+router.get(
+  "/get-order-calculation",
+  auth(ENUM_USER_ROLE.ADMIN),
+  OrderController.getOrderCalculation
+);
 router.get("/get-all-orders", OrderController.getAllOrders);
-
 
 router.get(
   "/:id",

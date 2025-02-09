@@ -139,6 +139,5 @@ export const OrderController = {
   getOrderById,
   getOrderByClient,
   getAllOrders,
-
- 
+  getOrderCalculation,
 };
