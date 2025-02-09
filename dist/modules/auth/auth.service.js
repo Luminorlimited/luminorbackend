@@ -214,6 +214,19 @@ const updateAdmin = (id, payload) => __awaiter(void 0, void 0, void 0, function*
         throw error;
     }
 });
+const updateAdminProfilePic = (id, profileImage) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const result = yield auth_model_1.User.findByIdAndUpdate(id, { $set: { profileUrl: profileImage } }, { new: true, runValidators: true });
+        if (!result) {
+            throw new Error("User not found");
+        }
+        return result;
+    }
+    catch (error) {
+        console.error("Error updating admin profile picture:", error);
+        throw error;
+    }
+});
 exports.AuthService = {
     loginUser,
     enterOtp,
@@ -226,4 +239,5 @@ exports.AuthService = {
     deleteUser,
     updateCoverPhoto,
     updateAdmin,
+    updateAdminProfilePic,
 };

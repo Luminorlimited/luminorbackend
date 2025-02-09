@@ -129,6 +129,26 @@ const updateAdmin = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+const updateAdminProfilePic = catchAsync(
+  async (req: Request, res: Response) => {
+    const user = req.user as any;
+
+    if (!req.file) {
+      throw new ApiError(StatusCodes.UNAUTHORIZED, "file not found ");
+    }
+    const profileImage = await uploadFileToSpace(req.file, "profileImage");
+    const result = await AuthService.updateAdminProfilePic(
+      user.id,
+      profileImage
+    );
+    sendResponse(res, {
+      statusCode: StatusCodes.OK,
+      success: true,
+      message: "admin update his profile successfully",
+      data: result,
+    });
+  }
+);
 export const AuthController = {
   loginUser,
   enterOtp,
@@ -141,4 +161,5 @@ export const AuthController = {
   delteUser,
   updateCoverPhoto,
   updateAdmin,
+  updateAdminProfilePic,
 };

@@ -28,6 +28,13 @@ router.patch(
 
   AuthController.updateAdmin
 );
+router.patch(
+  "/update-admin-profile-image",
+  multerUpload.single("profileUrl"),
+  auth(ENUM_USER_ROLE.ADMIN),
+
+  AuthController.updateAdminProfilePic
+);
 router.get(
   "/get-all-retireProfessionals",
   AuthController.getAllRetireProfiessional

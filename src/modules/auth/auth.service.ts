@@ -243,6 +243,24 @@ const updateAdmin = async (id: string, payload: any) => {
     throw error;
   }
 };
+const updateAdminProfilePic = async (id: string, profileImage: string) => {
+  try {
+    const result = await User.findByIdAndUpdate(
+      id,
+      { $set: { profileUrl: profileImage } },
+      { new: true, runValidators: true }
+    );
+
+    if (!result) {
+      throw new Error("User not found");
+    }
+
+    return result;
+  } catch (error) {
+    console.error("Error updating admin profile picture:", error);
+    throw error;
+  }
+};
 export const AuthService = {
   loginUser,
   enterOtp,
@@ -255,4 +273,5 @@ export const AuthService = {
   deleteUser,
   updateCoverPhoto,
   updateAdmin,
+  updateAdminProfilePic,
 };

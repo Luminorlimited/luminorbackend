@@ -146,6 +146,20 @@ const updateAdmin = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, vo
         data: result,
     });
 }));
+const updateAdminProfilePic = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = req.user;
+    if (!req.file) {
+        throw new handleApiError_1.default(http_status_codes_1.StatusCodes.UNAUTHORIZED, "file not found ");
+    }
+    const profileImage = yield (0, uploadTos3_1.uploadFileToSpace)(req.file, "profileImage");
+    const result = yield auth_service_1.AuthService.updateAdminProfilePic(user.id, profileImage);
+    (0, sendResponse_1.default)(res, {
+        statusCode: http_status_codes_1.StatusCodes.OK,
+        success: true,
+        message: "admin update his profile successfully",
+        data: result,
+    });
+}));
 exports.AuthController = {
     loginUser,
     enterOtp,
@@ -158,4 +172,5 @@ exports.AuthController = {
     delteUser,
     updateCoverPhoto,
     updateAdmin,
+    updateAdminProfilePic,
 };
