@@ -13,6 +13,7 @@ import { Client } from "../client/client.model";
 
 const loginUser = async (payload: ILoginUser) => {
   const { email, password } = payload;
+  console.log(email, password, "check from login user");
 
   const isUserExist = await User.isUserExist(email);
 
@@ -20,7 +21,6 @@ const loginUser = async (payload: ILoginUser) => {
     throw new ApiError(StatusCodes.NOT_FOUND, "User Doesn,t Exist");
   }
 
-  console.log(isUserExist.password, "check data base password");
   console.log(password, "check payload password");
 
   if (
@@ -143,7 +143,10 @@ const enterOtp = async (payload: any) => {
 
 const getProfile = async (id: string) => {
   const user = await User.findById(id);
-  // console.log(user, "User details");
+
+  if (user?.role === ENUM_USER_ROLE.ADMIN) {
+    return user;
+  }
 
   let result;
 
@@ -155,7 +158,7 @@ const getProfile = async (id: string) => {
     result = await Client.findOne({ client: user.id }).populate("client");
   }
 
-  return result;
+  return result || user;
 };
 const getSingleUserById = async (id: string) => {
   const user = await User.findById(id);
@@ -261,5 +264,5 @@ export const AuthService = {
   createAdmin,
   deleteUser,
   updateCoverPhoto,
-  updateAdmin
+  updateAdmin,
 };
