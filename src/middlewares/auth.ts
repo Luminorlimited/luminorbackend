@@ -27,11 +27,12 @@ const auth = (...roles: string[]) => {
         token,
         config.jwt.secret as Secret
       );
-     
+      // console.log(verifiedUser, "checkc ver fied user");
+
       const user = await User.findOne({
         _id: verifiedUser.id,
       });
-
+      // console.log(user, "check user");
       if (!user) {
         throw new ApiError(
           StatusCodes.UNAUTHORIZED,
@@ -42,7 +43,6 @@ const auth = (...roles: string[]) => {
       if (roles.length && !roles.includes(verifiedUser.role)) {
         throw new ApiError(StatusCodes.FORBIDDEN, "Forbidden!");
       }
-    
 
       req.user = verifiedUser;
       // console.log(req.user,"check user")

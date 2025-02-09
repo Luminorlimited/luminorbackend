@@ -43,6 +43,7 @@ const getProfile = catchAsync(async (req: Request, res: Response) => {
 
   // console.log(user,"check user")
   // res.cookie("token", result.accessToken, { httpOnly: true });
+  // console.log(req.user, "check user");
   const result = await AuthService.getProfile(user.id);
 
   sendResponse(res, {
@@ -149,19 +150,17 @@ const updateCoverPhoto = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
-const updateAdmin=catchAsync(async (req: Request, res: Response) => {
+const updateAdmin = catchAsync(async (req: Request, res: Response) => {
   const user = req.user as any;
   console.log();
 
- 
-  const result = await AuthService.updateAdmin(user.id,req.body );
- 
+  const result = await AuthService.updateAdmin(user.id, req.body);
 
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
     message: "admin update his profile successfully",
-    data:result
+    data: result,
   });
 });
 export const AuthController = {
@@ -175,5 +174,5 @@ export const AuthController = {
   createAdmin,
   delteUser,
   updateCoverPhoto,
-  updateAdmin
+  updateAdmin,
 };
