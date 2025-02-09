@@ -34,8 +34,6 @@ const searchableField_1 = require("../../constants/searchableField");
 const uploadTos3_1 = require("../../utilitis/uploadTos3");
 const createProfessional = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const file = req.file;
-    let fileUrl;
-    // console.log(fileUrl, "check url");
     const _a = req.body, { name, email, role, password } = _a, others = __rest(_a, ["name", "email", "role", "password"]);
     const user = {
         name,
@@ -54,7 +52,7 @@ const createProfessional = (0, catchAsync_1.default)((req, res) => __awaiter(voi
     });
 }));
 const updateSingleRetireProfessional = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const files = req.files; // Get all files uploaded
+    const files = req.files;
     const fileMap = {};
     let workSampleUrl;
     let profileImageUrl;
@@ -62,12 +60,10 @@ const updateSingleRetireProfessional = (0, catchAsync_1.default)((req, res) => _
     const auth = { name };
     const { workSample, profileImage } = retireProfessionalProfile, others = __rest(retireProfessionalProfile, ["workSample", "profileImage"]);
     let updatedProfile = Object.assign({}, others);
-    // Map files to their respective fields by matching `fieldname`
     if (files.length) {
         files.forEach((file) => {
             fileMap[file.fieldname] = file;
         });
-        // Process each file if it exists
         if (fileMap["workSample"]) {
             workSampleUrl = yield (0, uploadTos3_1.uploadFileToSpace)(fileMap["workSample"], "work-samples");
         }
@@ -87,7 +83,6 @@ const updateSingleRetireProfessional = (0, catchAsync_1.default)((req, res) => _
 const getRetireProfessionals = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const paginationOptions = (0, pick_1.default)(req.query, pagination_1.paginationFileds);
     const filters = (0, pick_1.default)(req.query, searchableField_1.filterableField);
-    // console.log(filters)
     const result = yield professional_service_1.RetireProfessionalService.getRetireProfessionals(filters, paginationOptions);
     (0, sendResponse_1.default)(res, {
         success: true,

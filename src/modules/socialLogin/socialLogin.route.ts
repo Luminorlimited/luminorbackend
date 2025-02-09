@@ -5,7 +5,6 @@ import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import config from "../../config";
 import { Strategy as FacebookStrategy } from "passport-facebook";
-
 passport.use(
   new GoogleStrategy(
     {
@@ -13,9 +12,7 @@ passport.use(
       clientSecret: config.sosial_login.google.client_secret as string,
       callbackURL: config.sosial_login.google.redirect_uri as string,
     },
-    function (accessToken, refreshToken, profile, cb) {
-     // console.log("data");
-    }
+    function (accessToken, refreshToken, profile, cb) {}
   )
 );
 passport.use(

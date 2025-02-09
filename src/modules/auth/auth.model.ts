@@ -4,61 +4,54 @@ import { ENUM_USER_ROLE } from "../../enums/user";
 import config from "../../config";
 import bcrypt from "bcrypt";
 
-const userSchema = new mongoose.Schema<IUser>({
-  name: {
-    firstName: {
+const userSchema = new mongoose.Schema<IUser>(
+  {
+    name: {
+      firstName: {
+        type: String,
+        required: true,
+      },
+      lastName: {
+        type: String,
+        required: true,
+      },
+    },
+    role: {
       type: String,
       required: true,
+      enum: ENUM_USER_ROLE,
     },
-    lastName: {
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true, select: false },
+    googleId: { type: String, default: null },
+    facebookId: { type: String, defaul: null },
+    stripe: {
+      customerId: {
+        type: String,
+        default: null,
+      },
+      onboardingUrl: {
+        type: String,
+        default: null,
+      },
+      isOnboardingSucess: {
+        type: Boolean,
+        default: false,
+      },
+    },
+    otp: { type: String },
+    otpExpiry: { type: Date },
+    identifier: { type: String },
+    profileUrl: {
       type: String,
-      required: true,
+      default: null,
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
     },
   },
-  role: {
-    type: String,
-    required: true,
-    enum: ENUM_USER_ROLE,
-  },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true,select:false},
-  googleId: { type: String, default: null },
-  facebookId: { type: String, defaul: null },
-  stripe:{
-    customerId:{
-      type:String,
-      default:null
-    },
-    onboardingUrl:{
-      type:String,
-      default:null
-    },
-  isOnboardingSucess:{
-    type:Boolean,
-    default:false
-  }
-  },
-  // isOnline:{
-  //   type:Boolean,
-  
-  // },
-
-  otp: { type: String },
-  otpExpiry: { type: Date },
-  identifier: { type: String },
-  profileUrl:{
-    type:String,
-   default:null
-  },
-  
-
-  isDeleted:{
-    type:Boolean,
-    default:false
-  }
-},
-
-{ timestamps: true, versionKey: false }
+  { timestamps: true, versionKey: false }
 );
 userSchema.statics.isUserExist = async function (
   email: string
@@ -69,10 +62,6 @@ userSchema.statics.isPasswordMatched = async function (
   givenPassword: string,
   savedPassword: string
 ): Promise<boolean> {
-
-  // console.log(givenPassword,savedPassword)
-  const isTrue= await bcrypt.compare(givenPassword, savedPassword);
-  // console.log(isTrue,"check is true")
   return await bcrypt.compare(givenPassword, savedPassword);
 };
 userSchema.pre("save", async function (next) {
@@ -87,4 +76,3 @@ userSchema.pre("save", async function (next) {
 });
 
 export const User = model<IUser, UserModel>("User", userSchema);
-// userSchema.set("autoIndex", true);

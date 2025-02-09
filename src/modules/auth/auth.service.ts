@@ -13,28 +13,19 @@ import { Client } from "../client/client.model";
 
 const loginUser = async (payload: ILoginUser) => {
   const { email, password } = payload;
-  console.log(email, password, "check from login user");
-
   const isUserExist = await User.isUserExist(email);
-
   if (!isUserExist) {
     throw new ApiError(StatusCodes.NOT_FOUND, "User Doesn,t Exist");
   }
-
-  console.log(password, "check payload password");
-
   if (
     isUserExist.password &&
     !(await User.isPasswordMatched(password, isUserExist.password))
   ) {
     throw new ApiError(StatusCodes.UNAUTHORIZED, "Password is incorrect");
   }
-
   const { _id: userId, email: userEmail, role } = isUserExist;
-
   const randomOtp = Math.floor(1000 + Math.random() * 9000).toString();
   const otpExpiry = new Date(Date.now() + 5 * 60 * 1000);
-
   if (isUserExist.role === ENUM_USER_ROLE.ADMIN) {
     const accessToken = jwtHelpers.createToken(
       {
@@ -75,17 +66,15 @@ const loginUser = async (payload: ILoginUser) => {
      </div>
  </body>
  </html>`;
-
   await emailSender("OTP", userEmail, html);
-
   const result = await User.updateOne(
-    { _id: userId }, // Filter object
+    { _id: userId },
     {
       $set: {
         otp: randomOtp,
         otpExpiry: otpExpiry,
       },
-    } // Update object
+    }
   );
   if (result.modifiedCount === 0) {
     throw new ApiError(
@@ -118,15 +107,14 @@ const enterOtp = async (payload: any) => {
     config.jwt.secret as Secret,
     config.jwt.expires_in as string
   );
-
   await User.updateOne(
-    { _id: userData.id }, // Filter object
+    { _id: userData.id },
     {
       $set: {
         otp: null,
         otpExpiry: null,
       },
-    } // Update object
+    }
   );
   const result = {
     accessToken,
@@ -137,19 +125,15 @@ const enterOtp = async (payload: any) => {
       name: userData.name,
     },
   };
-
   return result;
 };
 
 const getProfile = async (id: string) => {
   const user = await User.findById(id);
-
   if (user?.role === ENUM_USER_ROLE.ADMIN) {
     return user;
   }
-
   let result;
-
   if (user?.role === ENUM_USER_ROLE.RETIREPROFESSIONAL) {
     result = await RetireProfessional.findOne({
       retireProfessional: user.id,
@@ -157,7 +141,6 @@ const getProfile = async (id: string) => {
   } else if (user?.role === ENUM_USER_ROLE.CLIENT) {
     result = await Client.findOne({ client: user.id }).populate("client");
   }
-
   return result || user;
 };
 const getSingleUserById = async (id: string) => {
@@ -215,39 +198,29 @@ const getAllClients = async () => {
 };
 const createAdmin = async (payload: any) => {
   const existingAdmin = await User.findOne({ email: payload.email });
-
   if (existingAdmin) {
-    console.log("Admin already exists. Skipping creation.");
     return existingAdmin;
   }
-
   const admin = await User.create(payload);
   return admin;
 };
-
 const deleteUser = async (id: string) => {
   const updatedUser = await User.findByIdAndUpdate(
     id,
     { isDeleted: true },
     { new: true }
   );
-
   if (!updatedUser) {
     throw new Error("User not found");
   }
-
   return updatedUser;
 };
-
 const updateCoverPhoto = async (id: string, coverUrl: string) => {
-  // Try finding in Client model
   let updatedUser = await Client.findOneAndUpdate(
     { client: id },
     { $set: { coverUrl } },
     { new: true }
   );
-
-  // If not found in Client, check RetireProfessional model
   if (!updatedUser) {
     updatedUser = await RetireProfessional.findOneAndUpdate(
       { retireProfessional: id },
@@ -255,17 +228,14 @@ const updateCoverPhoto = async (id: string, coverUrl: string) => {
       { new: true }
     );
   }
-
-  console.log(updatedUser ? "Updated Successfully" : "User Not Found");
   return updatedUser;
 };
-
 const updateAdmin = async (id: string, payload: any) => {
   try {
     const result = await User.findByIdAndUpdate(
-      id, // Pass id directly
-      { $set: payload }, // Spread payload correctly
-      { new: true, runValidators: true } // Ensure updated document is returned & validation runs
+      id,
+      { $set: payload },
+      { new: true, runValidators: true }
     );
     return result;
   } catch (error) {

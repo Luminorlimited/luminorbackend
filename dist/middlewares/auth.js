@@ -17,21 +17,17 @@ const jwtHelpers_1 = require("../helpers/jwtHelpers");
 const config_1 = __importDefault(require("../config"));
 const auth_model_1 = require("../modules/auth/auth.model");
 const handleApiError_1 = __importDefault(require("../errors/handleApiError"));
-//  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN)
 const auth = (...roles) => {
     return (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
         try {
             const token = req.headers.authorization;
-            // console.log(token,"check token")
             if (!token) {
                 throw new handleApiError_1.default(http_status_codes_1.StatusCodes.UNAUTHORIZED, "You are not authorized!");
             }
             const verifiedUser = jwtHelpers_1.jwtHelpers.verifyToken(token, config_1.default.jwt.secret);
-            // console.log(verifiedUser, "checkc ver fied user");
             const user = yield auth_model_1.User.findOne({
                 _id: verifiedUser.id,
             });
-            // console.log(user, "check user");
             if (!user) {
                 throw new handleApiError_1.default(http_status_codes_1.StatusCodes.UNAUTHORIZED, "This user is not found !");
             }
@@ -39,7 +35,6 @@ const auth = (...roles) => {
                 throw new handleApiError_1.default(http_status_codes_1.StatusCodes.FORBIDDEN, "Forbidden!");
             }
             req.user = verifiedUser;
-            // console.log(req.user,"check user")
             next();
         }
         catch (err) {

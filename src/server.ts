@@ -4,26 +4,14 @@ import { createServer } from "http";
 import app from "./app";
 import { Server } from "socket.io";
 import { Message } from "./modules/messages/messages.model";
-import { Notification } from "./modules/notification/notification.model";
-import {
-  ENUM_NOTIFICATION_STATUS,
-  ENUM_NOTIFICATION_TYPE,
-} from "./enums/notificationStatus";
-import {
-  INotification,
-  NotificationCreateResponse,
-} from "./modules/notification/notification.interface";
+
 import { calculateTotalPrice } from "./utilitis/calculateTotalPrice";
 import { generateOfferPDF } from "./utilitis/generateOfferPdf";
-import { Offer } from "./modules/offers/offer.model";
-import { uploadFileToSpace } from "./utilitis/uploadTos3";
-import { Nimble } from "aws-sdk";
+
 import { zoomService } from "./modules/zoom/zoom.service";
 import { OfferService } from "./modules/offers/offer.service";
-import { User } from "./modules/auth/auth.model";
-import { MessageService } from "./modules/messages/messages.service";
-import { NotificationService } from "./modules/notification/notification.service";
 
+import { MessageService } from "./modules/messages/messages.service";
 
 const options = {
   autoIndex: true,
@@ -43,7 +31,6 @@ export const io = new Server(httpServer, {
   upgradeTimeout: 30000,
 });
 
-// Store socket IDs for users
 export const users: { [key: string]: string } = {};
 export const onlineUsers = new Map<string, boolean>();
 export const userInChat = new Map<string, string | null>();
@@ -87,7 +74,9 @@ io.on("connection", (socket) => {
       //     MessageService.getConversationLists(fromEmail),
       //     toEmail ? MessageService.getConversationLists(toEmail) : null,
       //   ]);
-        const toEmailConversationList=await MessageService.getConversationLists(toEmail)
+      const toEmailConversationList = await MessageService.getConversationLists(
+        toEmail
+      );
 
       const populatedMessage = await Message.findById(savedMessage._id)
         .populate({ path: "sender", select: "name email _id" })
@@ -105,7 +94,7 @@ io.on("connection", (socket) => {
         socket.to(toSocketId).emit("privateMessage", {
           message: populatedMessage,
           fromEmail: fromEmail,
-          toEmail:toEmail
+          toEmail: toEmail,
         });
 
         if (toEmailConversationList) {
@@ -120,9 +109,7 @@ io.on("connection", (socket) => {
   });
   socket.on("userInChat", (data: any) => {
     const { userEmail, chattingWith } = JSON.parse(data);
-     
-    // console.log(userEmail, "from user inchat user email");
-    // console.log(chattingWith, "from user in chat chatting with");
+
     if (chattingWith) {
       userInChat.set(userEmail, chattingWith);
     } else {
@@ -145,27 +132,27 @@ io.on("connection", (socket) => {
         professionalEmail: fromEmail,
       };
       const newOffer = await OfferService.createOffer(totalOffer);
-      console.log(newOffer,"check new offer")
 
       if (toSocketId) {
         socket.to(toSocketId).emit("sendOffer", {
           from: fromEmail,
           offer: newOffer,
         });
-    
       }
-      socket.emit("sendOfferSuccess", { message: "Offer sent successfully!",statusCode: 200 });
-    } catch (error:any) {
-      socket.emit("sendOfferError", { 
-        message: error.message || "Failed to create offer", 
-        statusCode: error.statusCode || 500 
+      socket.emit("sendOfferSuccess", {
+        message: "Offer sent successfully!",
+        statusCode: 200,
       });
-      // console.log(error,"check error")
+    } catch (error: any) {
+      socket.emit("sendOfferError", {
+        message: error.message || "Failed to create offer",
+        statusCode: error.statusCode || 500,
+      });
     }
   });
   socket.on("createZoomMeeting", async (data: any) => {
     const { fromEmail, toEmail } = JSON.parse(data);
-    // console.log(data, "from zoom meeting")
+
     const toSocketId = users[toEmail];
 
     try {
@@ -174,7 +161,6 @@ io.on("connection", (socket) => {
         throw new Error("Invalid Zoom meeting data");
       }
       const { start_url, join_url } = meeting;
-      // console.log(meeting,"check meeting link")
 
       const savedMessage = await MessageService.createMessage({
         sender: fromEmail,
@@ -191,8 +177,7 @@ io.on("connection", (socket) => {
           savedMessage,
         });
       }
-      // savedMessage.meetingLink = start_url;
-      // savedMessage.message = start_url;
+
       socket.emit("createZoomMeeting", {
         savedMessage,
       });
@@ -222,14 +207,10 @@ io.on("connection", (socket) => {
 
 async function bootstrap() {
   try {
-    // Connect to MongoDB
-    await mongoose.connect(
-      "mongodb+srv://luminor:BYcHOYLQI2eiZ9IU@cluster0.v0ciw.mongodb.net/luminor?retryWrites=true&w=majority&appName=Cluster0" as string,
-      options
-    );
-  //  await initiateSuperAdmin()
+    await mongoose.connect(config.database_url as string, options);
+
     console.log("Connected to MongoDB successfully.");
- 
+
     httpServer.listen(config.port, () => {
       console.log(`Server running at port ${config.port}`);
     });

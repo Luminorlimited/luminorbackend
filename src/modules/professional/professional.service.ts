@@ -33,7 +33,7 @@ const createProfessional = async (
       country: "US",
       email: user.email,
     });
- 
+
     const accountLink = await stripe.accountLinks.create({
       account: account.id,
       refresh_url: "https://your-platform.com/reauth",
@@ -42,7 +42,6 @@ const createProfessional = async (
     });
 
     if (user.stripe) {
-  
       user.stripe.onboardingUrl = accountLink.url;
       user.stripe.customerId = account.id;
     }
@@ -93,15 +92,10 @@ export const updateSingleRetireProfessional = async (
   auth: Partial<IProfessional>,
   retireProfessionalPayload: Partial<IProfessional>
 ): Promise<IProfessional | null> => {
-  const session = await mongoose.startSession(); // Start a new session for transaction management
+  const session = await mongoose.startSession();
   try {
     session.startTransaction();
-
     const professionalAccount = await User.findById(id);
-    // if (!professionalAccount) {
-    //   throw new ApiError(404, "Professional account not found");
-    // }
-  //  console.log(auth,retireProfessionalPayload)
     const updatedRetireProfessional = await RetireProfessional.findOneAndUpdate(
       { retireProfessional: professionalAccount?._id },
       retireProfessionalPayload,
@@ -110,24 +104,18 @@ export const updateSingleRetireProfessional = async (
         session,
       }
     );
-
     if (!updatedRetireProfessional) {
       throw new ApiError(404, "retire professional not found");
     }
-    // console.log(auth,"check auth");
-
     const updatedUser = await User.findByIdAndUpdate(id, auth, {
-      new: true, // return the updated document
+      new: true,
       session,
     });
-
     if (!updatedUser) {
       throw new ApiError(404, "User not found");
     }
-
     await session.commitTransaction();
     session.endSession();
-
     return updatedRetireProfessional.populate("retireProfessional");
   } catch (error: any) {
     await session.abortTransaction();
@@ -135,19 +123,14 @@ export const updateSingleRetireProfessional = async (
     throw new ApiError(400, error.message || "Error updating client");
   }
 };
-
 const getRetireProfessionals = async (
   filters: IFilters,
   paginationOptions: IpaginationOptions
 ): Promise<IGenericResponse<IProfessional[]>> => {
   const { skip, limit, page, sortBy, sortOrder } =
     paginationHelpers.calculatePagination(paginationOptions);
-
-  const { query, ...filtersData } = filters; // Extract location filter
-
+  const { query, ...filtersData } = filters;
   const andCondition = [];
-
-  // Handle text search
   if (query) {
     andCondition.push({
       $or: searchableField.map((field) => ({
@@ -158,8 +141,6 @@ const getRetireProfessionals = async (
       })),
     });
   }
-
-  // Handle other filters
   if (Object.keys(filtersData).length) {
     andCondition.push(
       ...Object.entries(filtersData).map(([field, value]) => {
@@ -167,7 +148,6 @@ const getRetireProfessionals = async (
           const parseArray = Array.isArray(value)
             ? value
             : JSON.parse(value as string);
-
           return {
             industry: { $in: parseArray },
           };
@@ -175,7 +155,6 @@ const getRetireProfessionals = async (
           const skillTypeArray = Array.isArray(value)
             ? value
             : JSON.parse(value as string);
-
           return {
             expertise: { $in: skillTypeArray },
           };
@@ -188,16 +167,11 @@ const getRetireProfessionals = async (
       })
     );
   }
-
-  // Handle location filter using $geoNear
   const aggregationPipeline: any[] = [];
   if (filtersData.location) {
     const [longitude, latitude, minDistance, maxDistance] = JSON.parse(
       filtersData.location
     );
-
-    // console.log(longitude, latitude, minDistance, maxDistance);
-
     aggregationPipeline.push({
       $geoNear: {
         near: {
@@ -211,33 +185,25 @@ const getRetireProfessionals = async (
       },
     });
   }
-
-  // Add match conditions if there are any filters
   if (andCondition.length > 0) {
     aggregationPipeline.push({
       $match: { $and: andCondition },
     });
   }
-
-  // Add a $lookup stage for population
   aggregationPipeline.push({
     $lookup: {
-      from: "users", // Replace with the related collection's name
-      localField: "retireProfessional", // Field in RetireProfessional
-      foreignField: "_id", // Matching field in the related collection
-      as: "userDetails", // Populated field name
+      from: "users",
+      localField: "retireProfessional",
+      foreignField: "_id",
+      as: "userDetails",
     },
   });
-
-  // Optionally unwind the array if you want a single object
   aggregationPipeline.push({
     $unwind: {
       path: "$userDetails",
-      preserveNullAndEmptyArrays: true, // Include results with no match
+      preserveNullAndEmptyArrays: true,
     },
   });
-
-  // Handle sorting, skipping, and limiting
   const sortCondition: { [key: string]: SortOrder } = {};
   if (sortBy && sortOrder) {
     sortCondition[sortBy] = sortOrder === "desc" ? -1 : 1;
@@ -248,12 +214,8 @@ const getRetireProfessionals = async (
     { $limit: limit }
   );
 
-  // Execute the aggregation pipeline
   const result = await RetireProfessional.aggregate(aggregationPipeline).exec();
-
-  // Get total document count
   const count = await RetireProfessional.countDocuments();
-
   return {
     meta: {
       page,
@@ -263,7 +225,6 @@ const getRetireProfessionals = async (
     data: result,
   };
 };
-
 const getRetireProfessionalsByLocation = async (
   long: number,
   lat: number,
@@ -273,9 +234,8 @@ const getRetireProfessionalsByLocation = async (
   const result = await RetireProfessional.find({
     location: {
       $near: {
-        $maxDistance: max, // in meters
+        $maxDistance: max,
         $minDistance: min,
-
         $geometry: {
           type: "Point",
           coordinates: [lat, long],
@@ -283,10 +243,8 @@ const getRetireProfessionalsByLocation = async (
       },
     },
   });
-
   return result;
 };
-
 const getRetireProfessionalById = async (
   professionalId: string
 ): Promise<IProfessional | null> => {
@@ -295,9 +253,7 @@ const getRetireProfessionalById = async (
   );
   return result;
 };
-
 const updateProfessionalStripeAccount = async (payload: any) => {
-  // console.log(payload,"check payload from updateprofessional account")
   await User.findOneAndUpdate(
     { email: payload.email },
     {

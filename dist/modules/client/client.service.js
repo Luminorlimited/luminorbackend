@@ -44,19 +44,17 @@ const createClient = (user, clientData) => __awaiter(void 0, void 0, void 0, fun
     }
     const session = yield mongoose_1.default.startSession();
     try {
-        // console.log("Transaction started");
         session.startTransaction();
         const customer = yield stripe.customers.create({
             email: user.email,
             name: user.name.firstName + " " + user.name.lastName,
         });
-        // console.log(account,"check account")
         if (user.stripe) {
             user.stripe.customerId = customer.id;
         }
         const newUser = yield auth_model_1.User.create([user], { session });
         const newClientData = Object.assign(Object.assign({}, clientData), { client: newUser[0]._id });
-        const newClient = yield client_model_1.Client.create([newClientData], { session });
+        yield client_model_1.Client.create([newClientData], { session });
         yield session.commitTransaction();
         const accessToken = jwtHelpers_1.jwtHelpers.createToken({
             id: newUser[0]._id,
@@ -80,7 +78,6 @@ const createClient = (user, clientData) => __awaiter(void 0, void 0, void 0, fun
 const getClients = (filters, paginationOptions) => __awaiter(void 0, void 0, void 0, function* () {
     const { skip, limit, page, sortBy, sortOrder } = paginationHelper_1.paginationHelpers.calculatePagination(paginationOptions);
     const { query } = filters, filtersData = __rest(filters, ["query"]);
-    //  console.log(filtersData)
     const andCondition = [];
     if (query) {
         andCondition.push({
@@ -94,7 +91,6 @@ const getClients = (filters, paginationOptions) => __awaiter(void 0, void 0, voi
     }
     if (Object.keys(filtersData).length) {
         andCondition.push(...Object.entries(filtersData).map(([field, value]) => {
-            // Handle budget range
             if (field === "minBudget") {
                 const minBudget = parseInt(value);
                 return {
@@ -107,7 +103,6 @@ const getClients = (filters, paginationOptions) => __awaiter(void 0, void 0, voi
                     "budgetRange.max": { $gte: maxBudget },
                 };
             }
-            // Handle project duration range
             if (field === "projectMin") {
                 const minDuration = parseInt(value);
                 return {
@@ -121,12 +116,9 @@ const getClients = (filters, paginationOptions) => __awaiter(void 0, void 0, voi
                 };
             }
             else if (field === "industry") {
-                //  console.log(value,"check value from client get clients")
-                // const industryArray = (value as string).split(',').map((item) => item.trim());
                 const parseArray = Array.isArray(value)
                     ? value
                     : JSON.parse(value);
-                //console.log(parseArray, "check parse arrya");
                 return {
                     industry: { $in: parseArray },
                 };
@@ -135,21 +127,19 @@ const getClients = (filters, paginationOptions) => __awaiter(void 0, void 0, voi
                 const skiillTypeArray = Array.isArray(value)
                     ? value
                     : JSON.parse(value);
-                // console.log(skiillTypeArray);
                 return {
                     servicePreference: { $in: skiillTypeArray },
                 };
             }
             else if (field === "timeline") {
                 if (value === "shortTerm") {
-                    // console.log("for shorterm");
                     return {
-                        "projectDurationRange.max": { $lte: 29 }, // Projects with duration less than or equal to 30
+                        "projectDurationRange.max": { $lte: 29 },
                     };
                 }
                 else {
                     return {
-                        "projectDurationRange.max": { $gte: 30 }, // Projects with duration greater than or equal to 30
+                        "projectDurationRange.max": { $gte: 30 },
                     };
                 }
             }
@@ -189,14 +179,10 @@ const getClients = (filters, paginationOptions) => __awaiter(void 0, void 0, voi
     }
 });
 const updateSingleClient = (id, auth, clientPayload) => __awaiter(void 0, void 0, void 0, function* () {
-    const session = yield mongoose_1.default.startSession(); // Start a new session for transaction management
+    const session = yield mongoose_1.default.startSession();
     try {
         session.startTransaction();
         const clientAccount = yield auth_model_1.User.findById(id);
-        // console.log(clientAccount, "check client account");
-        // if (!clientAccount) {
-        //   throw new ApiError(404, "Client account not found");
-        // }
         if (clientPayload.servicePreference) {
             const industries = (0, serviceMapping_1.getIndustryFromService)(clientPayload.servicePreference);
             clientPayload.industry = industries;
@@ -208,9 +194,8 @@ const updateSingleClient = (id, auth, clientPayload) => __awaiter(void 0, void 0
         if (!updatedClient) {
             throw new handleApiError_1.default(404, "Client not found");
         }
-        // console.log(auth,"check auth");
         const updatedUser = yield auth_model_1.User.findByIdAndUpdate(id, auth, {
-            new: true, // return the updated document
+            new: true,
             session,
         });
         if (!updatedUser) {

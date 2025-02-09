@@ -34,7 +34,6 @@ const http_status_codes_1 = require("http-status-codes");
 const uploadTos3_1 = require("../../utilitis/uploadTos3");
 const createClient = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const data = req.body;
-    // console.log(data, "check data");
     const { name, email, role, password } = data, others = __rest(data, ["name", "email", "role", "password"]);
     const result = yield client_service_1.ClientService.createClient({
         name,
@@ -43,8 +42,6 @@ const createClient = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, v
         stripe: { onboardingUrl: "", customerId: "", isOnboardingSucess: false },
         password,
     }, others);
-    // console.log(jwtHelpers.verifyToken(result, config.jwt.secret as Secret));
-    // console.log(data, "check data");
     (0, sendResponse_1.default)(res, {
         success: true,
         statusCode: http_status_codes_1.StatusCodes.OK,
@@ -54,11 +51,8 @@ const createClient = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, v
 }));
 const getClients = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const paginationOptions = (0, pick_1.default)(req.query, pagination_1.paginationFileds);
-    // console.log(req.query, "querty check from controller");
     const filters = (0, pick_1.default)(req.query, searchableField_1.filterableField);
-    //  console.log(req.query,"check query")
     const result = yield client_service_1.ClientService.getClients(filters, paginationOptions);
-    // console.log(filters, "filters");
     (0, sendResponse_1.default)(res, {
         success: true,
         statusCode: http_status_codes_1.StatusCodes.OK,
@@ -85,30 +79,17 @@ const updateSingleClient = (0, catchAsync_1.default)((req, res) => __awaiter(voi
     const { name } = data, clientProfile = __rest(data, ["name"]);
     const { workSample, profileImage } = clientProfile, others = __rest(clientProfile, ["workSample", "profileImage"]);
     let updatedProfile = Object.assign({}, others);
-    // console.log(req.body);
     const files = req.files;
     const fileMap = {};
     if (files.length) {
         files.forEach((file) => {
             fileMap[file.fieldname] = file;
         });
-        // console.log(req.body, "check body");
-        // console.log(file, "check file");
         if (fileMap["projectUrl"]) {
             projectUrl = yield (0, uploadTos3_1.uploadFileToSpace)(fileMap["projectUrl"], "project-samples");
         }
-        // if (fileMap["profileUrl"]) {
-        //   profileImageUrl = await uploadFileToSpace(
-        //     fileMap["profileUrl"],
-        //     "profileUrl"
-        //   );
-        // }
-        updatedProfile = Object.assign(Object.assign({}, others), { 
-            // projectUrl: projectUrl,
-            profileUrl: profileImageUrl });
+        updatedProfile = Object.assign(Object.assign({}, others), { profileUrl: profileImageUrl });
     }
-    // console.log(req.user, "check user");
-    // Include uploaded file URLs in the update payload
     const auth = { name };
     const result = yield client_service_1.ClientService.updateSingleClient(id, auth, updatedProfile);
     (0, sendResponse_1.default)(res, {

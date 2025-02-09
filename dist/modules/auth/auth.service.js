@@ -24,12 +24,10 @@ const professional_model_1 = require("../professional/professional.model");
 const client_model_1 = require("../client/client.model");
 const loginUser = (payload) => __awaiter(void 0, void 0, void 0, function* () {
     const { email, password } = payload;
-    console.log(email, password, "check from login user");
     const isUserExist = yield auth_model_1.User.isUserExist(email);
     if (!isUserExist) {
         throw new handleApiError_1.default(http_status_codes_1.StatusCodes.NOT_FOUND, "User Doesn,t Exist");
     }
-    console.log(password, "check payload password");
     if (isUserExist.password &&
         !(yield auth_model_1.User.isPasswordMatched(password, isUserExist.password))) {
         throw new handleApiError_1.default(http_status_codes_1.StatusCodes.UNAUTHORIZED, "Password is incorrect");
@@ -74,14 +72,12 @@ const loginUser = (payload) => __awaiter(void 0, void 0, void 0, function* () {
  </body>
  </html>`;
     yield (0, emailSender_1.default)("OTP", userEmail, html);
-    const result = yield auth_model_1.User.updateOne({ _id: userId }, // Filter object
-    {
+    const result = yield auth_model_1.User.updateOne({ _id: userId }, {
         $set: {
             otp: randomOtp,
             otpExpiry: otpExpiry,
         },
-    } // Update object
-    );
+    });
     if (result.modifiedCount === 0) {
         throw new handleApiError_1.default(http_status_codes_1.StatusCodes.INTERNAL_SERVER_ERROR, "Failed to update OTP");
     }
@@ -103,14 +99,12 @@ const enterOtp = (payload) => __awaiter(void 0, void 0, void 0, function* () {
         email: userData.email,
         role: userData.role,
     }, config_1.default.jwt.secret, config_1.default.jwt.expires_in);
-    yield auth_model_1.User.updateOne({ _id: userData.id }, // Filter object
-    {
+    yield auth_model_1.User.updateOne({ _id: userData.id }, {
         $set: {
             otp: null,
             otpExpiry: null,
         },
-    } // Update object
-    );
+    });
     const result = {
         accessToken,
         user: {
@@ -191,7 +185,6 @@ const getAllClients = () => __awaiter(void 0, void 0, void 0, function* () {
 const createAdmin = (payload) => __awaiter(void 0, void 0, void 0, function* () {
     const existingAdmin = yield auth_model_1.User.findOne({ email: payload.email });
     if (existingAdmin) {
-        console.log("Admin already exists. Skipping creation.");
         return existingAdmin;
     }
     const admin = yield auth_model_1.User.create(payload);
@@ -205,21 +198,15 @@ const deleteUser = (id) => __awaiter(void 0, void 0, void 0, function* () {
     return updatedUser;
 });
 const updateCoverPhoto = (id, coverUrl) => __awaiter(void 0, void 0, void 0, function* () {
-    // Try finding in Client model
     let updatedUser = yield client_model_1.Client.findOneAndUpdate({ client: id }, { $set: { coverUrl } }, { new: true });
-    // If not found in Client, check RetireProfessional model
     if (!updatedUser) {
         updatedUser = yield professional_model_1.RetireProfessional.findOneAndUpdate({ retireProfessional: id }, { $set: { coverUrl } }, { new: true });
     }
-    console.log(updatedUser ? "Updated Successfully" : "User Not Found");
     return updatedUser;
 });
 const updateAdmin = (id, payload) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const result = yield auth_model_1.User.findByIdAndUpdate(id, // Pass id directly
-        { $set: payload }, // Spread payload correctly
-        { new: true, runValidators: true } // Ensure updated document is returned & validation runs
-        );
+        const result = yield auth_model_1.User.findByIdAndUpdate(id, { $set: payload }, { new: true, runValidators: true });
         return result;
     }
     catch (error) {

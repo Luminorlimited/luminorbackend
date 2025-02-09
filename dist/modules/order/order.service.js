@@ -73,8 +73,8 @@ const getOrderCalculation = (adminId, timeframe) => __awaiter(void 0, void 0, vo
     let endDate = new Date();
     switch (timeframe) {
         case "weekly":
-            // Set the start to last Monday
-            startDate.setDate(startDate.getDate() - (startDate.getDay() === 0 ? 6 : startDate.getDay() - 1));
+            startDate.setDate(startDate.getDate() -
+                (startDate.getDay() === 0 ? 6 : startDate.getDay() - 1));
             startDate.setHours(0, 0, 0, 0);
             endDate.setDate(startDate.getDate() + 6);
             endDate.setHours(23, 59, 59, 999);
@@ -90,7 +90,6 @@ const getOrderCalculation = (adminId, timeframe) => __awaiter(void 0, void 0, vo
         default:
             throw new handleApiError_1.default(404, "Invalid timeframe. Use weekly, monthly, or yearly.");
     }
-    // Fetch aggregated orders from MongoDB
     const orderData = yield order_model_1.Order.aggregate([
         {
             $match: {
@@ -105,9 +104,18 @@ const getOrderCalculation = (adminId, timeframe) => __awaiter(void 0, void 0, vo
                 _id: {
                     $switch: {
                         branches: [
-                            { case: { $eq: [timeframe, "weekly"] }, then: { $dayOfWeek: "$createdAt" } }, // Group by weekday
-                            { case: { $eq: [timeframe, "monthly"] }, then: { $dayOfMonth: "$createdAt" } }, // Group by date
-                            { case: { $eq: [timeframe, "yearly"] }, then: { $month: "$createdAt" } }, // Group by month
+                            {
+                                case: { $eq: [timeframe, "weekly"] },
+                                then: { $dayOfWeek: "$createdAt" },
+                            },
+                            {
+                                case: { $eq: [timeframe, "monthly"] },
+                                then: { $dayOfMonth: "$createdAt" },
+                            },
+                            {
+                                case: { $eq: [timeframe, "yearly"] },
+                                then: { $month: "$createdAt" },
+                            },
                         ],
                         default: null,
                     },
@@ -117,14 +125,21 @@ const getOrderCalculation = (adminId, timeframe) => __awaiter(void 0, void 0, vo
             },
         },
         {
-            $sort: { _id: 1 }, // Sort timeline in ascending order
+            $sort: { _id: 1 },
         },
     ]);
-    // Format timeline data
     const timeline = {};
     orderData.forEach(({ _id, totalOrders }) => {
         if (timeframe === "weekly") {
-            const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+            const days = [
+                "Sunday",
+                "Monday",
+                "Tuesday",
+                "Wednesday",
+                "Thursday",
+                "Friday",
+                "Saturday",
+            ];
             timeline[days[_id - 1]] = totalOrders;
         }
         else if (timeframe === "monthly") {
@@ -132,8 +147,18 @@ const getOrderCalculation = (adminId, timeframe) => __awaiter(void 0, void 0, vo
         }
         else if (timeframe === "yearly") {
             const months = [
-                "January", "February", "March", "April", "May", "June",
-                "July", "August", "September", "October", "November", "December"
+                "January",
+                "February",
+                "March",
+                "April",
+                "May",
+                "June",
+                "July",
+                "August",
+                "September",
+                "October",
+                "November",
+                "December",
             ];
             timeline[months[_id - 1]] = totalOrders;
         }

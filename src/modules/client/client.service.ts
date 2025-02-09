@@ -23,31 +23,21 @@ const createClient = async (user: IUser, clientData: IClient) => {
   if (isUserExist) {
     throw new ApiError(400, "User Already Exist");
   }
-
   const session = await mongoose.startSession();
   try {
-    // console.log("Transaction started");
-
     session.startTransaction();
-
     const customer = await stripe.customers.create({
       email: user.email,
       name: user.name.firstName + " " + user.name.lastName,
     });
-    // console.log(account,"check account")
-  
-
     if (user.stripe) {
       user.stripe.customerId = customer.id;
     }
-
     const newUser = await User.create([user], { session });
 
     const newClientData = { ...clientData, client: newUser[0]._id };
-    const newClient = await Client.create([newClientData], { session });
-
+    await Client.create([newClientData], { session });
     await session.commitTransaction();
-
     const accessToken = jwtHelpers.createToken(
       {
         id: newUser[0]._id,
@@ -65,23 +55,18 @@ const createClient = async (user: IUser, clientData: IClient) => {
     if (error.code === 11000) {
       throw new ApiError(400, "Duplicate email not allowed");
     }
-
     throw new ApiError(400, error.message || "An error occurred");
   } finally {
     session.endSession();
   }
 };
-
 const getClients = async (
   filters: IFilters,
   paginationOptions: IpaginationOptions
 ): Promise<IGenericResponse<IClient[]>> => {
   const { skip, limit, page, sortBy, sortOrder } =
     paginationHelpers.calculatePagination(paginationOptions);
-
   const { query, ...filtersData } = filters;
-
-  //  console.log(filtersData)
   const andCondition = [];
   if (query) {
     andCondition.push({
@@ -96,7 +81,6 @@ const getClients = async (
   if (Object.keys(filtersData).length) {
     andCondition.push(
       ...Object.entries(filtersData).map(([field, value]) => {
-        // Handle budget range
         if (field === "minBudget") {
           const minBudget = parseInt(value as string);
           return {
@@ -108,8 +92,6 @@ const getClients = async (
             "budgetRange.max": { $gte: maxBudget },
           };
         }
-
-        // Handle project duration range
         if (field === "projectMin") {
           const minDuration = parseInt(value as string);
           return {
@@ -121,13 +103,9 @@ const getClients = async (
             "projectDurationRange.max": { $gte: maxDuration },
           };
         } else if (field === "industry") {
-          //  console.log(value,"check value from client get clients")
-          // const industryArray = (value as string).split(',').map((item) => item.trim());
-
           const parseArray = Array.isArray(value)
             ? value
             : JSON.parse(value as string);
-          //console.log(parseArray, "check parse arrya");
           return {
             industry: { $in: parseArray },
           };
@@ -135,29 +113,24 @@ const getClients = async (
           const skiillTypeArray = Array.isArray(value)
             ? value
             : JSON.parse(value as string);
-          // console.log(skiillTypeArray);
-
           return {
             servicePreference: { $in: skiillTypeArray },
           };
         } else if (field === "timeline") {
           if (value === "shortTerm") {
-            // console.log("for shorterm");
             return {
-              "projectDurationRange.max": { $lte: 29 }, // Projects with duration less than or equal to 30
+              "projectDurationRange.max": { $lte: 29 },
             };
           } else {
             return {
-              "projectDurationRange.max": { $gte: 30 }, // Projects with duration greater than or equal to 30
+              "projectDurationRange.max": { $gte: 30 },
             };
           }
         }
-
         return { [field]: { $regex: value as string, $options: "i" } };
       })
     );
   }
-
   const sortCondition: { [key: string]: SortOrder } = {};
   if (sortBy && sortOrder) {
     sortCondition[sortBy] = sortOrder;
@@ -168,7 +141,6 @@ const getClients = async (
     .skip(skip)
     .limit(limit)
     .populate("client");
-
   const count = await Client.countDocuments();
   if (andCondition.length > 0) {
     return {
@@ -195,23 +167,16 @@ const updateSingleClient = async (
   auth: Partial<IClient>,
   clientPayload: Partial<IClient>
 ): Promise<IClient | null> => {
-  const session = await mongoose.startSession(); // Start a new session for transaction management
+  const session = await mongoose.startSession();
   try {
     session.startTransaction();
     const clientAccount = await User.findById(id);
-    // console.log(clientAccount, "check client account");
-    // if (!clientAccount) {
-    //   throw new ApiError(404, "Client account not found");
-    // }
-
     if (clientPayload.servicePreference) {
       const industries = getIndustryFromService(
         clientPayload.servicePreference
       );
       clientPayload.industry = industries;
     }
-
-    
     const updatedClient = await Client.findOneAndUpdate(
       { client: clientAccount?._id },
       clientPayload,
@@ -224,31 +189,22 @@ const updateSingleClient = async (
     if (!updatedClient) {
       throw new ApiError(404, "Client not found");
     }
-    // console.log(auth,"check auth");
-
-
     const updatedUser = await User.findByIdAndUpdate(id, auth, {
-      new: true, // return the updated document
+      new: true,
       session,
     });
-
     if (!updatedUser) {
       throw new ApiError(404, "User not found");
     }
-
-  
     await session.commitTransaction();
     session.endSession();
-
     return updatedClient.populate("client");
   } catch (error: any) {
-
     await session.abortTransaction();
     session.endSession();
     throw new ApiError(400, error.message || "Error updating client");
   }
 };
-
 const getClientById = async (id: string): Promise<IClient | null> => {
   const result = await Client.findById(id).populate("client");
   return result;

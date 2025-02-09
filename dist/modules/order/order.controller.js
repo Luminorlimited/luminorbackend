@@ -30,7 +30,6 @@ const createOrder = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, vo
 }));
 const getOrderByProfessional = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const user = req.user;
-    // console.log(user)
     if (!user) {
         throw new handleApiError_1.default(http_status_codes_1.StatusCodes.UNAUTHORIZED, "user not found");
     }
@@ -44,7 +43,6 @@ const getOrderByProfessional = (0, catchAsync_1.default)((req, res) => __awaiter
 }));
 const getOrderByClient = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const user = req.user;
-    // console.log(user)
     if (!user) {
         throw new handleApiError_1.default(http_status_codes_1.StatusCodes.UNAUTHORIZED, "user not found");
     }
@@ -62,7 +60,6 @@ const getSpecificOrderBYClientAndProfessional = (0, catchAsync_1.default)((req, 
     if (!professional || !client) {
         throw new handleApiError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "Both professional and client must be provided and must be strings");
     }
-    // console.log(client,professional)
     const list = yield order_service_1.OrderService.getSpecificOrderBYClientAndProfessional(client, professional);
     (0, sendResponse_1.default)(res, {
         success: true,
@@ -72,7 +69,6 @@ const getSpecificOrderBYClientAndProfessional = (0, catchAsync_1.default)((req, 
     });
 }));
 const getOrderById = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    // console.log(req.user)
     const list = yield order_service_1.OrderService.getOrderById(req.params.id);
     (0, sendResponse_1.default)(res, {
         success: true,
@@ -82,7 +78,6 @@ const getOrderById = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, v
     });
 }));
 const getAllOrders = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    // console.log(req.user)
     const list = yield order_service_1.OrderService.getAllOrders();
     (0, sendResponse_1.default)(res, {
         success: true,
@@ -92,7 +87,6 @@ const getAllOrders = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, v
     });
 }));
 const getOrderCalculation = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    // console.log(req.user)
     const user = req.user;
     const { timeframe } = req.query;
     const list = yield order_service_1.OrderService.getOrderCalculation(user.id, timeframe);

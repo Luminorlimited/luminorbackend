@@ -34,16 +34,23 @@ const createOffer = (offer) => __awaiter(void 0, void 0, void 0, function* () {
     }
     offer.serviceFee = parseFloat(offer.totalPrice.toString()) * 0.2;
     offer.totalReceive = parseFloat(offer.totalPrice.toString());
-    offer.totalPrice = parseFloat(offer.totalPrice.toString()) + parseFloat(offer.serviceFee.toString());
+    offer.totalPrice =
+        parseFloat(offer.totalPrice.toString()) +
+            parseFloat(offer.serviceFee.toString());
     if (offer.agreementType === offer_interface_1.AgreementType.FlatFee) {
-        offer.totalDeliveryTime = ((_b = offer.flatFee) === null || _b === void 0 ? void 0 : _b.delivery) ? parseFloat(offer.flatFee.delivery.toString()) : 0;
+        offer.totalDeliveryTime = ((_b = offer.flatFee) === null || _b === void 0 ? void 0 : _b.delivery)
+            ? parseFloat(offer.flatFee.delivery.toString())
+            : 0;
     }
     else if (offer.agreementType === offer_interface_1.AgreementType.HourlyFee) {
-        offer.totalDeliveryTime = offer.hourlyFee ? parseFloat(offer.hourlyFee.delivery.toString()) || 0 : 0;
+        offer.totalDeliveryTime = offer.hourlyFee
+            ? parseFloat(offer.hourlyFee.delivery.toString()) || 0
+            : 0;
     }
     else if (offer.agreementType === offer_interface_1.AgreementType.Milestone &&
         offer.milestones) {
-        offer.totalDeliveryTime = offer === null || offer === void 0 ? void 0 : offer.milestones.reduce((total, milestone) => parseFloat(total.toString()) + (parseFloat(milestone.delivery.toString()) || 0), 0);
+        offer.totalDeliveryTime = offer === null || offer === void 0 ? void 0 : offer.milestones.reduce((total, milestone) => parseFloat(total.toString()) +
+            (parseFloat(milestone.delivery.toString()) || 0), 0);
     }
     const newOffer = yield offer_model_1.Offer.create(offer);
     const unseenCount = yield offer_model_1.Offer.countDocuments({
@@ -82,18 +89,19 @@ const getSingleOffer = (id) => __awaiter(void 0, void 0, void 0, function* () {
 });
 const deleteSingleOffer = (id) => __awaiter(void 0, void 0, void 0, function* () {
     const offer = yield offer_model_1.Offer.findByIdAndDelete({ _id: id });
-    // console.log(offer, "offer");
     return offer;
 });
 const countOffer = (email) => __awaiter(void 0, void 0, void 0, function* () {
     const totalUnseen = yield offer_model_1.Offer.find({
         clientEmail: email,
-        isSeen: false
+        isSeen: false,
     }).select("_id");
     return totalUnseen.length;
 });
 const getAllOffers = () => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield offer_model_1.Offer.find({}).populate("professionalEmail").populate("clientEmail");
+    const result = yield offer_model_1.Offer.find({})
+        .populate("professionalEmail")
+        .populate("clientEmail");
     return result;
 });
 exports.OfferService = {
@@ -102,5 +110,5 @@ exports.OfferService = {
     getSingleOffer,
     deleteSingleOffer,
     countOffer,
-    getAllOffers
+    getAllOffers,
 };
