@@ -28,7 +28,6 @@ const createOffer = (offer) => __awaiter(void 0, void 0, void 0, function* () {
     }
     offer.clientEmail = client._id;
     offer.professionalEmail = professional._id;
-    console.log(offer, "check offer from service file");
     if (((_a = professional === null || professional === void 0 ? void 0 : professional.stripe) === null || _a === void 0 ? void 0 : _a.isOnboardingSucess) === false) {
         yield stripe_service_1.StripeServices.generateNewAccountLink(professional);
         throw new handleApiError_1.default(http_status_codes_1.StatusCodes.UNAUTHORIZED, "we send you a onboaring url.please check your email");

@@ -258,6 +258,7 @@ const createPaymentIntentService = (payload) => __awaiter(void 0, void 0, void 0
             {
                 orderId: null,
                 amount: offer.totalPrice,
+                charge: offer.serviceFee,
                 paymentStatus: "pending",
                 stripePaymentIntentId: paymentIntent.id,
             },

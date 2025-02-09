@@ -76,9 +76,6 @@ const updateSingleRetireProfessional = (0, catchAsync_1.default)((req, res) => _
         }
         updatedProfile = Object.assign(Object.assign({}, others), { workSample: workSampleUrl, profileUrl: profileImageUrl });
     }
-    // Parse and update body fields
-    // Include uploaded file URLs in the update payload
-    // Call service to update
     const result = yield professional_service_1.RetireProfessionalService.updateSingleRetireProfessional(req.params.id, auth, updatedProfile);
     (0, sendResponse_1.default)(res, {
         success: true,

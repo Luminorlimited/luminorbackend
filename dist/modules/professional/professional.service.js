@@ -50,7 +50,7 @@ const createProfessional = (user, professionalData, file) => __awaiter(void 0, v
         const accountLink = yield stripe.accountLinks.create({
             account: account.id,
             refresh_url: "https://your-platform.com/reauth",
-            return_url: "https://your-platform.com/return",
+            return_url: "https://luminoor.vercel.app",
             type: "account_onboarding",
         });
         if (user.stripe) {
@@ -93,10 +93,11 @@ const updateSingleRetireProfessional = (id, auth, retireProfessionalPayload) => 
     try {
         session.startTransaction();
         const professionalAccount = yield auth_model_1.User.findById(id);
-        if (!professionalAccount) {
-            throw new handleApiError_1.default(404, "Professional account not found");
-        }
-        const updatedRetireProfessional = yield professional_model_1.RetireProfessional.findOneAndUpdate({ retireProfessional: professionalAccount._id }, retireProfessionalPayload, {
+        // if (!professionalAccount) {
+        //   throw new ApiError(404, "Professional account not found");
+        // }
+        //  console.log(auth,retireProfessionalPayload)
+        const updatedRetireProfessional = yield professional_model_1.RetireProfessional.findOneAndUpdate({ retireProfessional: professionalAccount === null || professionalAccount === void 0 ? void 0 : professionalAccount._id }, retireProfessionalPayload, {
             new: true,
             session,
         });

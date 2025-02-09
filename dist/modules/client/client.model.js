@@ -5,7 +5,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Client = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
-const service_1 = require("../../enums/service");
 const clientSchema = new mongoose_1.default.Schema({
     client: {
         type: mongoose_1.default.Schema.Types.ObjectId,
@@ -44,7 +43,7 @@ const clientSchema = new mongoose_1.default.Schema({
     description: { type: String, default: null },
     servicePreference: {
         type: String,
-        enum: service_1.ENUM_SERVICE_PREFERENCE,
+        // enum: ENUM_SERVICE_PREFERENCE,
         default: null,
     },
     industry: { type: String, defaul: null },

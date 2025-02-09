@@ -24,11 +24,11 @@ const professional_model_1 = require("../professional/professional.model");
 const client_model_1 = require("../client/client.model");
 const loginUser = (payload) => __awaiter(void 0, void 0, void 0, function* () {
     const { email, password } = payload;
+    console.log(email, password, "check from login user");
     const isUserExist = yield auth_model_1.User.isUserExist(email);
     if (!isUserExist) {
         throw new handleApiError_1.default(http_status_codes_1.StatusCodes.NOT_FOUND, "User Doesn,t Exist");
     }
-    console.log(isUserExist.password, "check data base password");
     console.log(password, "check payload password");
     if (isUserExist.password &&
         !(yield auth_model_1.User.isPasswordMatched(password, isUserExist.password))) {
@@ -124,7 +124,9 @@ const enterOtp = (payload) => __awaiter(void 0, void 0, void 0, function* () {
 });
 const getProfile = (id) => __awaiter(void 0, void 0, void 0, function* () {
     const user = yield auth_model_1.User.findById(id);
-    // console.log(user, "User details");
+    if ((user === null || user === void 0 ? void 0 : user.role) === user_1.ENUM_USER_ROLE.ADMIN) {
+        return user;
+    }
     let result;
     if ((user === null || user === void 0 ? void 0 : user.role) === user_1.ENUM_USER_ROLE.RETIREPROFESSIONAL) {
         result = yield professional_model_1.RetireProfessional.findOne({
@@ -134,7 +136,7 @@ const getProfile = (id) => __awaiter(void 0, void 0, void 0, function* () {
     else if ((user === null || user === void 0 ? void 0 : user.role) === user_1.ENUM_USER_ROLE.CLIENT) {
         result = yield client_model_1.Client.findOne({ client: user.id }).populate("client");
     }
-    return result;
+    return result || user;
 });
 const getSingleUserById = (id) => __awaiter(void 0, void 0, void 0, function* () {
     const user = yield auth_model_1.User.findById(id);
@@ -180,12 +182,28 @@ const deleteUser = (id) => __awaiter(void 0, void 0, void 0, function* () {
     }
     return updatedUser;
 });
-const updateCoverPhoto = (id) => __awaiter(void 0, void 0, void 0, function* () {
-    const updatedUser = yield auth_model_1.User.findByIdAndUpdate(id, { isDeleted: true }, { new: true });
+const updateCoverPhoto = (id, coverUrl) => __awaiter(void 0, void 0, void 0, function* () {
+    // Try finding in Client model
+    let updatedUser = yield client_model_1.Client.findOneAndUpdate({ client: id }, { $set: { coverUrl } }, { new: true });
+    // If not found in Client, check RetireProfessional model
     if (!updatedUser) {
-        throw new Error("User not found");
+        updatedUser = yield professional_model_1.RetireProfessional.findOneAndUpdate({ retireProfessional: id }, { $set: { coverUrl } }, { new: true });
     }
+    console.log(updatedUser ? "Updated Successfully" : "User Not Found");
     return updatedUser;
+});
+const updateAdmin = (id, payload) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const result = yield auth_model_1.User.findByIdAndUpdate(id, // Pass id directly
+        { $set: payload }, // Spread payload correctly
+        { new: true, runValidators: true } // Ensure updated document is returned & validation runs
+        );
+        return result;
+    }
+    catch (error) {
+        console.error("Error updating admin:", error);
+        throw error;
+    }
 });
 exports.AuthService = {
     loginUser,
@@ -197,5 +215,6 @@ exports.AuthService = {
     getAllClients,
     createAdmin,
     deleteUser,
-    updateCoverPhoto
+    updateCoverPhoto,
+    updateAdmin,
 };

@@ -41,6 +41,10 @@ const transactionSchema = new mongoose_1.default.Schema({
         enum: Object.values(transaction_interface_1.PAYMENTSTATUS),
         required: true,
     },
+    charge: {
+        type: Number,
+        required: true
+    }
 }, {
     timestamps: true,
     versionKey: false
