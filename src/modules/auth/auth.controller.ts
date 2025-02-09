@@ -115,6 +115,12 @@ const updateCoverPhoto = catchAsync(async (req: Request, res: Response) => {
 });
 const updateAdmin = catchAsync(async (req: Request, res: Response) => {
   const user = req.user as any;
+
+  // let profileUrl;
+  // if (req.file) {
+  //   profileUrl = await uploadFileToSpace(req.file, "profileImage");
+  // }
+  // const data = { ...req.body, profileUrl };
   const result = await AuthService.updateAdmin(user.id, req.body);
   sendResponse(res, {
     statusCode: StatusCodes.OK,
