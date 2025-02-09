@@ -182,17 +182,37 @@ const getAllUsers = async () => {
   return users;
 };
 const getAllRetireProfiessional = async () => {
-  const users = await RetireProfessional.find({}).populate(
-    "retireProfessional"
-  );
+  const users = await RetireProfessional.aggregate([
+    {
+      $lookup: {
+        from: "users",
+        localField: "retireProfessional",
+        foreignField: "_id",
+        as: "retireProfessional",
+      },
+    },
+    { $unwind: "$retireProfessional" },
+    { $match: { "retireProfessional.isDeleted": false } },
+  ]);
+
   return users;
 };
-
 const getAllClients = async () => {
-  const users = await Client.find({}).populate("client");
-  return users;
-};
+  const clients = await Client.aggregate([
+    {
+      $lookup: {
+        from: "users",
+        localField: "client",
+        foreignField: "_id",
+        as: "client",
+      },
+    },
+    { $unwind: "$client" },
+    { $match: { "client.isDeleted": false } },
+  ]);
 
+  return clients;
+};
 const createAdmin = async (payload: any) => {
   const existingAdmin = await User.findOne({ email: payload.email });
 
