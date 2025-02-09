@@ -1,14 +1,10 @@
 import { NextFunction, Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
-
 import { Secret } from "jsonwebtoken";
 import { jwtHelpers } from "../helpers/jwtHelpers";
 import config from "../config";
 import { User } from "../modules/auth/auth.model";
 import ApiError from "../errors/handleApiError";
-
-//  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN)
-
 const auth = (...roles: string[]) => {
   return async (
     req: Request & { user?: any },
@@ -17,7 +13,6 @@ const auth = (...roles: string[]) => {
   ) => {
     try {
       const token = req.headers.authorization;
-      // console.log(token,"check token")
 
       if (!token) {
         throw new ApiError(StatusCodes.UNAUTHORIZED, "You are not authorized!");
@@ -27,12 +22,11 @@ const auth = (...roles: string[]) => {
         token,
         config.jwt.secret as Secret
       );
-      // console.log(verifiedUser, "checkc ver fied user");
 
       const user = await User.findOne({
         _id: verifiedUser.id,
       });
-      // console.log(user, "check user");
+
       if (!user) {
         throw new ApiError(
           StatusCodes.UNAUTHORIZED,
@@ -45,7 +39,6 @@ const auth = (...roles: string[]) => {
       }
 
       req.user = verifiedUser;
-      // console.log(req.user,"check user")
 
       next();
     } catch (err) {

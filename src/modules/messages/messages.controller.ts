@@ -22,35 +22,28 @@ const createMessage = catchAsync(async (req: Request, res: Response) => {
 const getMessages = catchAsync(async (req: Request, res: Response) => {
   const { user1, user2 } = req.query;
   const user = req.user as any;
-  // console.log(user,"check user")
   const messages = await MessageService.getMessages(
     user1 as string,
     user2 as string,
     user.id
   );
-
   sendResponse(res, {
     success: true,
     statusCode: StatusCodes.OK,
-
     message: "Message get   successfully",
     data: messages,
   });
 });
 const getSingleMessages = catchAsync(async (req: Request, res: Response) => {
-  const {  id:user2 } = req.params;
+  const { id: user2 } = req.params;
   const user1 = req.user as any;
-  // console.log(user,"check user")
   const messages = await MessageService.getSingleMessages(
     user1.id as string,
-    user2  as string,
-  
+    user2 as string
   );
-
   sendResponse(res, {
     success: true,
     statusCode: StatusCodes.OK,
-
     message: "Message get   successfully",
     data: messages,
   });
@@ -59,29 +52,22 @@ const getConversationLists = catchAsync(async (req: Request, res: Response) => {
   if (!req.user) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "header not found");
   }
-
   const list = await MessageService.getConversationLists(
     (req.user as any).email as string
   );
-
   sendResponse(res, {
     success: true,
     statusCode: StatusCodes.OK,
-
     message: "convirsation list  get   successfully",
     data: list,
   });
 });
 const uploadMessagefile = catchAsync(async (req: Request, res: Response) => {
   const file = req.file;
-
-  //  console.log(req.file,"check req.file")
-
   if (!file) {
     throw new ApiError(StatusCodes.UNAUTHORIZED, "choose a file");
   }
   const fileUrl = await MessageService.uploadMessagefile(file);
-
   sendResponse(res, {
     success: true,
     statusCode: StatusCodes.OK,
@@ -95,5 +81,5 @@ export const MessageController = {
   getMessages,
   getConversationLists,
   uploadMessagefile,
-  getSingleMessages
+  getSingleMessages,
 };

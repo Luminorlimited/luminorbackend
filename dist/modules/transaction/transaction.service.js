@@ -41,7 +41,7 @@ const totalRevenue = () => __awaiter(void 0, void 0, void 0, function* () {
 const totlaRefunded = () => __awaiter(void 0, void 0, void 0, function* () {
     const result = yield transaction_model_1.Transaction.aggregate([
         {
-            $match: { paymentStatus: transaction_interface_1.PAYMENTSTATUS.REFUNDED }, // Only refunded transactions
+            $match: { paymentStatus: transaction_interface_1.PAYMENTSTATUS.REFUNDED },
         },
         {
             $group: {
@@ -51,7 +51,6 @@ const totlaRefunded = () => __awaiter(void 0, void 0, void 0, function* () {
         },
     ]);
     const totalRefund = result.length > 0 ? result[0].totalRefunded : 0;
-    console.log(totalRevenue, "check total revenue");
     return { totalRefund };
 });
 const getTransactionCalculation = () => __awaiter(void 0, void 0, void 0, function* () {
@@ -69,7 +68,7 @@ const getTransactionCalculation = () => __awaiter(void 0, void 0, void 0, functi
         {
             $group: {
                 _id: { $month: "$createdAt" },
-                totalIncome: { $sum: "$amount" },
+                totalIncome: { $sum: "$charge" },
             },
         },
         {
@@ -77,8 +76,18 @@ const getTransactionCalculation = () => __awaiter(void 0, void 0, void 0, functi
         },
     ]);
     const monthNames = [
-        "January", "February", "March", "April", "May", "June",
-        "July", "August", "September", "October", "November", "December"
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
     ];
     const formattedIncome = monthNames.map((month, index) => {
         const data = monthlyIncome.find((item) => item._id === index + 1);
@@ -87,7 +96,6 @@ const getTransactionCalculation = () => __awaiter(void 0, void 0, void 0, functi
             totalIncome: data ? data.totalIncome : 0,
         };
     });
-    console.log("Monthly Income:", formattedIncome);
     return { yearlyIncome: formattedIncome };
 });
 exports.TransactionService = {
@@ -95,5 +103,5 @@ exports.TransactionService = {
     lastTransaction,
     totalRevenue,
     totlaRefunded,
-    getTransactionCalculation
+    getTransactionCalculation,
 };

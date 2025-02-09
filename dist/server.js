@@ -40,7 +40,6 @@ exports.io = new socket_io_1.Server(httpServer, {
     pingTimeout: 60000,
     upgradeTimeout: 30000,
 });
-// Store socket IDs for users
 exports.users = {};
 exports.onlineUsers = new Map();
 exports.userInChat = new Map();
@@ -87,7 +86,7 @@ exports.io.on("connection", (socket) => {
                 socket.to(toSocketId).emit("privateMessage", {
                     message: populatedMessage,
                     fromEmail: fromEmail,
-                    toEmail: toEmail
+                    toEmail: toEmail,
                 });
                 if (toEmailConversationList) {
                     socket
@@ -102,8 +101,6 @@ exports.io.on("connection", (socket) => {
     }));
     socket.on("userInChat", (data) => {
         const { userEmail, chattingWith } = JSON.parse(data);
-        // console.log(userEmail, "from user inchat user email");
-        // console.log(chattingWith, "from user in chat chatting with");
         if (chattingWith) {
             exports.userInChat.set(userEmail, chattingWith);
         }
@@ -120,26 +117,26 @@ exports.io.on("connection", (socket) => {
             offer.orderAgreementPDF = offerPDFPath;
             const totalOffer = Object.assign(Object.assign({}, offer), { clientEmail: toEmail, professionalEmail: fromEmail });
             const newOffer = yield offer_service_1.OfferService.createOffer(totalOffer);
-            console.log(newOffer, "check new offer");
             if (toSocketId) {
                 socket.to(toSocketId).emit("sendOffer", {
                     from: fromEmail,
                     offer: newOffer,
                 });
             }
-            socket.emit("sendOfferSuccess", { message: "Offer sent successfully!", statusCode: 200 });
+            socket.emit("sendOfferSuccess", {
+                message: "Offer sent successfully!",
+                statusCode: 200,
+            });
         }
         catch (error) {
             socket.emit("sendOfferError", {
                 message: error.message || "Failed to create offer",
-                statusCode: error.statusCode || 500
+                statusCode: error.statusCode || 500,
             });
-            // console.log(error,"check error")
         }
     }));
     socket.on("createZoomMeeting", (data) => __awaiter(void 0, void 0, void 0, function* () {
         const { fromEmail, toEmail } = JSON.parse(data);
-        // console.log(data, "from zoom meeting")
         const toSocketId = exports.users[toEmail];
         try {
             const meeting = yield zoom_service_1.zoomService.createZoomMeeting();
@@ -147,7 +144,6 @@ exports.io.on("connection", (socket) => {
                 throw new Error("Invalid Zoom meeting data");
             }
             const { start_url, join_url } = meeting;
-            // console.log(meeting,"check meeting link")
             const savedMessage = yield messages_service_1.MessageService.createMessage({
                 sender: fromEmail,
                 recipient: toEmail,
@@ -162,8 +158,6 @@ exports.io.on("connection", (socket) => {
                     savedMessage,
                 });
             }
-            // savedMessage.meetingLink = start_url;
-            // savedMessage.message = start_url;
             socket.emit("createZoomMeeting", {
                 savedMessage,
             });
@@ -191,9 +185,7 @@ exports.io.on("connection", (socket) => {
 function bootstrap() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            // Connect to MongoDB
-            yield mongoose_1.default.connect("mongodb+srv://luminor:BYcHOYLQI2eiZ9IU@cluster0.v0ciw.mongodb.net/luminor?retryWrites=true&w=majority&appName=Cluster0", options);
-            //  await initiateSuperAdmin()
+            yield mongoose_1.default.connect(config_1.default.database_url, options);
             console.log("Connected to MongoDB successfully.");
             httpServer.listen(config_1.default.port, () => {
                 console.log(`Server running at port ${config_1.default.port}`);

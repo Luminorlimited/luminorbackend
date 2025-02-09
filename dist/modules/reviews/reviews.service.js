@@ -29,10 +29,6 @@ const postReviewsByClient = (reviewerId, receiverId, reviewData) => __awaiter(vo
         if (!retireProfessional) {
             throw new Error("RetireProfessional not found");
         }
-        // const client = await Client.findOne({ client: reviewerId });
-        // if (!client) {
-        //   throw new ApiError(StatusCodes.UNAUTHORIZED, "client not found");
-        // }
         const newReview = yield review_model_1.Review.create([
             Object.assign(Object.assign({}, reviewData), { receiverId: receiverId, reviewerId: reviewerId }),
         ], { session });
@@ -41,7 +37,6 @@ const postReviewsByClient = (reviewerId, receiverId, reviewData) => __awaiter(vo
         }).session(session);
         const totalRatings = reviews.reduce((sum, review) => sum + review.rating, 0);
         const averageRating = totalRatings / reviews.length;
-        // console.log(averageRating,"check average rating")
         yield professional_model_1.RetireProfessional.updateOne({ _id: retireProfessional._id }, { averageRating, reviewCount: reviews.length }, { session });
         yield session.commitTransaction();
         return newReview;
@@ -70,7 +65,6 @@ const postReviewsByRetireProfessional = (reviewerId, receiverId, reviewData) => 
         }).session(session);
         const totalRatings = reviews.reduce((sum, review) => sum + review.rating, 0);
         const averageRating = totalRatings / reviews.length;
-        // console.log(averageRating,"check average rating")
         yield client_model_1.Client.updateOne({ _id: client._id }, { averageRating, reviewCount: reviews.length }, { session });
         yield session.commitTransaction();
         return newReview;

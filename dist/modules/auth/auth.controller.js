@@ -43,13 +43,6 @@ const loginUser = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void
 const enterOtp = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const result = yield auth_service_1.AuthService.enterOtp(req.body);
     auth_service_1.AuthService;
-    // res.cookie("token", result.accessToken, { httpOnly: true });
-    // res.cookie("token", result.accessToken, {
-    //   secure: config.env === "production",
-    //   httpOnly: true,
-    //   sameSite: "none",
-    //   maxAge: 1000 * 60 * 60 * 24 * 365,
-    // });
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_codes_1.StatusCodes.OK,
         success: true,
@@ -59,9 +52,6 @@ const enterOtp = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 
 }));
 const getProfile = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const user = req.user;
-    // console.log(user,"check user")
-    // res.cookie("token", result.accessToken, { httpOnly: true });
-    // console.log(req.user, "check user");
     const result = yield auth_service_1.AuthService.getProfile(user.id);
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_codes_1.StatusCodes.OK,
@@ -71,8 +61,6 @@ const getProfile = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, voi
     });
 }));
 const getSingleUserById = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    // console.log(user,"check user")
-    // res.cookie("token", result.accessToken, { httpOnly: true });
     const result = yield auth_service_1.AuthService.getSingleUserById(req.params.id);
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_codes_1.StatusCodes.OK,
@@ -82,8 +70,6 @@ const getSingleUserById = (0, catchAsync_1.default)((req, res) => __awaiter(void
     });
 }));
 const getAllUsers = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    // console.log(user,"check user")
-    // res.cookie("token", result.accessToken, { httpOnly: true });
     const result = yield auth_service_1.AuthService.getAllUsers();
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_codes_1.StatusCodes.OK,
@@ -122,7 +108,6 @@ const createAdmin = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, vo
 }));
 const delteUser = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = req.params.id;
-    console.log();
     const result = yield auth_service_1.AuthService.deleteUser(id);
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_codes_1.StatusCodes.OK,
@@ -133,7 +118,6 @@ const delteUser = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void
 }));
 const updateCoverPhoto = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const user = req.user;
-    console.log();
     const file = req.file;
     if (!req.file) {
         throw new handleApiError_1.default(http_status_codes_1.StatusCodes.UNAUTHORIZED, "file not found ");
@@ -149,7 +133,6 @@ const updateCoverPhoto = (0, catchAsync_1.default)((req, res) => __awaiter(void 
 }));
 const updateAdmin = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const user = req.user;
-    console.log();
     const result = yield auth_service_1.AuthService.updateAdmin(user.id, req.body);
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_codes_1.StatusCodes.OK,

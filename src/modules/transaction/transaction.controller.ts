@@ -1,9 +1,7 @@
 import { StatusCodes } from "http-status-codes";
 import catchAsync from "../../shared/catchAsync";
 import sendResponse from "../../shared/sendResponse";
-
 import { Request, Response } from "express";
-import ApiError from "../../errors/handleApiError";
 import { TransactionService } from "./transaction.service";
 
 const getAllTransactions = catchAsync(async (req: Request, res: Response) => {
@@ -52,14 +50,10 @@ const totlaRefunded = catchAsync(async (req: Request, res: Response) => {
 });
 const getTransactionCalculation = catchAsync(
   async (req: Request, res: Response) => {
-    // console.log(req.user)
-
     const list = await TransactionService.getTransactionCalculation();
-
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,
-
       message: "getOrderCalculation work done ",
       data: list,
     });

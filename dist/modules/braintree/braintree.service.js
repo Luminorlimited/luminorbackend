@@ -29,14 +29,12 @@ const generateClientToken = () => __awaiter(void 0, void 0, void 0, function* ()
 const processPayment = (payload) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { amount, nonce, professionalId } = payload;
-        // Fetch professional's bank details
         const professional = yield professional_model_1.RetireProfessional.findOne({
             retireProfessional: professionalId,
         });
         if (!professional) {
             throw new handleApiError_1.default(http_status_codes_1.StatusCodes.UNAUTHORIZED, "professional not found");
         }
-        // Create Braintree transaction
         const platformFee = (amount * 20) / 100;
         const payoutAmount = amount - platformFee;
         const result = yield braintreeConfig_1.gateway.transaction.sale({
@@ -45,40 +43,12 @@ const processPayment = (payload) => __awaiter(void 0, void 0, void 0, function* 
             customer: {
                 firstName: payload.firstName,
                 lastName: payload.lastName,
-                // email: payload.email,
-                // phone: payload.phone,
             },
             options: { submitForSettlement: true },
         });
-        // console.log(result, "check result");
         if (!result.success) {
             throw new handleApiError_1.default(http_status_codes_1.StatusCodes.UNAUTHORIZED, result.message);
         }
-        // Calculate platform fee and payout amount
-        // Save payment details to database
-        //  const payment = new Payment({
-        //    professionalId,
-        //    amount,
-        //    platformFee,
-        //    payoutAmount,
-        //    transactionId: result.transaction.id,
-        //    paymentMethod,
-        //    status: "Completed",
-        //  });
-        //  await payment.save();
-        //  // Simulate payout (Replace with actual bank transfer API integration)
-        //  console.log("Payout to Professional:", {
-        //    name: professional.name,
-        //    bankName: professional.bankName,
-        //    accountNumber: professional.accountNumber,
-        //    amount: payoutAmount,
-        //  });
-        //  res.status(200).json({
-        //    message: "Payment processed successfully",
-        //    transactionId: result.transaction.id,
-        //    platformFee,
-        //    payoutAmount,
-        //  });
     }
     catch (error) {
         console.error("Error processing payment:", error);

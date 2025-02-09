@@ -89,14 +89,10 @@ const createProfessional = (user, professionalData, file) => __awaiter(void 0, v
     }
 });
 const updateSingleRetireProfessional = (id, auth, retireProfessionalPayload) => __awaiter(void 0, void 0, void 0, function* () {
-    const session = yield mongoose_1.default.startSession(); // Start a new session for transaction management
+    const session = yield mongoose_1.default.startSession();
     try {
         session.startTransaction();
         const professionalAccount = yield auth_model_1.User.findById(id);
-        // if (!professionalAccount) {
-        //   throw new ApiError(404, "Professional account not found");
-        // }
-        //  console.log(auth,retireProfessionalPayload)
         const updatedRetireProfessional = yield professional_model_1.RetireProfessional.findOneAndUpdate({ retireProfessional: professionalAccount === null || professionalAccount === void 0 ? void 0 : professionalAccount._id }, retireProfessionalPayload, {
             new: true,
             session,
@@ -104,9 +100,8 @@ const updateSingleRetireProfessional = (id, auth, retireProfessionalPayload) => 
         if (!updatedRetireProfessional) {
             throw new handleApiError_1.default(404, "retire professional not found");
         }
-        // console.log(auth,"check auth");
         const updatedUser = yield auth_model_1.User.findByIdAndUpdate(id, auth, {
-            new: true, // return the updated document
+            new: true,
             session,
         });
         if (!updatedUser) {
@@ -125,9 +120,8 @@ const updateSingleRetireProfessional = (id, auth, retireProfessionalPayload) => 
 exports.updateSingleRetireProfessional = updateSingleRetireProfessional;
 const getRetireProfessionals = (filters, paginationOptions) => __awaiter(void 0, void 0, void 0, function* () {
     const { skip, limit, page, sortBy, sortOrder } = paginationHelper_1.paginationHelpers.calculatePagination(paginationOptions);
-    const { query } = filters, filtersData = __rest(filters, ["query"]); // Extract location filter
+    const { query } = filters, filtersData = __rest(filters, ["query"]);
     const andCondition = [];
-    // Handle text search
     if (query) {
         andCondition.push({
             $or: searchableField_1.searchableField.map((field) => ({
@@ -138,7 +132,6 @@ const getRetireProfessionals = (filters, paginationOptions) => __awaiter(void 0,
             })),
         });
     }
-    // Handle other filters
     if (Object.keys(filtersData).length) {
         andCondition.push(...Object.entries(filtersData).map(([field, value]) => {
             if (field === "industry") {
@@ -165,11 +158,9 @@ const getRetireProfessionals = (filters, paginationOptions) => __awaiter(void 0,
             return { [field]: { $regex: value, $options: "i" } };
         }));
     }
-    // Handle location filter using $geoNear
     const aggregationPipeline = [];
     if (filtersData.location) {
         const [longitude, latitude, minDistance, maxDistance] = JSON.parse(filtersData.location);
-        // console.log(longitude, latitude, minDistance, maxDistance);
         aggregationPipeline.push({
             $geoNear: {
                 near: {
@@ -183,37 +174,31 @@ const getRetireProfessionals = (filters, paginationOptions) => __awaiter(void 0,
             },
         });
     }
-    // Add match conditions if there are any filters
     if (andCondition.length > 0) {
         aggregationPipeline.push({
             $match: { $and: andCondition },
         });
     }
-    // Add a $lookup stage for population
     aggregationPipeline.push({
         $lookup: {
-            from: "users", // Replace with the related collection's name
-            localField: "retireProfessional", // Field in RetireProfessional
-            foreignField: "_id", // Matching field in the related collection
-            as: "userDetails", // Populated field name
+            from: "users",
+            localField: "retireProfessional",
+            foreignField: "_id",
+            as: "userDetails",
         },
     });
-    // Optionally unwind the array if you want a single object
     aggregationPipeline.push({
         $unwind: {
             path: "$userDetails",
-            preserveNullAndEmptyArrays: true, // Include results with no match
+            preserveNullAndEmptyArrays: true,
         },
     });
-    // Handle sorting, skipping, and limiting
     const sortCondition = {};
     if (sortBy && sortOrder) {
         sortCondition[sortBy] = sortOrder === "desc" ? -1 : 1;
     }
     aggregationPipeline.push({ $sort: sortCondition }, { $skip: skip }, { $limit: limit });
-    // Execute the aggregation pipeline
     const result = yield professional_model_1.RetireProfessional.aggregate(aggregationPipeline).exec();
-    // Get total document count
     const count = yield professional_model_1.RetireProfessional.countDocuments();
     return {
         meta: {
@@ -228,7 +213,7 @@ const getRetireProfessionalsByLocation = (long, lat, min, max) => __awaiter(void
     const result = yield professional_model_1.RetireProfessional.find({
         location: {
             $near: {
-                $maxDistance: max, // in meters
+                $maxDistance: max,
                 $minDistance: min,
                 $geometry: {
                     type: "Point",
@@ -244,7 +229,6 @@ const getRetireProfessionalById = (professionalId) => __awaiter(void 0, void 0, 
     return result;
 });
 const updateProfessionalStripeAccount = (payload) => __awaiter(void 0, void 0, void 0, function* () {
-    // console.log(payload,"check payload from updateprofessional account")
     yield auth_model_1.User.findOneAndUpdate({ email: payload.email }, {
         $set: {
             "stripe.customerId": payload.id,

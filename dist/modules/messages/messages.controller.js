@@ -31,7 +31,6 @@ const createMessage = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, 
 const getMessages = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { user1, user2 } = req.query;
     const user = req.user;
-    // console.log(user,"check user")
     const messages = yield messages_service_1.MessageService.getMessages(user1, user2, user.id);
     (0, sendResponse_1.default)(res, {
         success: true,
@@ -43,7 +42,6 @@ const getMessages = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, vo
 const getSingleMessages = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id: user2 } = req.params;
     const user1 = req.user;
-    // console.log(user,"check user")
     const messages = yield messages_service_1.MessageService.getSingleMessages(user1.id, user2);
     (0, sendResponse_1.default)(res, {
         success: true,
@@ -66,7 +64,6 @@ const getConversationLists = (0, catchAsync_1.default)((req, res) => __awaiter(v
 }));
 const uploadMessagefile = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const file = req.file;
-    //  console.log(req.file,"check req.file")
     if (!file) {
         throw new handleApiError_1.default(http_status_codes_1.StatusCodes.UNAUTHORIZED, "choose a file");
     }
@@ -83,5 +80,5 @@ exports.MessageController = {
     getMessages,
     getConversationLists,
     uploadMessagefile,
-    getSingleMessages
+    getSingleMessages,
 };

@@ -34,12 +34,10 @@ const uploadFileToSpace = (file, folder) => __awaiter(void 0, void 0, void 0, fu
         Key: `${folder}/${Date.now()}_${file.originalname}`, // Object key in the Space
         Body: file.buffer, // Use the buffer from the memory storage
         ContentType: file.mimetype,
-        ACL: "public-read", // Make the object publicly accessible
+        ACL: "public-read",
     };
-    // console.log(params, "check params");
     try {
         const result = yield s3.send(new client_s3_1.PutObjectCommand(params));
-        // console.log(result,"check result")
         return `https://${config_1.default.s3.do_space_bucket}.${(config_1.default.s3.do_space_endpoint || "nyc3.digitaloceanspaces.com").replace("https://", "")}/${params.Key}`;
     }
     catch (error) {

@@ -7,16 +7,11 @@ import pick from "../../shared/pick";
 import { paginationFileds } from "../../constants/pagination";
 import { filterableField } from "../../constants/searchableField";
 import { IProfessional } from "./professional.interface";
-
 import { uploadFileToSpace } from "../../utilitis/uploadTos3";
-
 const createProfessional = catchAsync(async (req: Request, res: Response) => {
   const file = req.file as unknown as Express.Multer.File;
-  let fileUrl;
 
-  // console.log(fileUrl, "check url");
   const { name, email, role, password, ...others } = req.body;
-
   const user = {
     name,
     email,
@@ -26,14 +21,12 @@ const createProfessional = catchAsync(async (req: Request, res: Response) => {
   };
   const professionalData = {
     ...others,
-    // cvOrCoverLetter: fileUrl, // Save the file URL in the database
   };
   const result = await RetireProfessionalService.createProfessional(
     user,
     professionalData,
     file
   );
-
   sendResponse(res, {
     success: true,
     statusCode: StatusCodes.CREATED,
@@ -43,31 +36,24 @@ const createProfessional = catchAsync(async (req: Request, res: Response) => {
 });
 const updateSingleRetireProfessional = catchAsync(
   async (req: Request, res: Response) => {
-    const files = req.files as Express.Multer.File[]; // Get all files uploaded
+    const files = req.files as Express.Multer.File[];
     const fileMap: { [key: string]: Express.Multer.File } = {};
     let workSampleUrl;
     let profileImageUrl;
     const { name, ...retireProfessionalProfile } = req.body;
-
     const auth = { name };
     const { workSample, profileImage, ...others } = retireProfessionalProfile;
     let updatedProfile = { ...others };
-
-    // Map files to their respective fields by matching `fieldname`
     if (files.length) {
       files.forEach((file) => {
         fileMap[file.fieldname] = file;
       });
-
-      // Process each file if it exists
-
       if (fileMap["workSample"]) {
         workSampleUrl = await uploadFileToSpace(
           fileMap["workSample"],
           "work-samples"
         );
       }
-
       if (fileMap["profileUrl"]) {
         profileImageUrl = await uploadFileToSpace(
           fileMap["profileUrl"],
@@ -80,14 +66,12 @@ const updateSingleRetireProfessional = catchAsync(
         profileUrl: profileImageUrl,
       };
     }
-
     const result =
       await RetireProfessionalService.updateSingleRetireProfessional(
         req.params.id,
         auth,
         updatedProfile
       );
-
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,
@@ -101,13 +85,10 @@ const getRetireProfessionals = catchAsync(
   async (req: Request, res: Response) => {
     const paginationOptions = pick(req.query, paginationFileds);
     const filters = pick(req.query, filterableField);
-    // console.log(filters)
-
     const result = await RetireProfessionalService.getRetireProfessionals(
       filters,
       paginationOptions
     );
-
     sendResponse<IProfessional[]>(res, {
       success: true,
       statusCode: StatusCodes.OK,
@@ -121,7 +102,6 @@ const getRetireProfessionals = catchAsync(
 const getRetireProfessionalsByLocation = catchAsync(
   async (req: Request, res: Response) => {
     const { long, lat, min, max } = req.query;
-
     const result =
       await RetireProfessionalService.getRetireProfessionalsByLocation(
         parseFloat(long as string),
@@ -129,7 +109,6 @@ const getRetireProfessionalsByLocation = catchAsync(
         parseFloat(min as string),
         parseFloat(max as string)
       );
-
     sendResponse<IProfessional[]>(res, {
       success: true,
       statusCode: StatusCodes.OK,
@@ -139,7 +118,6 @@ const getRetireProfessionalsByLocation = catchAsync(
     });
   }
 );
-
 const getRetireProfessionalById = catchAsync(
   async (req: Request, res: Response) => {
     const { professionalId } = req.params;
@@ -154,7 +132,6 @@ const getRetireProfessionalById = catchAsync(
     });
   }
 );
-
 export const RetireProfessionalController = {
   createProfessional,
   updateSingleRetireProfessional,

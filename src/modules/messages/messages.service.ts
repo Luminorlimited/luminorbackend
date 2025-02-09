@@ -85,73 +85,14 @@ const createMessage = async (payload: IMessage) => {
 
   return message;
 };
-
-//   const users = await User.find({
-//     email: { $in: [payload.sender, payload.recipient] },
-//   });
-//   console.log(users, "check");
-
-//   const sender = users.find((u: any) => u.email === payload.sender);
-//   const recipient = users.find((u: any) => u.email === payload.recipient);
-
-//   if (!sender || !recipient) throw new Error("Sender or recipient not found.");
-
-//   const checkRoom = await Convirsation.findOneAndUpdate(
-//     {
-//       $or: [
-//         { user1: sender!._id, user2: recipient!._id },
-//         { user1: recipient!._id, user2: sender!._id },
-//       ],
-//     },
-//     {
-//       $setOnInsert: {
-//         user1: sender!._id,
-//         user2: recipient!._id,
-//         lastMessage: "",
-//       },
-//     },
-//     { upsert: true, new: true }
-//   );
-
-//   const messageData = {
-//     sender: sender!._id,
-//     recipient: recipient!._id,
-//     message: payload.message || null,
-//     media: payload.media || null,
-//     room: checkRoom._id,
-//   };
-
-//   const message = await Message.create(messageData);
-
-//   // Prepare conversation update fields
-//   const updateFields: any = {
-//     lastMessageTimestamp: message.createdAt,
-//     lastMessage: payload.message || (payload.media ? "📷 Image" : ""),
-//   };
-
-//   const recipientInChat = userInChat.get(recipient.email);
-//   if (!recipientInChat || recipientInChat !== sender.email) {
-//     updateFields.$inc =
-//       sender._id.toString() === checkRoom.user1.toString()
-//         ? { user2UnseenCount: 1 }
-//         : { user1UnseenCount: 1 };
-//   }
-
-//   await Convirsation.findByIdAndUpdate(checkRoom._id, updateFields, {
-//     new: true,
-//   });
-
-//   return message;
-// };
-
-const getMessages = async (senderId: string, recipientId: string, loggedInUser: string) => {
-
+const getMessages = async (
+  senderId: string,
+  recipientId: string,
+  loggedInUser: string
+) => {
   const users = await User.find({ email: { $in: [senderId, recipientId] } });
   if (users.length < 2) throw new Error("Sender or recipient not found.");
-
   const [sender, recipient] = users;
-
- 
   const messages = await Message.find({
     $or: [
       { sender: sender._id, recipient: recipient._id },
@@ -168,56 +109,48 @@ const getMessages = async (senderId: string, recipientId: string, loggedInUser: 
     .populate("user1", "name email profileUrl")
     .populate("user2", "name email profileUrl");
 
-  if (!conversationRoom) throw new ApiError(StatusCodes.NOT_FOUND, "Room not found");
-
-
+  if (!conversationRoom)
+    throw new ApiError(StatusCodes.NOT_FOUND, "Room not found");
   const isUser1 = loggedInUser === conversationRoom.user1._id.toString();
-  // console.log(isUser1,"check is user 1")
+
   const unseenMessageIds = isUser1
     ? conversationRoom.user1UnseenMessages
     : conversationRoom.user2UnseenMessages;
-
-
-  // Update unseen messages
-  // console.log(unseenMessageIds,"check unseen message id")
-
   if (unseenMessageIds.length) {
-   const messageUpdate= await Message.updateMany({ _id: { $in: unseenMessageIds } }, { isUnseen: false });
-  //  console.log(messageUpdate,"check message update")
-
+    await Message.updateMany(
+      { _id: { $in: unseenMessageIds } },
+      { isUnseen: false }
+    );
     await Convirsation.findByIdAndUpdate(conversationRoom.id, {
       $set: isUser1
         ? { user1UnseenMessages: [], user1UnseenCount: 0 }
         : { user2UnseenMessages: [], user2UnseenCount: 0 },
     });
   }
-
-
-  const userDetails = [conversationRoom.user1 as any, conversationRoom.user2 as any].map(user => ({
+  const userDetails = [
+    conversationRoom.user1 as any,
+    conversationRoom.user2 as any,
+  ].map((user) => ({
     name: `${user.name.firstName} ${user.name.lastName}`,
     email: user.email,
     profileUrl: user.profileUrl || null,
   }));
-  
   return { userDetails, messages };
 };
-
 const getSingleMessages = async (sender: string, recipient: string) => {
   const messages = await Message.find({
     $or: [
       { sender: sender, recipient: recipient },
       { sender: recipient, recipient: sender },
     ],
-  }).sort({ createdAt: -1 })
-  return messages
+  }).sort({ createdAt: -1 });
+  return messages;
 };
 const getConversationLists = async (email: string) => {
-  // console.log(email, "check email from service file");
   const user = await User.findOne({ email });
   if (!user) {
     throw new ApiError(StatusCodes.NOT_FOUND, "User not found");
   }
-
   const conversations = await Convirsation.find({
     $or: [{ user1: user._id }, { user2: user._id }],
   })
@@ -231,7 +164,6 @@ const getConversationLists = async (email: string) => {
     const unseenMessageCount = isUser1
       ? conversation.user1UnseenCount
       : conversation.user2UnseenCount;
-
     return {
       id: otherUser._id,
       email: otherUser.email,
@@ -244,15 +176,12 @@ const getConversationLists = async (email: string) => {
       unseenMessageCount,
     };
   });
-
   return conversationList;
 };
-
 const uploadMessagefile = async (file: any) => {
   const fileUrl = await uploadFileToSpace(file, "message-file");
   return fileUrl;
 };
-
 const countMessages = async (email: string) => {
   const totalUnseen = await Notification.find({
     recipient: email,
@@ -260,8 +189,6 @@ const countMessages = async (email: string) => {
     type: ENUM_NOTIFICATION_TYPE.PRIVATEMESSAGE,
   }).select("_id");
   const filterIds = totalUnseen.map((message) => message._id.toString());
-  // console.log(filterIds,"check filter id")
-
   return { count: totalUnseen.length, totalUnseenId: filterIds };
 };
 const countMessageWithRecipient = async (sender: string, recepient: string) => {
@@ -272,11 +199,8 @@ const countMessageWithRecipient = async (sender: string, recepient: string) => {
     type: ENUM_NOTIFICATION_TYPE.PRIVATEMESSAGE,
   });
   const filterIds = totalUnseen.map((message) => message._id.toString());
-  // console.log(filterIds,"check filter id")
-
   return { count: totalUnseen.length, totalUnseenId: filterIds };
 };
-
 export const MessageService = {
   createMessage,
   getMessages,
@@ -284,5 +208,5 @@ export const MessageService = {
   uploadMessagefile,
   countMessages,
   countMessageWithRecipient,
-  getSingleMessages
+  getSingleMessages,
 };

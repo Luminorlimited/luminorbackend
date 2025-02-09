@@ -23,7 +23,6 @@ const createOffer = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, vo
     const data = req.body;
     data.totalPrice = (0, calculateTotalPrice_1.calculateTotalPrice)(data);
     const offerPDFPath = yield (0, generateOfferPdf_1.generateOfferPDF)(data);
-    // console.log(offerPDFPath, "check offerpdf path");
     data.orderAgreementPDF = offerPDFPath;
     const result = yield offer_service_1.OfferService.createOffer(data);
     (0, sendResponse_1.default)(res, {
@@ -45,7 +44,6 @@ const getOffersByProfessional = (0, catchAsync_1.default)((req, res) => __awaite
 }));
 const getSingleOffer = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = req.params.id;
-    // console.log(id, "check params");
     const result = yield offer_service_1.OfferService.getSingleOffer(id);
     (0, sendResponse_1.default)(res, {
         success: true,
@@ -56,7 +54,6 @@ const getSingleOffer = (0, catchAsync_1.default)((req, res) => __awaiter(void 0,
 }));
 const deleteSingleOffer = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = req.params.id;
-    // console.log(id, "check params");
     const result = yield offer_service_1.OfferService.deleteSingleOffer(id);
     (0, sendResponse_1.default)(res, {
         success: true,
@@ -67,7 +64,6 @@ const deleteSingleOffer = (0, catchAsync_1.default)((req, res) => __awaiter(void
 }));
 const getAllOffers = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = req.params.id;
-    // console.log(id, "check params");
     const result = yield offer_service_1.OfferService.getAllOffers();
     (0, sendResponse_1.default)(res, {
         success: true,
@@ -81,5 +77,5 @@ exports.OfferController = {
     getOffersByProfessional,
     getSingleOffer,
     deleteSingleOffer,
-    getAllOffers
+    getAllOffers,
 };

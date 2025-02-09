@@ -63,31 +63,28 @@ const userSchema = new mongoose_1.default.Schema({
     stripe: {
         customerId: {
             type: String,
-            default: null
+            default: null,
         },
         onboardingUrl: {
             type: String,
-            default: null
+            default: null,
         },
         isOnboardingSucess: {
             type: Boolean,
-            default: false
-        }
+            default: false,
+        },
     },
-    // isOnline:{
-    //   type:Boolean,
-    // },
     otp: { type: String },
     otpExpiry: { type: Date },
     identifier: { type: String },
     profileUrl: {
         type: String,
-        default: null
+        default: null,
     },
     isDeleted: {
         type: Boolean,
-        default: false
-    }
+        default: false,
+    },
 }, { timestamps: true, versionKey: false });
 userSchema.statics.isUserExist = function (email) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -96,9 +93,6 @@ userSchema.statics.isUserExist = function (email) {
 };
 userSchema.statics.isPasswordMatched = function (givenPassword, savedPassword) {
     return __awaiter(this, void 0, void 0, function* () {
-        // console.log(givenPassword,savedPassword)
-        const isTrue = yield bcrypt_1.default.compare(givenPassword, savedPassword);
-        // console.log(isTrue,"check is true")
         return yield bcrypt_1.default.compare(givenPassword, savedPassword);
     });
 };
@@ -112,4 +106,3 @@ userSchema.pre("save", function (next) {
     });
 });
 exports.User = (0, mongoose_1.model)("User", userSchema);
-// userSchema.set("autoIndex", true);

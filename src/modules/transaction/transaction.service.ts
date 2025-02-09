@@ -1,85 +1,85 @@
 import { PAYMENTSTATUS } from "./transaction.interface";
 import { Transaction } from "./transaction.model";
-
 const getAllTransactions = async () => {
   const result = await Transaction.find().populate("orderId");
-  
   return result;
 };
 const lastTransaction = async () => {
   const result = await Transaction.findOne()
     .populate("orderId")
-    .sort({ createdAt: -1 }) 
-    .lean(); 
+    .sort({ createdAt: -1 })
+    .lean();
 
   return result;
 };
 const totalRevenue = async () => {
   const result = await Transaction.aggregate([
     {
-      $match: { paymentStatus: PAYMENTSTATUS.COMPLETED }, 
+      $match: { paymentStatus: PAYMENTSTATUS.COMPLETED },
     },
     {
       $group: {
-        _id: null, 
-        totalRevenue: { $sum: "$charge" }, 
+        _id: null,
+        totalRevenue: { $sum: "$charge" },
       },
     },
   ]);
 
-  const totalRevenue= result.length > 0 ? result[0].totalRevenue : 0;
-  return {totalRevenue}
+  const totalRevenue = result.length > 0 ? result[0].totalRevenue : 0;
+  return { totalRevenue };
 };
 const totlaRefunded = async () => {
   const result = await Transaction.aggregate([
     {
-      $match: { paymentStatus: PAYMENTSTATUS.REFUNDED }, // Only refunded transactions
+      $match: { paymentStatus: PAYMENTSTATUS.REFUNDED },
     },
     {
       $group: {
-        _id: null, 
-        totalRefunded: { $sum: "$amount" }, 
+        _id: null,
+        totalRefunded: { $sum: "$amount" },
       },
     },
   ]);
 
- const totalRefund= result.length > 0 ? result[0].totalRefunded : 0;
- console.log(totalRevenue,"check total revenue")
-
- return {totalRefund}
+  const totalRefund = result.length > 0 ? result[0].totalRefunded : 0;
+  return { totalRefund };
 };
-
 const getTransactionCalculation = async () => {
   const currentYear = new Date().getFullYear();
-
-
   const monthlyIncome = await Transaction.aggregate([
     {
       $match: {
-        paymentStatus: "delivered", 
+        paymentStatus: "delivered",
         createdAt: {
           $gte: new Date(`${currentYear}-01-01T00:00:00.000Z`),
-          $lt: new Date(`${currentYear + 1}-01-01T00:00:00.000Z`), 
+          $lt: new Date(`${currentYear + 1}-01-01T00:00:00.000Z`),
         },
       },
     },
     {
       $group: {
-        _id: { $month: "$createdAt" }, 
-        totalIncome: { $sum: "$amount" }, 
+        _id: { $month: "$createdAt" },
+        totalIncome: { $sum: "$charge" },
       },
     },
     {
-      $sort: { _id: 1 }, 
+      $sort: { _id: 1 },
     },
   ]);
-
   const monthNames = [
-    "January", "February", "March", "April", "May", "June", 
-    "July", "August", "September", "October", "November", "December"
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
   ];
-
-
   const formattedIncome = monthNames.map((month, index) => {
     const data = monthlyIncome.find((item) => item._id === index + 1);
     return {
@@ -88,16 +88,12 @@ const getTransactionCalculation = async () => {
     };
   });
 
-  console.log("Monthly Income:", formattedIncome);
-
   return { yearlyIncome: formattedIncome };
 };
-
 export const TransactionService = {
-    getAllTransactions,
-    lastTransaction,
-    totalRevenue,
-    totlaRefunded,
-    getTransactionCalculation
-    
+  getAllTransactions,
+  lastTransaction,
+  totalRevenue,
+  totlaRefunded,
+  getTransactionCalculation,
 };

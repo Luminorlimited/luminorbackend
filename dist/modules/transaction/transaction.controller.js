@@ -54,7 +54,6 @@ const totlaRefunded = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, 
     });
 }));
 const getTransactionCalculation = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    // console.log(req.user)
     const list = yield transaction_service_1.TransactionService.getTransactionCalculation();
     (0, sendResponse_1.default)(res, {
         success: true,

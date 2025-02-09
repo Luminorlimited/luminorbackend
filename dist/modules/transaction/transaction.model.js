@@ -43,10 +43,10 @@ const transactionSchema = new mongoose_1.default.Schema({
     },
     charge: {
         type: Number,
-        required: true
-    }
+        required: true,
+    },
 }, {
     timestamps: true,
-    versionKey: false
+    versionKey: false,
 });
 exports.Transaction = (0, mongoose_1.model)("Transaction", transactionSchema);
