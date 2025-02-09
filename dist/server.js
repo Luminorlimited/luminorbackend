@@ -185,7 +185,7 @@ exports.io.on("connection", (socket) => {
 function bootstrap() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            yield mongoose_1.default.connect(config_1.default.database_url, options);
+            yield mongoose_1.default.connect("mongodb+srv://luminor:BYcHOYLQI2eiZ9IU@cluster0.v0ciw.mongodb.net/luminor?retryWrites=true&w=majority&appName=Cluster0", options);
             console.log("Connected to MongoDB successfully.");
             httpServer.listen(config_1.default.port, () => {
                 console.log(`Server running at port ${config_1.default.port}`);
