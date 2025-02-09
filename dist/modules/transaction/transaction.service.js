@@ -31,11 +31,12 @@ const totalRevenue = () => __awaiter(void 0, void 0, void 0, function* () {
         {
             $group: {
                 _id: null,
-                totalRevenue: { $sum: "$amount" },
+                totalRevenue: { $sum: "$charge" },
             },
         },
     ]);
-    return result.length > 0 ? result[0].totalRevenue : 0;
+    const totalRevenue = result.length > 0 ? result[0].totalRevenue : 0;
+    return { totalRevenue };
 });
 const totlaRefunded = () => __awaiter(void 0, void 0, void 0, function* () {
     const result = yield transaction_model_1.Transaction.aggregate([
@@ -49,8 +50,9 @@ const totlaRefunded = () => __awaiter(void 0, void 0, void 0, function* () {
             },
         },
     ]);
-    const totalRevenue = result.length > 0 ? result[0].totalRefunded : 0;
-    return { totalRevenue };
+    const totalRefund = result.length > 0 ? result[0].totalRefunded : 0;
+    console.log(totalRevenue, "check total revenue");
+    return { totalRefund };
 });
 const getTransactionCalculation = () => __awaiter(void 0, void 0, void 0, function* () {
     const currentYear = new Date().getFullYear();

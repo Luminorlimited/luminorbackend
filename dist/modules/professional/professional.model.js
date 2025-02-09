@@ -5,7 +5,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RetireProfessional = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
-const service_1 = require("../../enums/service");
 // Define the main Professional schema
 const RetireProfessionalSchema = new mongoose_1.default.Schema({
     retireProfessional: {
@@ -44,8 +43,8 @@ const RetireProfessionalSchema = new mongoose_1.default.Schema({
     profileUrl: { type: String, default: null },
     bio: { type: String, default: null },
     description: { type: String, default: null },
-    expertise: { type: String, enum: service_1.ENUM_SERVICE_PREFERENCE, default: null },
-    industry: { type: String, enum: service_1.INDUSTRIES, defaul: null },
+    expertise: { type: String, default: null },
+    industry: { type: String, defaul: null },
     availability: { type: Number, default: null },
     preferedProjects: { type: String, default: null },
     hourlyRate: { type: String, default: null },

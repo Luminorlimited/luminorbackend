@@ -28,6 +28,8 @@ const catchAsync_1 = __importDefault(require("../../shared/catchAsync"));
 const sendResponse_1 = __importDefault(require("../../shared/sendResponse"));
 const auth_service_1 = require("./auth.service");
 const http_status_codes_1 = require("http-status-codes");
+const handleApiError_1 = __importDefault(require("../../errors/handleApiError"));
+const uploadTos3_1 = require("../../utilitis/uploadTos3");
 const loginUser = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const loginData = __rest(req.body, []);
     const result = yield auth_service_1.AuthService.loginUser(loginData);
@@ -59,6 +61,7 @@ const getProfile = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, voi
     const user = req.user;
     // console.log(user,"check user")
     // res.cookie("token", result.accessToken, { httpOnly: true });
+    // console.log(req.user, "check user");
     const result = yield auth_service_1.AuthService.getProfile(user.id);
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_codes_1.StatusCodes.OK,
@@ -128,6 +131,33 @@ const delteUser = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void
         data: result,
     });
 }));
+const updateCoverPhoto = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = req.user;
+    console.log();
+    const file = req.file;
+    if (!req.file) {
+        throw new handleApiError_1.default(http_status_codes_1.StatusCodes.UNAUTHORIZED, "file not found ");
+    }
+    const coverUrl = yield (0, uploadTos3_1.uploadFileToSpace)(req.file, "user-cover-photo");
+    const result = yield auth_service_1.AuthService.updateCoverPhoto(user.id, coverUrl);
+    (0, sendResponse_1.default)(res, {
+        statusCode: http_status_codes_1.StatusCodes.OK,
+        success: true,
+        message: "user cover photo updated  successfully",
+        data: result,
+    });
+}));
+const updateAdmin = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = req.user;
+    console.log();
+    const result = yield auth_service_1.AuthService.updateAdmin(user.id, req.body);
+    (0, sendResponse_1.default)(res, {
+        statusCode: http_status_codes_1.StatusCodes.OK,
+        success: true,
+        message: "admin update his profile successfully",
+        data: result,
+    });
+}));
 exports.AuthController = {
     loginUser,
     enterOtp,
@@ -137,5 +167,7 @@ exports.AuthController = {
     getAllRetireProfiessional,
     getAllClients,
     createAdmin,
-    delteUser
+    delteUser,
+    updateCoverPhoto,
+    updateAdmin,
 };

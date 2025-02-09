@@ -110,4 +110,5 @@ exports.OrderController = {
     getOrderById,
     getOrderByClient,
     getAllOrders,
+    getOrderCalculation,
 };

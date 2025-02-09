@@ -86,7 +86,7 @@ const updateSingleClient = (0, catchAsync_1.default)((req, res) => __awaiter(voi
     const { workSample, profileImage } = clientProfile, others = __rest(clientProfile, ["workSample", "profileImage"]);
     let updatedProfile = Object.assign({}, others);
     // console.log(req.body);
-    const files = req.files; // Get all files uploaded
+    const files = req.files;
     const fileMap = {};
     if (files.length) {
         files.forEach((file) => {

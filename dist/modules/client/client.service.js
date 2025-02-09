@@ -194,15 +194,14 @@ const updateSingleClient = (id, auth, clientPayload) => __awaiter(void 0, void 0
         session.startTransaction();
         const clientAccount = yield auth_model_1.User.findById(id);
         // console.log(clientAccount, "check client account");
-        if (!clientAccount) {
-            throw new handleApiError_1.default(404, "Client account not found");
-        }
+        // if (!clientAccount) {
+        //   throw new ApiError(404, "Client account not found");
+        // }
         if (clientPayload.servicePreference) {
             const industries = (0, serviceMapping_1.getIndustryFromService)(clientPayload.servicePreference);
             clientPayload.industry = industries;
         }
-        // Ensure you're updating the existing client, not creating a new one
-        const updatedClient = yield client_model_1.Client.findOneAndUpdate({ client: clientAccount._id }, clientPayload, {
+        const updatedClient = yield client_model_1.Client.findOneAndUpdate({ client: clientAccount === null || clientAccount === void 0 ? void 0 : clientAccount._id }, clientPayload, {
             new: true,
             session,
         });
