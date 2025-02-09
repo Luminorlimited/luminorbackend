@@ -159,12 +159,34 @@ const getAllUsers = () => __awaiter(void 0, void 0, void 0, function* () {
     return users;
 });
 const getAllRetireProfiessional = () => __awaiter(void 0, void 0, void 0, function* () {
-    const users = yield professional_model_1.RetireProfessional.find({}).populate("retireProfessional");
+    const users = yield professional_model_1.RetireProfessional.aggregate([
+        {
+            $lookup: {
+                from: "users",
+                localField: "retireProfessional",
+                foreignField: "_id",
+                as: "retireProfessional",
+            },
+        },
+        { $unwind: "$retireProfessional" },
+        { $match: { "retireProfessional.isDeleted": false } },
+    ]);
     return users;
 });
 const getAllClients = () => __awaiter(void 0, void 0, void 0, function* () {
-    const users = yield client_model_1.Client.find({}).populate("client");
-    return users;
+    const clients = yield client_model_1.Client.aggregate([
+        {
+            $lookup: {
+                from: "users",
+                localField: "client",
+                foreignField: "_id",
+                as: "client",
+            },
+        },
+        { $unwind: "$client" },
+        { $match: { "client.isDeleted": false } },
+    ]);
+    return clients;
 });
 const createAdmin = (payload) => __awaiter(void 0, void 0, void 0, function* () {
     const existingAdmin = yield auth_model_1.User.findOne({ email: payload.email });
