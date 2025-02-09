@@ -19,14 +19,12 @@ function getZoomToken() {
     return __awaiter(this, void 0, void 0, function* () {
         var _a;
         try {
-            // console.log(    `${config.zoom.zoomClientId}:${config.zoom.zoomClientSecret}`)
             const response = yield axios_1.default.post(`https://zoom.us/oauth/token?grant_type=account_credentials&account_id=${config_1.default.zoom.zoomAccountId}`, null, {
                 headers: {
                     Authorization: `Basic ${Buffer.from(`${config_1.default.zoom.zoomClientId}:${config_1.default.zoom.zoomClientSecret}`).toString("base64")}`,
                     "Content-Type": "application/x-www-form-urlencoded",
                 },
             });
-            // console.log(response.data);
             return response.data.access_token;
         }
         catch (error) {
@@ -40,7 +38,6 @@ function createZoomMeeting() {
         var _a;
         try {
             const token = yield getZoomToken();
-            // console.log(token, "check token");
             const meetingResponse = yield axios_1.default.post(`https://api.zoom.us/v2/users/me/meetings`, {
                 topic: "Luminor Client Meeting",
                 type: 1,
@@ -59,7 +56,6 @@ function createZoomMeeting() {
                     "Content-Type": "application/json",
                 },
             });
-            // console.log("Meeting Created:", meetingResponse.data);
             return {
                 start_url: meetingResponse.data.start_url,
                 join_url: meetingResponse.data.join_url,
@@ -70,7 +66,6 @@ function createZoomMeeting() {
         }
     });
 }
-// Execute the function
 exports.zoomService = {
     createZoomMeeting,
 };

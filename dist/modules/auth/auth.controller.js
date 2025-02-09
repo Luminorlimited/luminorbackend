@@ -133,6 +133,11 @@ const updateCoverPhoto = (0, catchAsync_1.default)((req, res) => __awaiter(void 
 }));
 const updateAdmin = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const user = req.user;
+    // let profileUrl;
+    // if (req.file) {
+    //   profileUrl = await uploadFileToSpace(req.file, "profileImage");
+    // }
+    // const data = { ...req.body, profileUrl };
     const result = yield auth_service_1.AuthService.updateAdmin(user.id, req.body);
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_codes_1.StatusCodes.OK,

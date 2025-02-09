@@ -23,7 +23,9 @@ router.get("/get-single-user/:id", AuthController.getSingleUserById);
 router.get("/get-all-users", AuthController.getAllUsers);
 router.patch(
   "/update-admin",
+
   auth(ENUM_USER_ROLE.ADMIN),
+
   AuthController.updateAdmin
 );
 router.get(
