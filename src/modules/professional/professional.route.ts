@@ -20,8 +20,11 @@ router.post(
 
   RetireProfessionalController.createProfessional
 );
-router.get("/location", RetireProfessionalController.getRetireProfessionalsByLocation)
-router.get("/", RetireProfessionalController.getRetireProfessionals)
+router.get(
+  "/location",
+  RetireProfessionalController.getRetireProfessionalsByLocation
+);
+router.get("/", RetireProfessionalController.getRetireProfessionals);
 router.patch(
   "/profile/:id",
   multerUpload.any(),
@@ -30,7 +33,7 @@ router.patch(
   auth(ENUM_USER_ROLE.RETIREPROFESSIONAL),
   RetireProfessionalController.updateSingleRetireProfessional
 );
-;
-
-
-router.get("/:professionalId", RetireProfessionalController.getRetireProfessionalById);
+router.get(
+  "/:professionalId",
+  RetireProfessionalController.getRetireProfessionalById
+);
