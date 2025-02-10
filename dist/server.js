@@ -30,7 +30,7 @@ const options = {
 const httpServer = (0, http_1.createServer)(app_1.default);
 exports.io = new socket_io_1.Server(httpServer, {
     cors: {
-        origin: ["http://localhost:3000"],
+        origin: ["http://localhost:3000", "https://luminoor.vercel.app"],
         methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
         allowedHeaders: ["Content-Type", "Authorization"],
         credentials: true,

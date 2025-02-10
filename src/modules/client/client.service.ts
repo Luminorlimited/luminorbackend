@@ -67,6 +67,7 @@ const getClients = async (
   const { skip, limit, page, sortBy, sortOrder } =
     paginationHelpers.calculatePagination(paginationOptions);
   const { query, ...filtersData } = filters;
+  console.log(filtersData, "check filters data");
   const andCondition = [];
   if (query) {
     andCondition.push({

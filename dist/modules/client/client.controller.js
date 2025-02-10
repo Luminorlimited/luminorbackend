@@ -51,6 +51,7 @@ const createClient = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, v
 }));
 const getClients = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const paginationOptions = (0, pick_1.default)(req.query, pagination_1.paginationFileds);
+    console.log(req.query, "check query");
     const filters = (0, pick_1.default)(req.query, searchableField_1.filterableField);
     const result = yield client_service_1.ClientService.getClients(filters, paginationOptions);
     (0, sendResponse_1.default)(res, {
