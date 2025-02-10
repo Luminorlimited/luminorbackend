@@ -47,7 +47,16 @@ io.on("connection", (socket) => {
 
     socket.emit("conversation-list", conversationList);
   });
+  socket.on("userInChat", (data: any) => {
+    const { userEmail, chattingWith } = JSON.parse(data);
+    console.log(data, "from usein chat");
 
+    if (chattingWith) {
+      userInChat.set(userEmail, chattingWith);
+    } else {
+      userInChat.delete(userEmail);
+    }
+  });
   socket.on("privateMessage", async (data: any) => {
     const { toEmail, message, fromEmail, media, mediaUrl } = JSON.parse(data);
 
@@ -105,15 +114,6 @@ io.on("connection", (socket) => {
       }
     } catch (error) {
       console.error("Error sending private message:", error);
-    }
-  });
-  socket.on("userInChat", (data: any) => {
-    const { userEmail, chattingWith } = JSON.parse(data);
-
-    if (chattingWith) {
-      userInChat.set(userEmail, chattingWith);
-    } else {
-      userInChat.delete(userEmail);
     }
   });
 

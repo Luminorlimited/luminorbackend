@@ -90,13 +90,13 @@ const getMessages = async (
   recipientId: string,
   loggedInUser: string
 ) => {
-  const users = await User.find({ email: { $in: [senderId, recipientId] } });
-  if (users.length < 2) throw new Error("Sender or recipient not found.");
-  const [sender, recipient] = users;
+  // const users = await User.find({ email: { $in: [senderId, recipientId] } });
+  // if (users.length < 2) throw new Error("Sender or recipient not found.");
+  // const [sender, recipient] = users;
   const messages = await Message.find({
     $or: [
-      { sender: sender._id, recipient: recipient._id },
-      { sender: recipient._id, recipient: sender._id },
+      { sender: senderId, recipient: recipientId },
+      { sender: recipientId, recipient: senderId },
     ],
   })
     .sort({ createdAt: 1 })
