@@ -39,6 +39,7 @@ io.on("connection", (socket) => {
   socket.on("register", async (data: any) => {
     // console.log(data, "check data from register");
     // const { email } = JSON.parse(data);
+    console.log(data, "check register data");
     const { id } = JSON.parse(data);
     users[id] = socket.id;
 
@@ -123,8 +124,11 @@ io.on("connection", (socket) => {
 
   socket.on("sendOffer", async (data: any) => {
     const { toEmail, offer, fromEmail } = JSON.parse(data);
-
+    console.log(toEmail, "to user id ");
+    console.log(fromEmail, "from user id");
+    console.log(offer, "check offer");
     const toSocketId = users[toEmail];
+    console.log(toSocketId, "check to socket id");
 
     try {
       offer.totalPrice = calculateTotalPrice(offer);
@@ -186,17 +190,29 @@ io.on("connection", (socket) => {
         meetingLink: start_url,
         isUnseen: false,
         message: join_url,
+        createdAt: savedMessage.createdAt,
       };
+      const toEmailConversationList = await MessageService.getConversationLists(
+        toUserId
+      );
+      const fromEmailConversationList =
+        await MessageService.getConversationLists(fromUserId);
+      socket.emit("createZoomMeeting", {
+        from: fromUserId,
+        populateMessage,
+      });
+      socket.emit("conversation-list", fromEmailConversationList);
       if (toSocketId) {
         socket.to(toSocketId).emit("createZoomMeeting", {
           from: fromUserId,
           populateMessage,
         });
+        if (toEmailConversationList) {
+          socket
+            .to(toSocketId)
+            .emit("conversation-list", toEmailConversationList);
+        }
       }
-
-      socket.emit("createZoomMeeting", {
-        populateMessage,
-      });
     } catch (error) {
       console.error("Error creating Zoom meeting:", error);
       socket.emit("zoomMeetingError", "Failed to create Zoom meeting");
