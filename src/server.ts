@@ -156,7 +156,8 @@ io.on("connection", (socket) => {
   });
   socket.on("createZoomMeeting", async (data: any) => {
     const { fromUserId, toUserId } = JSON.parse(data);
-
+    console.log(fromUserId, "from ");
+    console.log(toUserId, "to userId");
     const toSocketId = users[toUserId];
 
     try {
@@ -175,15 +176,26 @@ io.on("connection", (socket) => {
         isUnseen: false,
       });
 
+      const populateMessage = {
+        sender: {
+          _id: savedMessage.sender,
+        },
+        recipient: {
+          _id: savedMessage.recipient,
+        },
+        meetingLink: start_url,
+        isUnseen: false,
+        message: join_url,
+      };
       if (toSocketId) {
         socket.to(toSocketId).emit("createZoomMeeting", {
           from: fromUserId,
-          savedMessage,
+          populateMessage,
         });
       }
 
       socket.emit("createZoomMeeting", {
-        savedMessage,
+        populateMessage,
       });
     } catch (error) {
       console.error("Error creating Zoom meeting:", error);

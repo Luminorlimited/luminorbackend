@@ -130,6 +130,7 @@ const getRetireProfessionals = async (
   const { skip, limit, page, sortBy, sortOrder } =
     paginationHelpers.calculatePagination(paginationOptions);
   const { query, ...filtersData } = filters;
+  console.log(filtersData, "check filters data");
   const andCondition = [];
   if (query) {
     andCondition.push({
@@ -159,6 +160,7 @@ const getRetireProfessionals = async (
             expertise: { $in: skillTypeArray },
           };
         } else if (field === "timeline") {
+          console.log(field, "check field");
           return value === "shortTerm"
             ? { availability: { $lte: 29 } }
             : { availability: { $gte: 30 } };
@@ -172,11 +174,12 @@ const getRetireProfessionals = async (
     const [longitude, latitude, minDistance, maxDistance] = JSON.parse(
       filtersData.location
     );
+    console.log(latitude, longitude, maxDistance, minDistance, "check data");
     aggregationPipeline.push({
       $geoNear: {
         near: {
           type: "Point",
-          coordinates: [latitude, longitude],
+          coordinates: [longitude, latitude],
         },
         distanceField: "distance",
         spherical: true,
@@ -231,6 +234,7 @@ const getRetireProfessionalsByLocation = async (
   min: number,
   max: number
 ) => {
+  console.log(long, lat);
   const result = await RetireProfessional.find({
     location: {
       $near: {
@@ -238,7 +242,7 @@ const getRetireProfessionalsByLocation = async (
         $minDistance: min,
         $geometry: {
           type: "Point",
-          coordinates: [lat, long],
+          coordinates: [long, lat],
         },
       },
     },
