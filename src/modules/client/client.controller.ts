@@ -31,6 +31,7 @@ const createClient = catchAsync(async (req: Request, res: Response) => {
 
 const getClients = catchAsync(async (req: Request, res: Response) => {
   const paginationOptions = pick(req.query, paginationFileds);
+  console.log(req.query, "check query");
   const filters = pick(req.query, filterableField);
   const result = await ClientService.getClients(filters, paginationOptions);
   sendResponse<IClient[]>(res, {

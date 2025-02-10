@@ -5,7 +5,7 @@ export const searchableField = [
   "projectMin",
   "projectMax",
   "skillType",
-  "timeLine",
+  "timeline",
   "location",
   "servicePreferences",
   "projectDurationRange",
@@ -19,6 +19,6 @@ export const filterableField = [
   "projectMin",
   "projectMax",
   "skillType",
-  "timeLine",
+  "timeline",
   "location",
 ];

@@ -78,6 +78,7 @@ const createClient = (user, clientData) => __awaiter(void 0, void 0, void 0, fun
 const getClients = (filters, paginationOptions) => __awaiter(void 0, void 0, void 0, function* () {
     const { skip, limit, page, sortBy, sortOrder } = paginationHelper_1.paginationHelpers.calculatePagination(paginationOptions);
     const { query } = filters, filtersData = __rest(filters, ["query"]);
+    console.log(filtersData, "check filters data");
     const andCondition = [];
     if (query) {
         andCondition.push({
