@@ -45,26 +45,42 @@ exports.onlineUsers = new Map();
 exports.userInChat = new Map();
 exports.io.on("connection", (socket) => {
     socket.on("register", (data) => __awaiter(void 0, void 0, void 0, function* () {
-        const { email } = JSON.parse(data);
-        exports.users[email] = socket.id;
-        exports.onlineUsers.set(email, true);
-        const conversationList = yield messages_service_1.MessageService.getConversationLists(email);
+        // console.log(data, "check data from register");
+        // const { email } = JSON.parse(data);
+        const { id } = JSON.parse(data);
+        exports.users[id] = socket.id;
+        exports.onlineUsers.set(id, true);
+        console.log();
+        const conversationList = yield messages_service_1.MessageService.getConversationLists(id);
+        // console.log(conversationList, "check convirsation list");
         socket.emit("conversation-list", conversationList);
     }));
-    socket.on("privateMessage", (data) => __awaiter(void 0, void 0, void 0, function* () {
-        const { toEmail, message, fromEmail, media, mediaUrl } = JSON.parse(data);
-        if (!fromEmail) {
-            return socket.send(JSON.stringify({ error: "email is required" }));
+    socket.on("userInChat", (data) => {
+        const { userId, chattingWith } = JSON.parse(data);
+        // console.log(data, "from usein chat");
+        if (chattingWith) {
+            exports.userInChat.set(userId, chattingWith);
         }
-        const toSocketId = exports.users[toEmail];
-        const recipientInChatWith = exports.userInChat.get(toEmail);
+        else {
+            exports.userInChat.delete(userId);
+        }
+    });
+    socket.on("privateMessage", (data) => __awaiter(void 0, void 0, void 0, function* () {
+        const { toUserId, message, fromUserId, media, mediaUrl } = JSON.parse(data);
+        console.log(data, "private message data");
+        if (!fromUserId) {
+            return socket.send(JSON.stringify({ error: "id is required" }));
+        }
+        const toSocketId = exports.users[toUserId];
+        console.log(toSocketId, "check to socket id ");
+        const recipientInChatWith = exports.userInChat.get(toUserId);
         try {
-            const isUnseen = recipientInChatWith === fromEmail ? false : true;
+            const isUnseen = recipientInChatWith === fromUserId ? false : true;
             const savedMessage = yield messages_service_1.MessageService.createMessage({
-                sender: fromEmail,
+                sender: fromUserId,
                 message: message || null,
                 media: mediaUrl || null,
-                recipient: toEmail,
+                recipient: toUserId,
                 isUnseen: isUnseen,
             });
             // const [fromEmailConversationList, toEmailConversationList] =
@@ -72,7 +88,7 @@ exports.io.on("connection", (socket) => {
             //     MessageService.getConversationLists(fromEmail),
             //     toEmail ? MessageService.getConversationLists(toEmail) : null,
             //   ]);
-            const toEmailConversationList = yield messages_service_1.MessageService.getConversationLists(toEmail);
+            const toEmailConversationList = yield messages_service_1.MessageService.getConversationLists(toUserId);
             const populatedMessage = yield messages_model_1.Message.findById(savedMessage._id)
                 .populate({ path: "sender", select: "name email _id" })
                 .populate({ path: "recipient", select: "name email _id" })
@@ -85,8 +101,8 @@ exports.io.on("connection", (socket) => {
             if (toSocketId) {
                 socket.to(toSocketId).emit("privateMessage", {
                     message: populatedMessage,
-                    fromEmail: fromEmail,
-                    toEmail: toEmail,
+                    fromUserId: fromUserId,
+                    toUserId: toUserId,
                 });
                 if (toEmailConversationList) {
                     socket
@@ -99,15 +115,6 @@ exports.io.on("connection", (socket) => {
             console.error("Error sending private message:", error);
         }
     }));
-    socket.on("userInChat", (data) => {
-        const { userEmail, chattingWith } = JSON.parse(data);
-        if (chattingWith) {
-            exports.userInChat.set(userEmail, chattingWith);
-        }
-        else {
-            exports.userInChat.delete(userEmail);
-        }
-    });
     socket.on("sendOffer", (data) => __awaiter(void 0, void 0, void 0, function* () {
         const { toEmail, offer, fromEmail } = JSON.parse(data);
         const toSocketId = exports.users[toEmail];
@@ -136,8 +143,8 @@ exports.io.on("connection", (socket) => {
         }
     }));
     socket.on("createZoomMeeting", (data) => __awaiter(void 0, void 0, void 0, function* () {
-        const { fromEmail, toEmail } = JSON.parse(data);
-        const toSocketId = exports.users[toEmail];
+        const { fromUserId, toUserId } = JSON.parse(data);
+        const toSocketId = exports.users[toUserId];
         try {
             const meeting = yield zoom_service_1.zoomService.createZoomMeeting();
             if (!meeting || !meeting.start_url || !meeting.join_url) {
@@ -145,8 +152,8 @@ exports.io.on("connection", (socket) => {
             }
             const { start_url, join_url } = meeting;
             const savedMessage = yield messages_service_1.MessageService.createMessage({
-                sender: fromEmail,
-                recipient: toEmail,
+                sender: fromUserId,
+                recipient: toUserId,
                 message: join_url,
                 media: "",
                 meetingLink: start_url,
@@ -154,7 +161,7 @@ exports.io.on("connection", (socket) => {
             });
             if (toSocketId) {
                 socket.to(toSocketId).emit("createZoomMeeting", {
-                    from: fromEmail,
+                    from: fromUserId,
                     savedMessage,
                 });
             }
@@ -168,16 +175,16 @@ exports.io.on("connection", (socket) => {
         }
     }));
     socket.on("disconnect", (reason) => __awaiter(void 0, void 0, void 0, function* () {
-        let email = "";
-        for (let [userEmail, isOnline] of exports.onlineUsers) {
-            if (socket.id === exports.users[userEmail]) {
-                email = userEmail;
+        let id = "";
+        for (let [userId, isOnline] of exports.onlineUsers) {
+            if (socket.id === exports.users[userId]) {
+                id = userId;
                 break;
             }
         }
-        if (email) {
-            exports.onlineUsers.set(email, false);
-            delete exports.users[email];
+        if (id) {
+            exports.onlineUsers.set(id, false);
+            delete exports.users[id];
         }
     }));
     socket.on("error", (error) => { });

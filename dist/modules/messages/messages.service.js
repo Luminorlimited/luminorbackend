@@ -18,34 +18,34 @@ const notificationStatus_1 = require("../../enums/notificationStatus");
 const handleApiError_1 = __importDefault(require("../../errors/handleApiError"));
 const server_1 = require("../../server");
 const uploadTos3_1 = require("../../utilitis/uploadTos3");
-const auth_model_1 = require("../auth/auth.model");
 const convirsation_model_1 = require("../convirsation/convirsation.model");
 const notification_model_1 = require("../notification/notification.model");
 const messages_model_1 = require("./messages.model");
 const createMessage = (payload) => __awaiter(void 0, void 0, void 0, function* () {
-    const [sender, recipient] = yield Promise.all([
-        auth_model_1.User.findOne({ email: payload.sender }),
-        auth_model_1.User.findOne({ email: payload.recipient }),
-    ]);
-    if (!sender || !recipient) {
-        throw new Error("Sender or recipient not found.");
-    }
+    // const [sender, recipient] = await Promise.all([
+    //   User.findOne({ email: payload.sender }),
+    //   User.findOne({ email: payload.recipient }),
+    // ]);
+    // if (!sender || !recipient) {
+    //   throw new Error("Sender or recipient not found.");
+    // }
+    // console.log(payload, "check payload from create message service");
     let checkRoom = yield convirsation_model_1.Convirsation.findOne({
         $and: [
-            { $or: [{ user1: sender._id }, { user1: recipient._id }] },
-            { $or: [{ user2: sender._id }, { user2: recipient._id }] },
+            { $or: [{ user1: payload.sender }, { user1: payload.recipient }] },
+            { $or: [{ user2: payload.sender }, { user2: payload.recipient }] },
         ],
     });
     if (!checkRoom) {
         checkRoom = yield convirsation_model_1.Convirsation.create({
-            user1: sender._id,
-            user2: recipient._id,
+            user1: payload.sender,
+            user2: payload.recipient,
             lastMessage: "",
         });
     }
     const data = {
-        sender: sender._id,
-        recipient: recipient._id,
+        sender: payload.sender,
+        recipient: payload.recipient,
         message: payload.message || null,
         meetingLink: payload.meetingLink || null,
         media: payload.media || null,
@@ -63,15 +63,15 @@ const createMessage = (payload) => __awaiter(void 0, void 0, void 0, function* (
         lastMessageTimestamp: message.createdAt,
         lastMessage: lastMessageContent,
     };
-    const recipientInChat = server_1.userInChat.get(recipient.email);
-    if (sender._id.toString() === checkRoom.user1.toString()) {
-        if (!recipientInChat || recipientInChat !== sender.email) {
+    const recipientInChat = server_1.userInChat.get(payload === null || payload === void 0 ? void 0 : payload.recipient.toString());
+    if (payload.sender.toString() === checkRoom.user1.toString()) {
+        if (!recipientInChat || recipientInChat !== payload.sender.toString()) {
             updateFields.$inc = { user2UnseenCount: 1 };
             updateFields.$push = { user2UnseenMessages: message._id };
         }
     }
     else {
-        if (!recipientInChat || recipientInChat !== sender.email) {
+        if (!recipientInChat || recipientInChat !== payload.sender.toString()) {
             updateFields.$inc = { user1UnseenCount: 1 };
             updateFields.$push = { user1UnseenMessages: message._id };
         }
@@ -82,14 +82,13 @@ const createMessage = (payload) => __awaiter(void 0, void 0, void 0, function* (
     return message;
 });
 const getMessages = (senderId, recipientId, loggedInUser) => __awaiter(void 0, void 0, void 0, function* () {
-    const users = yield auth_model_1.User.find({ email: { $in: [senderId, recipientId] } });
-    if (users.length < 2)
-        throw new Error("Sender or recipient not found.");
-    const [sender, recipient] = users;
+    // const users = await User.find({ email: { $in: [senderId, recipientId] } });
+    // if (users.length < 2) throw new Error("Sender or recipient not found.");
+    // const [sender, recipient] = users;
     const messages = yield messages_model_1.Message.find({
         $or: [
-            { sender: sender._id, recipient: recipient._id },
-            { sender: recipient._id, recipient: sender._id },
+            { sender: senderId, recipient: recipientId },
+            { sender: recipientId, recipient: senderId },
         ],
     })
         .sort({ createdAt: 1 })
@@ -133,19 +132,19 @@ const getSingleMessages = (sender, recipient) => __awaiter(void 0, void 0, void 
     }).sort({ createdAt: -1 });
     return messages;
 });
-const getConversationLists = (email) => __awaiter(void 0, void 0, void 0, function* () {
-    const user = yield auth_model_1.User.findOne({ email });
-    if (!user) {
-        throw new handleApiError_1.default(http_status_codes_1.StatusCodes.NOT_FOUND, "User not found");
-    }
+const getConversationLists = (id) => __awaiter(void 0, void 0, void 0, function* () {
+    // const user = await User.findOne({ email });
+    // if (!user) {
+    //   throw new ApiError(StatusCodes.NOT_FOUND, "User not found");
+    // }
     const conversations = yield convirsation_model_1.Convirsation.find({
-        $or: [{ user1: user._id }, { user2: user._id }],
+        $or: [{ user1: id }, { user2: id }],
     })
         .populate("user1", "email name profileUrl _id")
         .populate("user2", "email name profileUrl _id")
         .sort({ lastMessageTimestamp: -1 });
     const conversationList = conversations.map((conversation) => {
-        const isUser1 = conversation.user1._id.toString() === user._id.toString();
+        const isUser1 = conversation.user1._id.toString() === id.toString();
         const otherUser = isUser1 ? conversation.user2 : conversation.user1;
         const unseenMessageCount = isUser1
             ? conversation.user1UnseenCount
@@ -155,7 +154,7 @@ const getConversationLists = (email) => __awaiter(void 0, void 0, void 0, functi
             email: otherUser.email,
             name: `${otherUser.name.firstName.trim()} ${otherUser.name.lastName.trim()}`,
             profileUrl: otherUser.profileUrl || null,
-            isOnline: server_1.onlineUsers.get(otherUser.email) || false,
+            isOnline: server_1.onlineUsers.get(otherUser.id) || false,
             room: conversation._id,
             lastMessage: conversation.lastMessage,
             lastMessageTimestamp: conversation.lastMessageTimestamp,

@@ -18,7 +18,6 @@ router.post("/admin-login");
 router.post("/create-admin", AuthController.createAdmin);
 router.get("/get-profile", auth(), AuthController.getProfile);
 router.post("/otp-enter", AuthController.enterOtp);
-router.get("/get-single-user/:id", AuthController.getSingleUserById);
 
 router.get("/get-all-users", AuthController.getAllUsers);
 router.patch(
@@ -47,4 +46,5 @@ router.patch(
   auth(),
   AuthController.updateCoverPhoto
 );
+router.get("/get-single-user/:id", AuthController.getSingleUserById);
 router.patch("/delete-user/:id", AuthController.delteUser);

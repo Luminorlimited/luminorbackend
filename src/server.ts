@@ -37,44 +37,48 @@ export const userInChat = new Map<string, string | null>();
 
 io.on("connection", (socket) => {
   socket.on("register", async (data: any) => {
-    const { email } = JSON.parse(data);
+    // console.log(data, "check data from register");
+    // const { email } = JSON.parse(data);
+    const { id } = JSON.parse(data);
+    users[id] = socket.id;
 
-    users[email] = socket.id;
-
-    onlineUsers.set(email, true);
-
-    const conversationList = await MessageService.getConversationLists(email);
+    onlineUsers.set(id, true);
+    console.log();
+    const conversationList = await MessageService.getConversationLists(id);
+    // console.log(conversationList, "check convirsation list");
 
     socket.emit("conversation-list", conversationList);
   });
   socket.on("userInChat", (data: any) => {
-    const { userEmail, chattingWith } = JSON.parse(data);
-    console.log(data, "from usein chat");
+    const { userId, chattingWith } = JSON.parse(data);
+    // console.log(data, "from usein chat");
 
     if (chattingWith) {
-      userInChat.set(userEmail, chattingWith);
+      userInChat.set(userId, chattingWith);
     } else {
-      userInChat.delete(userEmail);
+      userInChat.delete(userId);
     }
   });
   socket.on("privateMessage", async (data: any) => {
-    const { toEmail, message, fromEmail, media, mediaUrl } = JSON.parse(data);
+    const { toUserId, message, fromUserId, media, mediaUrl } = JSON.parse(data);
+    console.log(data, "private message data");
 
-    if (!fromEmail) {
-      return socket.send(JSON.stringify({ error: "email is required" }));
+    if (!fromUserId) {
+      return socket.send(JSON.stringify({ error: "id is required" }));
     }
 
-    const toSocketId = users[toEmail];
+    const toSocketId = users[toUserId];
+    console.log(toSocketId, "check to socket id ");
 
-    const recipientInChatWith = userInChat.get(toEmail);
+    const recipientInChatWith = userInChat.get(toUserId);
 
     try {
-      const isUnseen = recipientInChatWith === fromEmail ? false : true;
+      const isUnseen = recipientInChatWith === fromUserId ? false : true;
       const savedMessage = await MessageService.createMessage({
-        sender: fromEmail,
+        sender: fromUserId,
         message: message || null,
         media: mediaUrl || null,
-        recipient: toEmail,
+        recipient: toUserId,
         isUnseen: isUnseen,
       });
 
@@ -84,7 +88,7 @@ io.on("connection", (socket) => {
       //     toEmail ? MessageService.getConversationLists(toEmail) : null,
       //   ]);
       const toEmailConversationList = await MessageService.getConversationLists(
-        toEmail
+        toUserId
       );
 
       const populatedMessage = await Message.findById(savedMessage._id)
@@ -102,8 +106,8 @@ io.on("connection", (socket) => {
       if (toSocketId) {
         socket.to(toSocketId).emit("privateMessage", {
           message: populatedMessage,
-          fromEmail: fromEmail,
-          toEmail: toEmail,
+          fromUserId: fromUserId,
+          toUserId: toUserId,
         });
 
         if (toEmailConversationList) {
@@ -151,9 +155,9 @@ io.on("connection", (socket) => {
     }
   });
   socket.on("createZoomMeeting", async (data: any) => {
-    const { fromEmail, toEmail } = JSON.parse(data);
+    const { fromUserId, toUserId } = JSON.parse(data);
 
-    const toSocketId = users[toEmail];
+    const toSocketId = users[toUserId];
 
     try {
       const meeting = await zoomService.createZoomMeeting();
@@ -163,8 +167,8 @@ io.on("connection", (socket) => {
       const { start_url, join_url } = meeting;
 
       const savedMessage = await MessageService.createMessage({
-        sender: fromEmail,
-        recipient: toEmail,
+        sender: fromUserId,
+        recipient: toUserId,
         message: join_url,
         media: "",
         meetingLink: start_url,
@@ -173,7 +177,7 @@ io.on("connection", (socket) => {
 
       if (toSocketId) {
         socket.to(toSocketId).emit("createZoomMeeting", {
-          from: fromEmail,
+          from: fromUserId,
           savedMessage,
         });
       }
@@ -188,17 +192,17 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", async (reason) => {
-    let email = "";
-    for (let [userEmail, isOnline] of onlineUsers) {
-      if (socket.id === users[userEmail]) {
-        email = userEmail;
+    let id = "";
+    for (let [userId, isOnline] of onlineUsers) {
+      if (socket.id === users[userId]) {
+        id = userId;
         break;
       }
     }
 
-    if (email) {
-      onlineUsers.set(email, false);
-      delete users[email];
+    if (id) {
+      onlineUsers.set(id, false);
+      delete users[id];
     }
   });
 

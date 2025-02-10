@@ -52,12 +52,15 @@ const RetireProfessionalSchema = new mongoose.Schema<IProfessional>(
     hourlyRate: { type: String, default: null },
     workSample: { type: String, default: null },
 
-
     averageRating: { type: Number, default: 0 },
-    reviewCount:{
-      type:Number,
-      default:0
-    }
+    reviewCount: {
+      type: Number,
+      default: 0,
+    },
+    coverUrl: {
+      type: String,
+      default: null,
+    },
   },
 
   { timestamps: true, versionKey: false }

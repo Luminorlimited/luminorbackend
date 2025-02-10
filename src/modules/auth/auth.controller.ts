@@ -98,10 +98,12 @@ const delteUser = catchAsync(async (req: Request, res: Response) => {
 const updateCoverPhoto = catchAsync(async (req: Request, res: Response) => {
   const user = req.user as any;
   const file = req.file;
+
   if (!req.file) {
     throw new ApiError(StatusCodes.UNAUTHORIZED, "file not found ");
   }
   const coverUrl = await uploadFileToSpace(req.file, "user-cover-photo");
+  console.log(coverUrl, "check coverurl");
   const result = await AuthService.updateCoverPhoto(
     user.id as string,
     coverUrl

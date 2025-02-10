@@ -17,33 +17,34 @@ import { IMessage } from "./messages.interface";
 import { Message } from "./messages.model";
 
 const createMessage = async (payload: IMessage) => {
-  const [sender, recipient] = await Promise.all([
-    User.findOne({ email: payload.sender }),
-    User.findOne({ email: payload.recipient }),
-  ]);
+  // const [sender, recipient] = await Promise.all([
+  //   User.findOne({ email: payload.sender }),
+  //   User.findOne({ email: payload.recipient }),
+  // ]);
 
-  if (!sender || !recipient) {
-    throw new Error("Sender or recipient not found.");
-  }
+  // if (!sender || !recipient) {
+  //   throw new Error("Sender or recipient not found.");
+  // }
+  // console.log(payload, "check payload from create message service");
 
   let checkRoom = await Convirsation.findOne({
     $and: [
-      { $or: [{ user1: sender._id }, { user1: recipient._id }] },
-      { $or: [{ user2: sender._id }, { user2: recipient._id }] },
+      { $or: [{ user1: payload.sender }, { user1: payload.recipient }] },
+      { $or: [{ user2: payload.sender }, { user2: payload.recipient }] },
     ],
   });
 
   if (!checkRoom) {
     checkRoom = await Convirsation.create({
-      user1: sender._id,
-      user2: recipient._id,
+      user1: payload.sender,
+      user2: payload.recipient,
       lastMessage: "",
     });
   }
 
   const data = {
-    sender: sender._id,
-    recipient: recipient._id,
+    sender: payload.sender,
+    recipient: payload.recipient,
     message: payload.message || null,
     meetingLink: payload.meetingLink || null,
     media: payload.media || null,
@@ -65,15 +66,15 @@ const createMessage = async (payload: IMessage) => {
     lastMessage: lastMessageContent,
   };
 
-  const recipientInChat = userInChat.get(recipient.email);
+  const recipientInChat = userInChat.get(payload?.recipient.toString());
 
-  if (sender._id.toString() === checkRoom.user1.toString()) {
-    if (!recipientInChat || recipientInChat !== sender.email) {
+  if (payload.sender.toString() === checkRoom.user1.toString()) {
+    if (!recipientInChat || recipientInChat !== payload.sender.toString()) {
       updateFields.$inc = { user2UnseenCount: 1 };
       updateFields.$push = { user2UnseenMessages: message._id };
     }
   } else {
-    if (!recipientInChat || recipientInChat !== sender.email) {
+    if (!recipientInChat || recipientInChat !== payload.sender.toString()) {
       updateFields.$inc = { user1UnseenCount: 1 };
       updateFields.$push = { user1UnseenMessages: message._id };
     }
@@ -146,20 +147,20 @@ const getSingleMessages = async (sender: string, recipient: string) => {
   }).sort({ createdAt: -1 });
   return messages;
 };
-const getConversationLists = async (email: string) => {
-  const user = await User.findOne({ email });
-  if (!user) {
-    throw new ApiError(StatusCodes.NOT_FOUND, "User not found");
-  }
+const getConversationLists = async (id: string) => {
+  // const user = await User.findOne({ email });
+  // if (!user) {
+  //   throw new ApiError(StatusCodes.NOT_FOUND, "User not found");
+  // }
   const conversations = await Convirsation.find({
-    $or: [{ user1: user._id }, { user2: user._id }],
+    $or: [{ user1: id }, { user2: id }],
   })
     .populate("user1", "email name profileUrl _id")
     .populate("user2", "email name profileUrl _id")
     .sort({ lastMessageTimestamp: -1 });
 
   const conversationList = conversations.map((conversation: any) => {
-    const isUser1 = conversation.user1._id.toString() === user._id.toString();
+    const isUser1 = conversation.user1._id.toString() === id.toString();
     const otherUser = isUser1 ? conversation.user2 : conversation.user1;
     const unseenMessageCount = isUser1
       ? conversation.user1UnseenCount
@@ -169,7 +170,7 @@ const getConversationLists = async (email: string) => {
       email: otherUser.email,
       name: `${otherUser.name.firstName.trim()} ${otherUser.name.lastName.trim()}`,
       profileUrl: otherUser.profileUrl || null,
-      isOnline: onlineUsers.get(otherUser.email) || false,
+      isOnline: onlineUsers.get(otherUser.id) || false,
       room: conversation._id,
       lastMessage: conversation.lastMessage,
       lastMessageTimestamp: conversation.lastMessageTimestamp,

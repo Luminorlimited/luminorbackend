@@ -3,7 +3,7 @@ export type IReview = {
   rating: number;
   feedBack: string;
   user: mongoose.Schema.Types.ObjectId;
- 
+
   createdAt: Date;
 };
 
@@ -50,7 +50,8 @@ export type IProfessional = {
   workSample?: string;
   reviews?: IReview;
   averageRating: number;
-  reviewCount:number
+  reviewCount: number;
+  coverUrl: string;
 };
 
 export interface IProfessionalFilter {
