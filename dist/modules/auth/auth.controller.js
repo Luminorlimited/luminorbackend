@@ -123,6 +123,7 @@ const updateCoverPhoto = (0, catchAsync_1.default)((req, res) => __awaiter(void 
         throw new handleApiError_1.default(http_status_codes_1.StatusCodes.UNAUTHORIZED, "file not found ");
     }
     const coverUrl = yield (0, uploadTos3_1.uploadFileToSpace)(req.file, "user-cover-photo");
+    console.log(coverUrl, "check coverurl");
     const result = yield auth_service_1.AuthService.updateCoverPhoto(user.id, coverUrl);
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_codes_1.StatusCodes.OK,
