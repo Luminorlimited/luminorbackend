@@ -22,11 +22,11 @@ const createOrder = catchAsync(async (req: Request, res: Response) => {
 });
 const getOrderByProfessional = catchAsync(
   async (req: Request, res: Response) => {
-    const user = req.user as { email: string };
-    if (!user) {
-      throw new ApiError(StatusCodes.UNAUTHORIZED, "user not found");
-    }
-    const order = await OrderService.getOrderByProfessional(user.email);
+    const user = req.user as any ;
+    console.log(user,"check user")
+  
+
+    const order = await OrderService.getOrderByProfessional(user?.id);
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,
@@ -36,11 +36,9 @@ const getOrderByProfessional = catchAsync(
   }
 );
 const getOrderByClient = catchAsync(async (req: Request, res: Response) => {
-  const user = req.user as { email: string };
-  if (!user) {
-    throw new ApiError(StatusCodes.UNAUTHORIZED, "user not found");
-  }
-  const order = await OrderService.getOrderByClient(user.email);
+  const user = req.user as any;
+
+  const order = await OrderService.getOrderByClient(user.id);
   sendResponse(res, {
     success: true,
     statusCode: StatusCodes.OK,
