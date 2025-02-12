@@ -5,6 +5,7 @@ import { AuthService } from "./auth.service";
 import { StatusCodes } from "http-status-codes";
 import ApiError from "../../errors/handleApiError";
 import { uploadFileToSpace } from "../../utilitis/uploadTos3";
+import { json } from "body-parser";
 
 const loginUser = catchAsync(async (req: Request, res: Response) => {
   const { ...loginData } = req.body;
@@ -151,6 +152,19 @@ const updateAdminProfilePic = catchAsync(
     });
   }
 );
+const updateUserStatus = catchAsync(async (req: Request, res: Response) => {
+  const id = req.params.id;
+  const { status } = req.body;
+  console.log(status)
+  console.log(JSON.parse(status))
+  const result = await AuthService.updateUserStatus(id, JSON.parse(status));
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: `user update status ${status} successfully `,
+    data: result,
+  });
+});
 export const AuthController = {
   loginUser,
   enterOtp,
@@ -164,4 +178,5 @@ export const AuthController = {
   updateCoverPhoto,
   updateAdmin,
   updateAdminProfilePic,
+  updateUserStatus,
 };

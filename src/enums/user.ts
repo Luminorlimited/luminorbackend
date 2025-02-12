@@ -2,5 +2,5 @@
 export enum ENUM_USER_ROLE {
   RETIREPROFESSIONAL = "retireProfessional",
   CLIENT = "client",
-  ADMIN="admin"
+  ADMIN="a"
 }

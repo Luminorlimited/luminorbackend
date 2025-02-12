@@ -50,6 +50,10 @@ const userSchema = new mongoose.Schema<IUser>(
       type: Boolean,
       default: false,
     },
+    isActivated:{
+    type:Boolean,
+    default:false
+    }
   },
   { timestamps: true, versionKey: false }
 );
