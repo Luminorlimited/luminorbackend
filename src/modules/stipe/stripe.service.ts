@@ -210,6 +210,71 @@ const generateNewAccountLink = async (user: IUser) => {
   `;
   await emailSender("Your Onboarding Url", user.email, html);
 };
+
+const isDuplicateStripecard = async (
+  paymentMethodId: string,
+  stripeCustomerId: string
+) => {
+  const paymentMethods = await stripe.paymentMethods.list({
+    customer: stripeCustomerId,
+    type: "card",
+  });
+  const newCard: any = await stripe.paymentMethods.retrieve(paymentMethodId);
+
+  const duplicateCards = paymentMethods?.data?.filter(
+    (existingCard: any) => existingCard.card.last4 === newCard.card.last4
+  );
+
+  return duplicateCards;
+};
+const createStripeCard = async (id: string, paymentMethodId: string) => {
+
+  console.log(id,paymentMethodId)
+  const user = await User.findById(id );
+  console.log(user,"chekc  user")
+  if (!user) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "user not found");
+  }
+
+  if (!user.stripe?.customerId) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "Customer ID not found");
+  }
+
+  const existingCard: any = await isDuplicateStripecard(
+    paymentMethodId,
+    user.stripe.customerId
+  );
+
+  if (existingCard?.length === 0) {
+    const result = await stripe.paymentMethods.attach(paymentMethodId, {
+      customer: user.stripe.customerId,
+    });
+    return result;
+  } else {
+    throw new ApiError(
+      404,
+      `The card you are trying to add is already linked to your account.`
+    );
+  }
+};
+
+const getStripeCardLists = async (id: string) => {
+  const user = await User.findById(id );
+  console.log(user,"chekc  user")
+  if (!user) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "user not found");
+  }
+
+  if (!user.stripe?.customerId) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "Customer ID not found");
+  }
+
+  const result = await stripe.paymentMethods.list({
+    customer: user.stripe?.customerId,
+    type: "card",
+  });
+  return result;
+};
 export const StripeServices = {
   getCustomerSavedCardsFromStripe,
   deleteCardFromCustomer,
@@ -218,4 +283,6 @@ export const StripeServices = {
   handleAccountUpdated,
   deliverProject,
   generateNewAccountLink,
+  getStripeCardLists,
+  createStripeCard,
 };

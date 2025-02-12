@@ -94,6 +94,8 @@ const getMessages = async (
   // const users = await User.find({ email: { $in: [senderId, recipientId] } });
   // if (users.length < 2) throw new Error("Sender or recipient not found.");
   // const [sender, recipient] = users;
+  console.log(senderId,"check sender id")
+  console.log(recipientId,"chekc recipeint id")
   const messages = await Message.find({
     $or: [
       { sender: senderId, recipient: recipientId },

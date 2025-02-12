@@ -131,6 +131,32 @@ const deliverProject = catchAsync(async (req: any, res: any) => {
     data: result,
   });
 });
+
+const getStripeCardLists=catchAsync(async (req: any, res: any) => {
+  const user=req.user
+  const result = await StripeServices.getStripeCardLists(req.user.id);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "get stripe card   successfully",
+    data: result,
+  });
+});
+
+const createStripeCard=catchAsync(async (req: any, res: any) => {
+  const paymentMethodId = req.body.paymentMethodId as string;
+
+
+  const user=req.user
+
+  const result = await StripeServices.createStripeCard(user.id,paymentMethodId);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "create stripe card   successfully",
+    data: result,
+  });
+});
 export const StripeController = {
   getCustomerSavedCards,
   deleteCardFromCustomer,
@@ -138,4 +164,6 @@ export const StripeController = {
   createPaymentIntent,
   handleWebHook,
   deliverProject,
+  getStripeCardLists,
+  createStripeCard
 };
