@@ -20,7 +20,7 @@ const options = {
 const httpServer = createServer(app);
 export const io = new Server(httpServer, {
   cors: {
-    origin: ["http://localhost:3000", "https://luminoor.vercel.app"],
+    origin: ["http://localhost:3000", "https://luminoor.vercel.app","http://10.0.20.13:3000"],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
@@ -36,8 +36,9 @@ export const onlineUsers = new Map<string, boolean>();
 export const userInChat = new Map<string, string | null>();
 
 io.on("connection", (socket) => {
-  socket.on("register", async (data: any) => {
-    // console.log(data, "check data from register");
+  socket.on("register", async (data: any) => 
+    {
+    console.log(data, "check data from register");
     // const { email } = JSON.parse(data);
     console.log(data, "check register data");
     const { id } = JSON.parse(data);

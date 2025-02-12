@@ -27,7 +27,7 @@ const createProfessional = async (
   const session = await mongoose.startSession();
   try {
     session.startTransaction();
-
+   console.log(user,professionalData,"check professional data")
     const account = await stripe.accounts.create({
       type: "express",
       country: "US",
@@ -94,6 +94,8 @@ export const updateSingleRetireProfessional = async (
 ): Promise<IProfessional | null> => {
   const session = await mongoose.startSession();
   try {
+
+
     session.startTransaction();
     const professionalAccount = await User.findById(id);
     const updatedRetireProfessional = await RetireProfessional.findOneAndUpdate(
@@ -107,6 +109,8 @@ export const updateSingleRetireProfessional = async (
     if (!updatedRetireProfessional) {
       throw new ApiError(404, "retire professional not found");
     }
+
+    console.log(retireProfessionalPayload,auth)
     const updatedUser = await User.findByIdAndUpdate(id, auth, {
       new: true,
       session,
@@ -146,6 +150,7 @@ const getRetireProfessionals = async (
     andCondition.push(
       ...Object.entries(filtersData).map(([field, value]) => {
         if (field === "industry") {
+          console.log(field,"check field")
           const parseArray = Array.isArray(value)
             ? value
             : JSON.parse(value as string);
