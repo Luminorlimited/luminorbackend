@@ -261,6 +261,12 @@ const updateAdminProfilePic = async (id: string, profileImage: string) => {
     throw error;
   }
 };
+const updateUserStatus=async(id:string,status:boolean)=>{
+
+   const result =await User.findOneAndUpdate({_id:id},{isActivated:status})
+   console.log(result,"check result")
+   return result
+}
 export const AuthService = {
   loginUser,
   enterOtp,
@@ -274,4 +280,5 @@ export const AuthService = {
   updateCoverPhoto,
   updateAdmin,
   updateAdminProfilePic,
+  updateUserStatus
 };

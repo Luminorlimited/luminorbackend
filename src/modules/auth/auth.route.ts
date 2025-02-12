@@ -48,3 +48,4 @@ router.patch(
 );
 router.get("/get-single-user/:id", AuthController.getSingleUserById);
 router.patch("/delete-user/:id", AuthController.delteUser);
+router.patch("/update-status/:id", AuthController.updateUserStatus);
