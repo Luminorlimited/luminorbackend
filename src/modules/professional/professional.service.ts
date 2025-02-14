@@ -27,7 +27,7 @@ const createProfessional = async (
   const session = await mongoose.startSession();
   try {
     session.startTransaction();
-   console.log(user,professionalData,"check professional data")
+    console.log(user, professionalData, "check professional data");
     const account = await stripe.accounts.create({
       type: "express",
       country: "US",
@@ -94,8 +94,6 @@ export const updateSingleRetireProfessional = async (
 ): Promise<IProfessional | null> => {
   const session = await mongoose.startSession();
   try {
-
-
     session.startTransaction();
     const professionalAccount = await User.findById(id);
     const updatedRetireProfessional = await RetireProfessional.findOneAndUpdate(
@@ -110,7 +108,7 @@ export const updateSingleRetireProfessional = async (
       throw new ApiError(404, "retire professional not found");
     }
 
-    console.log(retireProfessionalPayload,auth)
+    console.log(retireProfessionalPayload, auth);
     const updatedUser = await User.findByIdAndUpdate(id, auth, {
       new: true,
       session,
@@ -150,7 +148,7 @@ const getRetireProfessionals = async (
     andCondition.push(
       ...Object.entries(filtersData).map(([field, value]) => {
         if (field === "industry") {
-          console.log(field,"check field")
+          console.log(field, "check field");
           const parseArray = Array.isArray(value)
             ? value
             : JSON.parse(value as string);
@@ -263,7 +261,7 @@ const getRetireProfessionalById = async (
   return result;
 };
 const updateProfessionalStripeAccount = async (payload: any) => {
-  await User.findOneAndUpdate(
+  const updatedUser = await User.findOneAndUpdate(
     { email: payload.email },
     {
       $set: {
@@ -273,6 +271,16 @@ const updateProfessionalStripeAccount = async (payload: any) => {
       },
     }
   );
+  if (updatedUser) {
+    // Request 'transfers' capability for the account
+    await stripe.accounts.update(payload.id, {
+      capabilities: {
+        transfers: { requested: true },
+      },
+    });
+
+    console.log(`Transfers capability requested for ${payload.id}`);
+  }
 };
 export const RetireProfessionalService = {
   createProfessional,
