@@ -149,15 +149,13 @@ const getOffersByProfessional = async (email: string) => {
 };
 
 const getSingleOffer = async (id: string) => {
-  const offer = await Offer.findByIdAndUpdate(id, { isSeen: true });
+  const offer = await Offer.findByIdAndUpdate(id, { isSeen: true }).populate("clientEmail","name").populate("professionalEmail","name");
   if (!offer) {
     throw new ApiError(StatusCodes.UNAUTHORIZED, "offer not found");
   }
-  const [client, retireProfessional] = await Promise.all([
-    User.findOne({ email: offer.clientEmail }).select("name "),
-    User.findOne({ email: offer.professionalEmail }).select("name "),
-  ]);
-  return { offer, client, retireProfessional };
+
+  
+  return { offer, client:offer.clientEmail, retireProfessional:offer.professionalEmail };
 };
 const deleteSingleOffer = async (id: string) => {
   const offer = await Offer.findByIdAndDelete({ _id: id });

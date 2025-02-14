@@ -144,7 +144,7 @@ const deliverProject = async (orderId: string) => {
     throw new ApiError(StatusCodes.BAD_REQUEST, "order not found");
   }
   const retireProfessional = await User.findOne({
-    email: order?.result.orderReciver,
+    _id: order?.result.orderReciver,
   });
   if (!retireProfessional) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "user not found");
