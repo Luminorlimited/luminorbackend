@@ -6,6 +6,9 @@ import config from "../../config";
 import Stripe from "stripe";
 import { RetireProfessionalService } from "../professional/professional.service";
 import { mergePDFs } from "../../utilitis/generateClientRequirementPdf";
+import { User } from "../auth/auth.model";
+import { use } from "passport";
+import ApiError from "../../errors/handleApiError";
 const stripe = new Stripe(config.stripe.secretKey as string, {
   apiVersion: "2024-11-20.acacia",
 });
@@ -157,6 +160,23 @@ const createStripeCard=catchAsync(async (req: any, res: any) => {
     data: result,
   });
 });
+const generateAccountLink=catchAsync(async (req: any, res: any) => {
+
+
+  const user=req.user
+   const dbUser=await User.findById(user.id)
+   if(!dbUser){
+    throw new ApiError(StatusCodes.NOT_FOUND,"user not found")
+   }
+
+  const result = await StripeServices.generateNewAccountLink(dbUser);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "A Onboarding Url has been send to your gmail.please complete your onboarding",
+    data: result,
+  });
+});
 export const StripeController = {
   getCustomerSavedCards,
   deleteCardFromCustomer,
@@ -165,5 +185,6 @@ export const StripeController = {
   handleWebHook,
   deliverProject,
   getStripeCardLists,
-  createStripeCard
+  createStripeCard,
+  generateAccountLink
 };
