@@ -123,6 +123,27 @@ const deliverProject = (0, catchAsync_1.default)((req, res) => __awaiter(void 0,
         data: result,
     });
 }));
+const getStripeCardLists = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = req.user;
+    const result = yield stripe_service_1.StripeServices.getStripeCardLists(req.user.id);
+    (0, sendResponse_1.default)(res, {
+        statusCode: 200,
+        success: true,
+        message: "get stripe card   successfully",
+        data: result,
+    });
+}));
+const createStripeCard = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const paymentMethodId = req.body.paymentMethodId;
+    const user = req.user;
+    const result = yield stripe_service_1.StripeServices.createStripeCard(user.id, paymentMethodId);
+    (0, sendResponse_1.default)(res, {
+        statusCode: 200,
+        success: true,
+        message: "create stripe card   successfully",
+        data: result,
+    });
+}));
 exports.StripeController = {
     getCustomerSavedCards,
     deleteCardFromCustomer,
@@ -130,4 +151,6 @@ exports.StripeController = {
     createPaymentIntent,
     handleWebHook,
     deliverProject,
+    getStripeCardLists,
+    createStripeCard
 };

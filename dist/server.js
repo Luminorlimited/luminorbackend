@@ -30,7 +30,7 @@ const options = {
 const httpServer = (0, http_1.createServer)(app_1.default);
 exports.io = new socket_io_1.Server(httpServer, {
     cors: {
-        origin: ["http://localhost:3000", "https://luminoor.vercel.app"],
+        origin: ["http://localhost:3000", "https://luminoor.vercel.app", "http://10.0.20.13:3000"],
         methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
         allowedHeaders: ["Content-Type", "Authorization"],
         credentials: true,
@@ -45,8 +45,9 @@ exports.onlineUsers = new Map();
 exports.userInChat = new Map();
 exports.io.on("connection", (socket) => {
     socket.on("register", (data) => __awaiter(void 0, void 0, void 0, function* () {
-        // console.log(data, "check data from register");
+        console.log(data, "check data from register");
         // const { email } = JSON.parse(data);
+        console.log(data, "check register data");
         const { id } = JSON.parse(data);
         exports.users[id] = socket.id;
         exports.onlineUsers.set(id, true);
@@ -117,7 +118,11 @@ exports.io.on("connection", (socket) => {
     }));
     socket.on("sendOffer", (data) => __awaiter(void 0, void 0, void 0, function* () {
         const { toEmail, offer, fromEmail } = JSON.parse(data);
+        console.log(toEmail, "to user id ");
+        console.log(fromEmail, "from user id");
+        console.log(offer, "check offer");
         const toSocketId = exports.users[toEmail];
+        console.log(toSocketId, "check to socket id");
         try {
             offer.totalPrice = (0, calculateTotalPrice_1.calculateTotalPrice)(offer);
             const offerPDFPath = yield (0, generateOfferPdf_1.generateOfferPDF)(offer);
@@ -144,6 +149,8 @@ exports.io.on("connection", (socket) => {
     }));
     socket.on("createZoomMeeting", (data) => __awaiter(void 0, void 0, void 0, function* () {
         const { fromUserId, toUserId } = JSON.parse(data);
+        console.log(fromUserId, "from ");
+        console.log(toUserId, "to userId");
         const toSocketId = exports.users[toUserId];
         try {
             const meeting = yield zoom_service_1.zoomService.createZoomMeeting();
@@ -159,15 +166,36 @@ exports.io.on("connection", (socket) => {
                 meetingLink: start_url,
                 isUnseen: false,
             });
+            const populateMessage = {
+                sender: {
+                    _id: savedMessage.sender,
+                },
+                recipient: {
+                    _id: savedMessage.recipient,
+                },
+                meetingLink: start_url,
+                isUnseen: false,
+                message: join_url,
+                createdAt: savedMessage.createdAt,
+            };
+            const toEmailConversationList = yield messages_service_1.MessageService.getConversationLists(toUserId);
+            const fromEmailConversationList = yield messages_service_1.MessageService.getConversationLists(fromUserId);
+            socket.emit("createZoomMeeting", {
+                from: fromUserId,
+                populateMessage,
+            });
+            socket.emit("conversation-list", fromEmailConversationList);
             if (toSocketId) {
                 socket.to(toSocketId).emit("createZoomMeeting", {
                     from: fromUserId,
-                    savedMessage,
+                    populateMessage,
                 });
+                if (toEmailConversationList) {
+                    socket
+                        .to(toSocketId)
+                        .emit("conversation-list", toEmailConversationList);
+                }
             }
-            socket.emit("createZoomMeeting", {
-                savedMessage,
-            });
         }
         catch (error) {
             console.error("Error creating Zoom meeting:", error);

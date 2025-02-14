@@ -125,7 +125,8 @@ const createPaymentIntentService = (payload) => __awaiter(void 0, void 0, void 0
     }
     return orderResult[0];
 });
-const handleAccountUpdated = (event) => __awaiter(void 0, void 0, void 0, function* () { });
+const handleAccountUpdated = (event) => __awaiter(void 0, void 0, void 0, function* () {
+});
 const deliverProject = (orderId) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const order = yield order_service_1.OrderService.getOrderById(orderId);
@@ -133,7 +134,7 @@ const deliverProject = (orderId) => __awaiter(void 0, void 0, void 0, function* 
         throw new handleApiError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "order not found");
     }
     const retireProfessional = yield auth_model_1.User.findOne({
-        email: order === null || order === void 0 ? void 0 : order.result.orderReciver,
+        _id: order === null || order === void 0 ? void 0 : order.result.orderReciver,
     });
     if (!retireProfessional) {
         throw new handleApiError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "user not found");
@@ -193,6 +194,54 @@ const generateNewAccountLink = (user) => __awaiter(void 0, void 0, void 0, funct
   `;
     yield (0, emailSender_1.default)("Your Onboarding Url", user.email, html);
 });
+const isDuplicateStripecard = (paymentMethodId, stripeCustomerId) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    const paymentMethods = yield stripe.paymentMethods.list({
+        customer: stripeCustomerId,
+        type: "card",
+    });
+    const newCard = yield stripe.paymentMethods.retrieve(paymentMethodId);
+    const duplicateCards = (_a = paymentMethods === null || paymentMethods === void 0 ? void 0 : paymentMethods.data) === null || _a === void 0 ? void 0 : _a.filter((existingCard) => existingCard.card.last4 === newCard.card.last4);
+    return duplicateCards;
+});
+const createStripeCard = (id, paymentMethodId) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    console.log(id, paymentMethodId);
+    const user = yield auth_model_1.User.findById(id);
+    console.log(user, "chekc  user");
+    if (!user) {
+        throw new handleApiError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "user not found");
+    }
+    if (!((_a = user.stripe) === null || _a === void 0 ? void 0 : _a.customerId)) {
+        throw new handleApiError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "Customer ID not found");
+    }
+    const existingCard = yield isDuplicateStripecard(paymentMethodId, user.stripe.customerId);
+    if ((existingCard === null || existingCard === void 0 ? void 0 : existingCard.length) === 0) {
+        const result = yield stripe.paymentMethods.attach(paymentMethodId, {
+            customer: user.stripe.customerId,
+        });
+        return result;
+    }
+    else {
+        throw new handleApiError_1.default(404, `The card you are trying to add is already linked to your account.`);
+    }
+});
+const getStripeCardLists = (id) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
+    const user = yield auth_model_1.User.findById(id);
+    console.log(user, "chekc  user");
+    if (!user) {
+        throw new handleApiError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "user not found");
+    }
+    if (!((_a = user.stripe) === null || _a === void 0 ? void 0 : _a.customerId)) {
+        throw new handleApiError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "Customer ID not found");
+    }
+    const result = yield stripe.paymentMethods.list({
+        customer: (_b = user.stripe) === null || _b === void 0 ? void 0 : _b.customerId,
+        type: "card",
+    });
+    return result;
+});
 exports.StripeServices = {
     getCustomerSavedCardsFromStripe,
     deleteCardFromCustomer,
@@ -201,4 +250,6 @@ exports.StripeServices = {
     handleAccountUpdated,
     deliverProject,
     generateNewAccountLink,
+    getStripeCardLists,
+    createStripeCard,
 };

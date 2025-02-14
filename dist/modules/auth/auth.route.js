@@ -24,3 +24,4 @@ router.get("/get-all-clients", auth_controller_1.AuthController.getAllClients);
 router.patch("/update-cover-photo", multer_1.multerUpload.single("coverPhoto"), (0, auth_1.default)(), auth_controller_1.AuthController.updateCoverPhoto);
 router.get("/get-single-user/:id", auth_controller_1.AuthController.getSingleUserById);
 router.patch("/delete-user/:id", auth_controller_1.AuthController.delteUser);
+router.patch("/update-status/:id", auth_controller_1.AuthController.updateUserStatus);

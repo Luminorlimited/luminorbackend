@@ -161,6 +161,19 @@ const updateAdminProfilePic = (0, catchAsync_1.default)((req, res) => __awaiter(
         data: result,
     });
 }));
+const updateUserStatus = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const id = req.params.id;
+    const { status } = req.body;
+    console.log(status);
+    console.log(JSON.parse(status));
+    const result = yield auth_service_1.AuthService.updateUserStatus(id, JSON.parse(status));
+    (0, sendResponse_1.default)(res, {
+        statusCode: http_status_codes_1.StatusCodes.OK,
+        success: true,
+        message: `user update status ${status} successfully `,
+        data: result,
+    });
+}));
 exports.AuthController = {
     loginUser,
     enterOtp,
@@ -174,4 +187,5 @@ exports.AuthController = {
     updateCoverPhoto,
     updateAdmin,
     updateAdminProfilePic,
+    updateUserStatus,
 };

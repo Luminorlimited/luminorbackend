@@ -18,6 +18,7 @@ const createClient = catchAsync(async (req: Request, res: Response) => {
       role,
       stripe: { onboardingUrl: "", customerId: "", isOnboardingSucess: false },
       password,
+      isActivated:false
     },
     others
   );
@@ -71,6 +72,14 @@ const updateSingleClient = catchAsync(async (req: Request, res: Response) => {
         fileMap["projectUrl"],
         "project-samples"
       );
+
+    }
+    if(fileMap["profileUrl"]){
+      profileImageUrl= await uploadFileToSpace(
+        fileMap["profileUrl"],
+        "client-profile-url"
+      );
+
     }
     updatedProfile = {
       ...others,
