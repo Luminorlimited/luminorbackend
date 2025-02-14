@@ -136,7 +136,9 @@ const createPaymentIntentService = async (payload: any) => {
   return orderResult[0];
 };
 
-const handleAccountUpdated = async (event: any) => {};
+const handleAccountUpdated = async (event: any) => {
+  
+};
 
 const deliverProject = async (orderId: string) => {
   const order = await OrderService.getOrderById(orderId);
