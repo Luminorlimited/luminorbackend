@@ -26,9 +26,10 @@ const createMessage = async (payload: IMessage) => {
   //   throw new Error("Sender or recipient not found.");
   // }
   // console.log(payload, "check payload from create message service");
+  console.log(payload,"check meesage payload")
 
   let checkRoom = await Convirsation.findOne({
-    $and: [
+    $or: [
       { $or: [{ user1: payload.sender }, { user1: payload.recipient }] },
       { $or: [{ user2: payload.sender }, { user2: payload.recipient }] },
     ],
@@ -94,8 +95,7 @@ const getMessages = async (
   // const users = await User.find({ email: { $in: [senderId, recipientId] } });
   // if (users.length < 2) throw new Error("Sender or recipient not found.");
   // const [sender, recipient] = users;
-  console.log(senderId,"check sender id")
-  console.log(recipientId,"chekc recipeint id")
+
   const messages = await Message.find({
     $or: [
       { sender: senderId, recipient: recipientId },
@@ -107,10 +107,13 @@ const getMessages = async (
     .populate("recipient", "name email profileUrl");
 
   if (!messages.length) return [];
+  console.log(messages[0].room,"check room")
 
   const conversationRoom = await Convirsation.findById(messages[0].room)
     .populate("user1", "name email profileUrl")
     .populate("user2", "name email profileUrl");
+
+  
 
   if (!conversationRoom)
     throw new ApiError(StatusCodes.NOT_FOUND, "Room not found");
