@@ -31,6 +31,7 @@ router.post(
   StripeController.createPaymentIntent
 );
 router.patch("/deliver-project/:id", StripeController.deliverProject);
+router.post("/generate-onboarding-url",auth(),StripeController.generateAccountLink)
 
 
 export const StripeRoutes = router;

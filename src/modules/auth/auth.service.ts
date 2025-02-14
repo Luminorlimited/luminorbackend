@@ -161,7 +161,7 @@ const getSingleUserById = async (id: string) => {
 };
 
 const getAllUsers = async () => {
-  const users = await User.find({ isDeleted: false });
+  const users = await User.find({ isDeleted: false }).sort({ createdAt: -1 });
   return users;
 };
 const getAllRetireProfiessional = async () => {
@@ -176,6 +176,7 @@ const getAllRetireProfiessional = async () => {
     },
     { $unwind: "$retireProfessional" },
     { $match: { "retireProfessional.isDeleted": false } },
+    { $sort: { "retireProfessional.createdAt": -1 } }
   ]);
 
   return users;
@@ -192,6 +193,7 @@ const getAllClients = async () => {
     },
     { $unwind: "$client" },
     { $match: { "client.isDeleted": false } },
+    { $sort: { "client.createdAt": -1 } }
   ]);
 
   return clients;
