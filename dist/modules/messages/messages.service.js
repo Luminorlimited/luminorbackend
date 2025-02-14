@@ -85,6 +85,8 @@ const getMessages = (senderId, recipientId, loggedInUser) => __awaiter(void 0, v
     // const users = await User.find({ email: { $in: [senderId, recipientId] } });
     // if (users.length < 2) throw new Error("Sender or recipient not found.");
     // const [sender, recipient] = users;
+    console.log(senderId, "check sender id");
+    console.log(recipientId, "chekc recipeint id");
     const messages = yield messages_model_1.Message.find({
         $or: [
             { sender: senderId, recipient: recipientId },

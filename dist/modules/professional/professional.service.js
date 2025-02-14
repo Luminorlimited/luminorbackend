@@ -42,6 +42,7 @@ const createProfessional = (user, professionalData, file) => __awaiter(void 0, v
     const session = yield mongoose_1.default.startSession();
     try {
         session.startTransaction();
+        console.log(user, professionalData, "check professional data");
         const account = yield stripe.accounts.create({
             type: "express",
             country: "US",
@@ -100,6 +101,7 @@ const updateSingleRetireProfessional = (id, auth, retireProfessionalPayload) => 
         if (!updatedRetireProfessional) {
             throw new handleApiError_1.default(404, "retire professional not found");
         }
+        console.log(retireProfessionalPayload, auth);
         const updatedUser = yield auth_model_1.User.findByIdAndUpdate(id, auth, {
             new: true,
             session,
@@ -121,6 +123,7 @@ exports.updateSingleRetireProfessional = updateSingleRetireProfessional;
 const getRetireProfessionals = (filters, paginationOptions) => __awaiter(void 0, void 0, void 0, function* () {
     const { skip, limit, page, sortBy, sortOrder } = paginationHelper_1.paginationHelpers.calculatePagination(paginationOptions);
     const { query } = filters, filtersData = __rest(filters, ["query"]);
+    console.log(filtersData, "check filters data");
     const andCondition = [];
     if (query) {
         andCondition.push({
@@ -135,6 +138,7 @@ const getRetireProfessionals = (filters, paginationOptions) => __awaiter(void 0,
     if (Object.keys(filtersData).length) {
         andCondition.push(...Object.entries(filtersData).map(([field, value]) => {
             if (field === "industry") {
+                console.log(field, "check field");
                 const parseArray = Array.isArray(value)
                     ? value
                     : JSON.parse(value);
@@ -151,6 +155,7 @@ const getRetireProfessionals = (filters, paginationOptions) => __awaiter(void 0,
                 };
             }
             else if (field === "timeline") {
+                console.log(field, "check field");
                 return value === "shortTerm"
                     ? { availability: { $lte: 29 } }
                     : { availability: { $gte: 30 } };
@@ -161,11 +166,12 @@ const getRetireProfessionals = (filters, paginationOptions) => __awaiter(void 0,
     const aggregationPipeline = [];
     if (filtersData.location) {
         const [longitude, latitude, minDistance, maxDistance] = JSON.parse(filtersData.location);
+        console.log(latitude, longitude, maxDistance, minDistance, "check data");
         aggregationPipeline.push({
             $geoNear: {
                 near: {
                     type: "Point",
-                    coordinates: [latitude, longitude],
+                    coordinates: [longitude, latitude],
                 },
                 distanceField: "distance",
                 spherical: true,
@@ -210,6 +216,7 @@ const getRetireProfessionals = (filters, paginationOptions) => __awaiter(void 0,
     };
 });
 const getRetireProfessionalsByLocation = (long, lat, min, max) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log(long, lat);
     const result = yield professional_model_1.RetireProfessional.find({
         location: {
             $near: {
@@ -217,7 +224,7 @@ const getRetireProfessionalsByLocation = (long, lat, min, max) => __awaiter(void
                 $minDistance: min,
                 $geometry: {
                     type: "Point",
-                    coordinates: [lat, long],
+                    coordinates: [long, lat],
                 },
             },
         },
@@ -229,13 +236,22 @@ const getRetireProfessionalById = (professionalId) => __awaiter(void 0, void 0, 
     return result;
 });
 const updateProfessionalStripeAccount = (payload) => __awaiter(void 0, void 0, void 0, function* () {
-    yield auth_model_1.User.findOneAndUpdate({ email: payload.email }, {
+    const updatedUser = yield auth_model_1.User.findOneAndUpdate({ email: payload.email }, {
         $set: {
             "stripe.customerId": payload.id,
             "stripe.isOnboardingSucess": true,
             "stripe.onboardingUrl": null,
         },
     });
+    if (updatedUser) {
+        // Request 'transfers' capability for the account
+        yield stripe.accounts.update(payload.id, {
+            capabilities: {
+                transfers: { requested: true },
+            },
+        });
+        console.log(`Transfers capability requested for ${payload.id}`);
+    }
 });
 exports.RetireProfessionalService = {
     createProfessional,

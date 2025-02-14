@@ -8,34 +8,11 @@ const express_1 = __importDefault(require("express"));
 const stripe_controller_1 = require("./stripe.controller");
 const multer_1 = require("../../middlewares/multer");
 const parseJson_1 = require("../../middlewares/parseJson");
+const auth_1 = __importDefault(require("../../middlewares/auth"));
 const router = express_1.default.Router();
-// create a new customer with card
-// router.post(
-//   "/save-card",
-//   auth(),
-//   validateRequest(TStripeSaveWithCustomerInfoPayloadSchema),
-//   StripeController.saveCardWithCustomerInfo
-// );
-// Authorize the customer with the amount and send payment request
-// router.post(
-//   "/authorize-payment",
-//   validateRequest(AuthorizedPaymentPayloadSchema),
-//   StripeController.authorizedPaymentWithSaveCard
-// );
-// Capture the payment request and deduct the amount
-// router.post(
-//   "/capture-payment",
-//   validateRequest(capturedPaymentPayloadSchema),
-//   StripeController.capturePaymentRequest
-// );
-// Save new card to existing customer
-// router.post(
-//   "/save-new-card",
-//   validateRequest(saveNewCardWithExistingCustomerPayloadSchema),
-//   StripeController.saveNewCardWithExistingCustomer
-// );
-// Get all save cards for customer
+router.get("/stripe-card-lists", (0, auth_1.default)(), stripe_controller_1.StripeController.getStripeCardLists);
 router.get("/get-cards/:customerId", stripe_controller_1.StripeController.getCustomerSavedCards);
+router.post("/create-card", (0, auth_1.default)(), stripe_controller_1.StripeController.createStripeCard);
 // Delete card from customer
 router.delete("/delete-card/:paymentMethodId", stripe_controller_1.StripeController.deleteCardFromCustomer);
 // Refund payment to customer

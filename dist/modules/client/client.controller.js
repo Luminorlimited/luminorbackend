@@ -41,6 +41,7 @@ const createClient = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, v
         role,
         stripe: { onboardingUrl: "", customerId: "", isOnboardingSucess: false },
         password,
+        isActivated: false
     }, others);
     (0, sendResponse_1.default)(res, {
         success: true,

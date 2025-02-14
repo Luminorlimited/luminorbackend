@@ -227,6 +227,11 @@ const updateAdminProfilePic = (id, profileImage) => __awaiter(void 0, void 0, vo
         throw error;
     }
 });
+const updateUserStatus = (id, status) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield auth_model_1.User.findOneAndUpdate({ _id: id }, { isActivated: status });
+    console.log(result, "check result");
+    return result;
+});
 exports.AuthService = {
     loginUser,
     enterOtp,
@@ -240,4 +245,5 @@ exports.AuthService = {
     updateCoverPhoto,
     updateAdmin,
     updateAdminProfilePic,
+    updateUserStatus
 };

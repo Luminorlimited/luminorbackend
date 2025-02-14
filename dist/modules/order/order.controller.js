@@ -30,10 +30,8 @@ const createOrder = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, vo
 }));
 const getOrderByProfessional = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const user = req.user;
-    if (!user) {
-        throw new handleApiError_1.default(http_status_codes_1.StatusCodes.UNAUTHORIZED, "user not found");
-    }
-    const order = yield order_service_1.OrderService.getOrderByProfessional(user.email);
+    console.log(user, "check user");
+    const order = yield order_service_1.OrderService.getOrderByProfessional(user === null || user === void 0 ? void 0 : user.id);
     (0, sendResponse_1.default)(res, {
         success: true,
         statusCode: http_status_codes_1.StatusCodes.OK,
@@ -43,10 +41,7 @@ const getOrderByProfessional = (0, catchAsync_1.default)((req, res) => __awaiter
 }));
 const getOrderByClient = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const user = req.user;
-    if (!user) {
-        throw new handleApiError_1.default(http_status_codes_1.StatusCodes.UNAUTHORIZED, "user not found");
-    }
-    const order = yield order_service_1.OrderService.getOrderByClient(user.email);
+    const order = yield order_service_1.OrderService.getOrderByClient(user.id);
     (0, sendResponse_1.default)(res, {
         success: true,
         statusCode: http_status_codes_1.StatusCodes.OK,

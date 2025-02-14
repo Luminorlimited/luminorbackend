@@ -40,6 +40,7 @@ const createProfessional = (0, catchAsync_1.default)((req, res) => __awaiter(voi
         email,
         role,
         password,
+        isActivated: false,
         stripe: { onboardingUrl: "", customerId: "", isOnboardingSucess: false },
     };
     const professionalData = Object.assign({}, others);

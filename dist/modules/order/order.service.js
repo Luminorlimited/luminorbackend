@@ -20,9 +20,9 @@ const createOrder = (payload) => __awaiter(void 0, void 0, void 0, function* () 
     const result = yield order_model_1.Order.create(payload);
     return result;
 });
-const getOrderByProfessional = (email) => __awaiter(void 0, void 0, void 0, function* () {
+const getOrderByProfessional = (id) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const result = yield order_model_1.Order.find({ orderReciver: email })
+        const result = yield order_model_1.Order.find({ orderReciver: id })
             .populate("project")
             .populate("transaction");
         return result;
@@ -32,8 +32,8 @@ const getOrderByProfessional = (email) => __awaiter(void 0, void 0, void 0, func
         throw error;
     }
 });
-const getOrderByClient = (email) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield order_model_1.Order.find({ orderFrom: email })
+const getOrderByClient = (id) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield order_model_1.Order.find({ orderFrom: id })
         .populate("project")
         .populate("transaction");
     return result;
