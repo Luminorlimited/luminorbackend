@@ -10,7 +10,9 @@ const getOrderByProfessional = async (id: string) => {
   try {
     const result = await Order.find({ orderReciver: id })
       .populate("project")
-      .populate("transaction");
+      .populate("transaction")
+      .populate("orderFrom")
+      .populate("orderReciver");
 
     return result;
   } catch (error) {
@@ -21,7 +23,9 @@ const getOrderByProfessional = async (id: string) => {
 const getOrderByClient = async (id: string) => {
   const result = await Order.find({ orderFrom: id })
     .populate("project")
-    .populate("transaction");
+    .populate("transaction")
+    .populate("orderFrom")
+    .populate("orderReciver");
   return result;
 };
 const getSpecificOrderBYClientAndProfessional = async (
@@ -33,23 +37,23 @@ const getSpecificOrderBYClientAndProfessional = async (
     orderFrom: clientId,
   })
     .populate("project")
-    .populate("transaction");
+    .populate("transaction")
+    .populate("orderFrom")
+    .populate("orderReciver");
   return result;
 };
 const getOrderById = async (orderId: string) => {
   const result = await Order.findById(orderId)
     .populate("project")
-    .populate("transaction");
+    .populate("transaction")
+    .populate("orderFrom")
+    .populate("orderReciver");
 
-  const [client, retireProfessional] = await Promise.all([
-    User.find({ email: result?.orderReciver }).select(
-      "name.firstName name.lastName"
-    ),
-    User.find({ email: result?.orderFrom }).select(
-      "name.firstName name.lastName"
-    ),
-  ]);
-  return { result, client, retireProfessional };
+  return {
+    result,
+    client: result?.orderFrom,
+    retireProfessional: result?.orderReciver,
+  };
 };
 const getAllOrders = async () => {
   const result = await Order.find()
