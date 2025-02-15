@@ -149,7 +149,7 @@ const getSingleUserById = (id) => __awaiter(void 0, void 0, void 0, function* ()
     return result;
 });
 const getAllUsers = () => __awaiter(void 0, void 0, void 0, function* () {
-    const users = yield auth_model_1.User.find({ isDeleted: false });
+    const users = yield auth_model_1.User.find({ isDeleted: false }).sort({ createdAt: -1 });
     return users;
 });
 const getAllRetireProfiessional = () => __awaiter(void 0, void 0, void 0, function* () {
@@ -164,6 +164,7 @@ const getAllRetireProfiessional = () => __awaiter(void 0, void 0, void 0, functi
         },
         { $unwind: "$retireProfessional" },
         { $match: { "retireProfessional.isDeleted": false } },
+        { $sort: { "retireProfessional.createdAt": -1 } }
     ]);
     return users;
 });
@@ -179,6 +180,7 @@ const getAllClients = () => __awaiter(void 0, void 0, void 0, function* () {
         },
         { $unwind: "$client" },
         { $match: { "client.isDeleted": false } },
+        { $sort: { "client.createdAt": -1 } }
     ]);
     return clients;
 });

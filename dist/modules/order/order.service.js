@@ -14,7 +14,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OrderService = void 0;
 const handleApiError_1 = __importDefault(require("../../errors/handleApiError"));
-const auth_model_1 = require("../auth/auth.model");
 const order_model_1 = require("./order.model");
 const createOrder = (payload) => __awaiter(void 0, void 0, void 0, function* () {
     const result = yield order_model_1.Order.create(payload);
@@ -24,7 +23,9 @@ const getOrderByProfessional = (id) => __awaiter(void 0, void 0, void 0, functio
     try {
         const result = yield order_model_1.Order.find({ orderReciver: id })
             .populate("project")
-            .populate("transaction");
+            .populate("transaction")
+            .populate("orderFrom")
+            .populate("orderReciver");
         return result;
     }
     catch (error) {
@@ -35,7 +36,9 @@ const getOrderByProfessional = (id) => __awaiter(void 0, void 0, void 0, functio
 const getOrderByClient = (id) => __awaiter(void 0, void 0, void 0, function* () {
     const result = yield order_model_1.Order.find({ orderFrom: id })
         .populate("project")
-        .populate("transaction");
+        .populate("transaction")
+        .populate("orderFrom")
+        .populate("orderReciver");
     return result;
 });
 const getSpecificOrderBYClientAndProfessional = (clientId, professionalId) => __awaiter(void 0, void 0, void 0, function* () {
@@ -44,18 +47,22 @@ const getSpecificOrderBYClientAndProfessional = (clientId, professionalId) => __
         orderFrom: clientId,
     })
         .populate("project")
-        .populate("transaction");
+        .populate("transaction")
+        .populate("orderFrom")
+        .populate("orderReciver");
     return result;
 });
 const getOrderById = (orderId) => __awaiter(void 0, void 0, void 0, function* () {
     const result = yield order_model_1.Order.findById(orderId)
         .populate("project")
-        .populate("transaction");
-    const [client, retireProfessional] = yield Promise.all([
-        auth_model_1.User.find({ email: result === null || result === void 0 ? void 0 : result.orderReciver }).select("name.firstName name.lastName"),
-        auth_model_1.User.find({ email: result === null || result === void 0 ? void 0 : result.orderFrom }).select("name.firstName name.lastName"),
-    ]);
-    return { result, client, retireProfessional };
+        .populate("transaction")
+        .populate("orderFrom")
+        .populate("orderReciver");
+    return {
+        result,
+        client: result === null || result === void 0 ? void 0 : result.orderFrom,
+        retireProfessional: result === null || result === void 0 ? void 0 : result.orderReciver,
+    };
 });
 const getAllOrders = () => __awaiter(void 0, void 0, void 0, function* () {
     const result = yield order_model_1.Order.find()

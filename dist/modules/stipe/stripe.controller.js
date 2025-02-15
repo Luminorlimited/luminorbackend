@@ -21,6 +21,8 @@ const config_1 = __importDefault(require("../../config"));
 const stripe_1 = __importDefault(require("stripe"));
 const professional_service_1 = require("../professional/professional.service");
 const generateClientRequirementPdf_1 = require("../../utilitis/generateClientRequirementPdf");
+const auth_model_1 = require("../auth/auth.model");
+const handleApiError_1 = __importDefault(require("../../errors/handleApiError"));
 const stripe = new stripe_1.default(config_1.default.stripe.secretKey, {
     apiVersion: "2024-11-20.acacia",
 });
@@ -144,6 +146,20 @@ const createStripeCard = (0, catchAsync_1.default)((req, res) => __awaiter(void 
         data: result,
     });
 }));
+const generateAccountLink = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = req.user;
+    const dbUser = yield auth_model_1.User.findById(user.id);
+    if (!dbUser) {
+        throw new handleApiError_1.default(http_status_codes_1.StatusCodes.NOT_FOUND, "user not found");
+    }
+    const result = yield stripe_service_1.StripeServices.generateNewAccountLink(dbUser);
+    (0, sendResponse_1.default)(res, {
+        statusCode: 200,
+        success: true,
+        message: "A Onboarding Url has been send to your gmail.please complete your onboarding",
+        data: result,
+    });
+}));
 exports.StripeController = {
     getCustomerSavedCards,
     deleteCardFromCustomer,
@@ -152,5 +168,6 @@ exports.StripeController = {
     handleWebHook,
     deliverProject,
     getStripeCardLists,
-    createStripeCard
+    createStripeCard,
+    generateAccountLink
 };
