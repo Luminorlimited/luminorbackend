@@ -21,6 +21,7 @@ exports.corsOptions = {
         // "https://tasneem-social-frontend.netlify.app",
         "https://luminoor.vercel.app",
         "http://localhost:3000",
+        "http://10.0.20.68:3000"
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],

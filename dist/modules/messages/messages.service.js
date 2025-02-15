@@ -30,8 +30,9 @@ const createMessage = (payload) => __awaiter(void 0, void 0, void 0, function* (
     //   throw new Error("Sender or recipient not found.");
     // }
     // console.log(payload, "check payload from create message service");
+    console.log(payload, "check meesage payload");
     let checkRoom = yield convirsation_model_1.Convirsation.findOne({
-        $and: [
+        $or: [
             { $or: [{ user1: payload.sender }, { user1: payload.recipient }] },
             { $or: [{ user2: payload.sender }, { user2: payload.recipient }] },
         ],
@@ -85,8 +86,6 @@ const getMessages = (senderId, recipientId, loggedInUser) => __awaiter(void 0, v
     // const users = await User.find({ email: { $in: [senderId, recipientId] } });
     // if (users.length < 2) throw new Error("Sender or recipient not found.");
     // const [sender, recipient] = users;
-    console.log(senderId, "check sender id");
-    console.log(recipientId, "chekc recipeint id");
     const messages = yield messages_model_1.Message.find({
         $or: [
             { sender: senderId, recipient: recipientId },
@@ -98,6 +97,7 @@ const getMessages = (senderId, recipientId, loggedInUser) => __awaiter(void 0, v
         .populate("recipient", "name email profileUrl");
     if (!messages.length)
         return [];
+    console.log(messages[0].room, "check room");
     const conversationRoom = yield convirsation_model_1.Convirsation.findById(messages[0].room)
         .populate("user1", "name email profileUrl")
         .populate("user2", "name email profileUrl");

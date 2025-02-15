@@ -23,4 +23,5 @@ router.delete("/delete-card/:paymentMethodId", stripe_controller_1.StripeControl
 // );
 router.post("/create-payment-intent", multer_1.multerUpload.array("clientRequirement"), parseJson_1.parseBodyData, stripe_controller_1.StripeController.createPaymentIntent);
 router.patch("/deliver-project/:id", stripe_controller_1.StripeController.deliverProject);
+router.post("/generate-onboarding-url", (0, auth_1.default)(), stripe_controller_1.StripeController.generateAccountLink);
 exports.StripeRoutes = router;

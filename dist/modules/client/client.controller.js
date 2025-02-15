@@ -90,6 +90,9 @@ const updateSingleClient = (0, catchAsync_1.default)((req, res) => __awaiter(voi
         if (fileMap["projectUrl"]) {
             projectUrl = yield (0, uploadTos3_1.uploadFileToSpace)(fileMap["projectUrl"], "project-samples");
         }
+        if (fileMap["profileUrl"]) {
+            profileImageUrl = yield (0, uploadTos3_1.uploadFileToSpace)(fileMap["profileUrl"], "client-profile-url");
+        }
         updatedProfile = Object.assign(Object.assign({}, others), { profileUrl: profileImageUrl });
     }
     const auth = { name };
