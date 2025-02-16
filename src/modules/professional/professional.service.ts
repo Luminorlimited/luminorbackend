@@ -200,11 +200,30 @@ const getRetireProfessionals = async (
             expertise: { $in: skillTypeArray },
           };
         } else if (field === "timeline") {
-          console.log(field, "check field");
-          return value === "shortTerm"
-            ? { availability: { $lte: 29 } }
-            : { availability: { $gte: 30 } };
+          let timelineValues: string[] = [];
+
+          try {
+            timelineValues =
+              typeof value === "string" ? JSON.parse(value) : value;
+          } catch (error) {
+            console.error("Error parsing timeline values:", error);
+            timelineValues = [];
+          }
+
+          if (
+            timelineValues.includes("shortTerm") &&
+            timelineValues.includes("Long Term")
+          ) {
+            return {};
+          } else if (timelineValues.includes("shortTerm")) {
+            return { availability: { $lte: 29 } };
+          } else if (timelineValues.includes("Long Term")) {
+            return { availability: { $gte: 30 } };
+          }
+
+          return {};
         }
+
         return { [field]: { $regex: value as string, $options: "i" } };
       })
     );
