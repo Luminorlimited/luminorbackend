@@ -25,6 +25,8 @@ const createProfessional = async (
   professionalData: IProfessional,
   file: Express.Multer.File
 ) => {
+  console.log(user, "user");
+  console.log(professionalData, "professional data");
   const session = await mongoose.startSession();
   try {
     session.startTransaction();
@@ -46,8 +48,8 @@ const createProfessional = async (
       user.stripe.onboardingUrl = accountLink.url;
       user.stripe.customerId = account.id;
     }
-    
-  const html = `
+
+    const html = `
   <div style="max-width: 600px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif; color: #333; border: 1px solid #ddd; border-radius: 10px;">
     <h2 style="color: #007bff; text-align: center;">Complete Your Onboarding</h2>
   
@@ -77,7 +79,7 @@ const createProfessional = async (
     </p>
   </div>
   `;
-  await emailSender("Your Onboarding Url", user.email, html);
+    await emailSender("Your Onboarding Url", user.email, html);
 
     const newUser = await User.create([user], { session });
     const userId = newUser[0]._id;
@@ -126,6 +128,8 @@ export const updateSingleRetireProfessional = async (
   retireProfessionalPayload: Partial<IProfessional>
 ): Promise<IProfessional | null> => {
   const session = await mongoose.startSession();
+  console.log(auth, "check auth");
+  console.log(retireProfessionalPayload, "check retire professional payload");
   try {
     session.startTransaction();
     const professionalAccount = await User.findById(id);

@@ -155,13 +155,35 @@ const updateAdminProfilePic = catchAsync(
 const updateUserStatus = catchAsync(async (req: Request, res: Response) => {
   const id = req.params.id;
   const { status } = req.body;
-  console.log(status)
-  console.log(JSON.parse(status))
+  console.log(status);
+  console.log(JSON.parse(status));
   const result = await AuthService.updateUserStatus(id, JSON.parse(status));
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
     message: `user update status ${status} successfully `,
+    data: result,
+  });
+});
+const forgotPassword = catchAsync(async (req: Request, res: Response) => {
+  const user = req.user as any;
+
+  const result = await AuthService.forgotPassword(user?.id as string);
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: ` otp has been send to your gmail account.please verify it`,
+    data: result,
+  });
+});
+const resetPassword = catchAsync(async (req: Request, res: Response) => {
+  const user = req.user as any;
+
+  const result = await AuthService.resetPassword(user?.id as string, req.body);
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: ` reset password successfully`,
     data: result,
   });
 });
@@ -179,4 +201,6 @@ export const AuthController = {
   updateAdmin,
   updateAdminProfilePic,
   updateUserStatus,
+  forgotPassword,
+  resetPassword,
 };
