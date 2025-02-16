@@ -215,7 +215,7 @@ const getRetireProfessionals = async (
           ) {
             return {};
           } else if (timelineValues.includes("shortTerm")) {
-            return { availability: { $lte: 29 } };
+            return { availability: { $lt: 30 } };
           } else if (timelineValues.includes("Long Term")) {
             return { availability: { $gte: 30 } };
           }

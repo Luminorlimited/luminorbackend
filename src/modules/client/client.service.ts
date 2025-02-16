@@ -249,6 +249,7 @@ const getClients = async (
             try {
               timelineValues =
                 typeof value === "string" ? JSON.parse(value) : value;
+              console.log(timelineValues, "check timline values");
             } catch (error) {
               console.error("Error parsing timeline values:", error);
               return {};
@@ -259,10 +260,23 @@ const getClients = async (
             ) {
               return {};
             } else if (timelineValues.includes("shortTerm")) {
-              return { "projectDurationRange.max": { $lte: 29 } };
+              console.log("Filtering for short-term projects (max < 30)");
+              andCondition.push({
+                $and: [
+                  { "projectDurationRange.max": { $lt: 30 } },
+                  { "projectDurationRange.min": { $lt: 30 } },
+                ],
+              });
             } else if (timelineValues.includes("Long Term")) {
-              return { "projectDurationRange.min": { $gte: 30 } };
+              console.log("Filtering for long-term projects (min >= 30)");
+              andCondition.push({
+                $or: [
+                  { "projectDurationRange.min": { $gte: 30 } }, // Long-term projects that start at 30+
+                  { "projectDurationRange.max": 30 }, // Include projects where max is exactly 30
+                ],
+              });
             }
+
             return {};
 
           default:
