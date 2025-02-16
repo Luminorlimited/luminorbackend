@@ -20,6 +20,7 @@ const stripe = new Stripe(config.stripe.secretKey as string, {
 });
 const createClient = async (user: IUser, clientData: IClient) => {
   const isUserExist = await User.findOne({ email: user.email });
+
   if (isUserExist) {
     throw new ApiError(400, "User Already Exist");
   }
@@ -67,7 +68,7 @@ const getClients = async (
   const { skip, limit, page, sortBy, sortOrder } =
     paginationHelpers.calculatePagination(paginationOptions);
   const { query, ...filtersData } = filters;
-  console.log(filtersData, "check filters data");
+
   const andCondition = [];
   if (query) {
     andCondition.push({
@@ -118,15 +119,28 @@ const getClients = async (
             servicePreference: { $in: skiillTypeArray },
           };
         } else if (field === "timeline") {
-          if (value === "shortTerm") {
-            return {
-              "projectDurationRange.max": { $lte: 29 },
-            };
-          } else {
-            return {
-              "projectDurationRange.max": { $gte: 30 },
-            };
+          let timelineValues: string[] = [];
+
+          try {
+            timelineValues =
+              typeof value === "string" ? JSON.parse(value) : value;
+          } catch (error) {
+            console.error("Error parsing timeline values:", error);
+            return {};
           }
+
+          if (
+            timelineValues.includes("shortTerm") &&
+            timelineValues.includes("Long Term")
+          ) {
+            return {};
+          } else if (timelineValues.includes("shortTerm")) {
+            return { "projectDurationRange.max": { $lte: 29 } };
+          } else if (timelineValues.includes("Long Term")) {
+            return { "projectDurationRange.min": { $gte: 30 } };
+          }
+
+          return {};
         }
         return { [field]: { $regex: value as string, $options: "i" } };
       })
@@ -169,9 +183,11 @@ const updateSingleClient = async (
   clientPayload: Partial<IClient>
 ): Promise<IClient | null> => {
   const session = await mongoose.startSession();
+  // console.log(clientPayload, "client payload");
   try {
     session.startTransaction();
     const clientAccount = await User.findById(id);
+
     if (clientPayload.servicePreference) {
       const industries = getIndustryFromService(
         clientPayload.servicePreference
