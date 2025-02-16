@@ -185,7 +185,6 @@ const getRetireProfessionals = async (
     andCondition.push(
       ...Object.entries(filtersData).map(([field, value]) => {
         if (field === "industry") {
-          console.log(field, "check field");
           const parseArray = Array.isArray(value)
             ? value
             : JSON.parse(value as string);
