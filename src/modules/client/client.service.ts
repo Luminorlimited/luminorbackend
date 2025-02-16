@@ -61,15 +61,138 @@ const createClient = async (user: IUser, clientData: IClient) => {
     session.endSession();
   }
 };
+// const getClients = async (
+//   filters: IFilters,
+//   paginationOptions: IpaginationOptions
+// ): Promise<IGenericResponse<IClient[]>> => {
+//   const { skip, limit, page, sortBy, sortOrder } =
+//     paginationHelpers.calculatePagination(paginationOptions);
+
+//   const { query, ...filtersData } = filters;
+//   console.log(filtersData, "check filters data");
+
+//   const andCondition = [];
+//   if (query) {
+//     andCondition.push({
+//       $or: searchableField.map((field) => ({
+//         [field]: {
+//           $regex: query as string,
+//           $options: "i",
+//         },
+//       })),
+//     });
+//   }
+//   if (Object.keys(filtersData).length) {
+//     andCondition.push(
+//       ...Object.entries(filtersData).map(([field, value]) => {
+//         if (field === "minBudget") {
+//           const minBudget = parseInt(value as string);
+//           return {
+//             "budgetRange.max": { $gte: minBudget },
+//           };
+//         } else if (field === "maxBudget") {
+//           const maxBudget = parseInt(value as string);
+//           return {
+//             "budgetRange.max": { $gte: maxBudget },
+//           };
+//         }
+//         if (field === "projectMin") {
+//           console.log(field, "chek project min");
+//           const minDuration = parseInt(value as string);
+//           return {
+//             "projectDurationRange.max": { $gte: minDuration },
+//           };
+//         } else if (field === "projectMax") {
+//           const maxDuration = parseInt(value as string);
+//           return {
+//             "projectDurationRange.max": { $gte: maxDuration },
+//           };
+//         } else if (field === "industry") {
+//           const parseArray = Array.isArray(value)
+//             ? value
+//             : JSON.parse(value as string);
+//           return {
+//             industry: { $in: parseArray },
+//           };
+//         } else if (field === "skillType") {
+//           const skiillTypeArray = Array.isArray(value)
+//             ? value
+//             : JSON.parse(value as string);
+//           return {
+//             servicePreference: { $in: skiillTypeArray },
+//           };
+//         } else if (field === "timeline") {
+//           let timelineValues: string[] = [];
+
+//           try {
+//             timelineValues =
+//               typeof value === "string" ? JSON.parse(value) : value;
+//           } catch (error) {
+//             console.error("Error parsing timeline values:", error);
+//             return {};
+//           }
+
+//           if (
+//             timelineValues.includes("shortTerm") &&
+//             timelineValues.includes("Long Term")
+//           ) {
+//             return {};
+//           } else if (timelineValues.includes("shortTerm")) {
+//             return { "projectDurationRange.max": { $lte: 29 } };
+//           } else if (timelineValues.includes("Long Term")) {
+//             return { "projectDurationRange.min": { $gte: 30 } };
+//           }
+
+//           return {};
+//         }
+//         return { [field]: { $regex: value as string, $options: "i" } };
+//       })
+//     );
+//   }
+//   const sortCondition: { [key: string]: SortOrder } = {};
+//   if (sortBy && sortOrder) {
+//     sortCondition[sortBy] = sortOrder;
+//   }
+//   const whereConditions = andCondition.length > 0 ? { $and: andCondition } : {};
+//   const result = await Client.find(whereConditions)
+//     .sort(sortCondition)
+//     .skip(skip)
+//     .limit(limit)
+//     .populate("client");
+//   const count = await Client.countDocuments();
+//   if (andCondition.length > 0) {
+//     return {
+//       meta: {
+//         page,
+//         limit,
+//         count,
+//       },
+//       data: result,
+//     };
+//   } else {
+//     return {
+//       meta: {
+//         page,
+//         limit,
+//         count,
+//       },
+//       data: result,
+//     };
+//   }
+// };
 const getClients = async (
   filters: IFilters,
   paginationOptions: IpaginationOptions
 ): Promise<IGenericResponse<IClient[]>> => {
   const { skip, limit, page, sortBy, sortOrder } =
     paginationHelpers.calculatePagination(paginationOptions);
+
   const { query, ...filtersData } = filters;
+  console.log(filtersData, "check filters data");
 
   const andCondition = [];
+
+  // Handle search query
   if (query) {
     andCondition.push({
       $or: searchableField.map((field) => ({
@@ -80,103 +203,99 @@ const getClients = async (
       })),
     });
   }
+
+  // Process filters
   if (Object.keys(filtersData).length) {
+    const minBudget = parseInt(filtersData["minBudget"] as string) || 0;
+    const maxBudget =
+      parseInt(filtersData["maxBudget"] as string) || Number.MAX_SAFE_INTEGER;
+
+    const minDuration = parseInt(filtersData["projectMin"] as string) || 0;
+    const maxDuration =
+      parseInt(filtersData["projectMax"] as string) || Number.MAX_SAFE_INTEGER;
+
     andCondition.push(
       ...Object.entries(filtersData).map(([field, value]) => {
-        if (field === "minBudget") {
-          const minBudget = parseInt(value as string);
-          return {
-            "budgetRange.max": { $gte: minBudget },
-          };
-        } else if (field === "maxBudget") {
-          const maxBudget = parseInt(value as string);
-          return {
-            "budgetRange.max": { $gte: maxBudget },
-          };
-        }
-        if (field === "projectMin") {
-          const minDuration = parseInt(value as string);
-          return {
-            "projectDurationRange.max": { $gte: minDuration },
-          };
-        } else if (field === "projectMax") {
-          const maxDuration = parseInt(value as string);
-          return {
-            "projectDurationRange.max": { $gte: maxDuration },
-          };
-        } else if (field === "industry") {
-          const parseArray = Array.isArray(value)
-            ? value
-            : JSON.parse(value as string);
-          return {
-            industry: { $in: parseArray },
-          };
-        } else if (field === "skillType") {
-          const skiillTypeArray = Array.isArray(value)
-            ? value
-            : JSON.parse(value as string);
-          return {
-            servicePreference: { $in: skiillTypeArray },
-          };
-        } else if (field === "timeline") {
-          let timelineValues: string[] = [];
+        switch (field) {
+          case "minBudget":
+          case "maxBudget":
+            return {
+              "budgetRange.max": { $gte: minBudget, $lte: maxBudget },
+            };
 
-          try {
-            timelineValues =
-              typeof value === "string" ? JSON.parse(value) : value;
-          } catch (error) {
-            console.error("Error parsing timeline values:", error);
+          case "projectMin":
+          case "projectMax":
+            return {
+              "projectDurationRange.max": {
+                $gte: minDuration,
+                $lte: maxDuration,
+              },
+            };
+
+          case "industry":
+            const industryArray = Array.isArray(value)
+              ? value
+              : JSON.parse(value as string);
+            return { industry: { $in: industryArray } };
+
+          case "skillType":
+            const skillTypeArray = Array.isArray(value)
+              ? value
+              : JSON.parse(value as string);
+            return { servicePreference: { $in: skillTypeArray } };
+
+          case "timeline":
+            let timelineValues: string[] = [];
+            try {
+              timelineValues =
+                typeof value === "string" ? JSON.parse(value) : value;
+            } catch (error) {
+              console.error("Error parsing timeline values:", error);
+              return {};
+            }
+            if (
+              timelineValues.includes("shortTerm") &&
+              timelineValues.includes("Long Term")
+            ) {
+              return {};
+            } else if (timelineValues.includes("shortTerm")) {
+              return { "projectDurationRange.max": { $lte: 29 } };
+            } else if (timelineValues.includes("Long Term")) {
+              return { "projectDurationRange.min": { $gte: 30 } };
+            }
             return {};
-          }
 
-          if (
-            timelineValues.includes("shortTerm") &&
-            timelineValues.includes("Long Term")
-          ) {
-            return {};
-          } else if (timelineValues.includes("shortTerm")) {
-            return { "projectDurationRange.max": { $lte: 29 } };
-          } else if (timelineValues.includes("Long Term")) {
-            return { "projectDurationRange.min": { $gte: 30 } };
-          }
-
-          return {};
+          default:
+            return { [field]: { $regex: value as string, $options: "i" } };
         }
-        return { [field]: { $regex: value as string, $options: "i" } };
       })
     );
   }
+
   const sortCondition: { [key: string]: SortOrder } = {};
   if (sortBy && sortOrder) {
     sortCondition[sortBy] = sortOrder;
   }
+
   const whereConditions = andCondition.length > 0 ? { $and: andCondition } : {};
   const result = await Client.find(whereConditions)
     .sort(sortCondition)
     .skip(skip)
     .limit(limit)
     .populate("client");
+
   const count = await Client.countDocuments();
-  if (andCondition.length > 0) {
-    return {
-      meta: {
-        page,
-        limit,
-        count,
-      },
-      data: result,
-    };
-  } else {
-    return {
-      meta: {
-        page,
-        limit,
-        count,
-      },
-      data: result,
-    };
-  }
+
+  return {
+    meta: {
+      page,
+      limit,
+      count,
+    },
+    data: result,
+  };
 };
+
 const updateSingleClient = async (
   id: string,
   auth: Partial<IClient>,
