@@ -5,16 +5,17 @@ import {
 } from "../../enums/notificationStatus";
 
 import ApiError from "../../errors/handleApiError";
-import { io, onlineUsers, userInChat, users } from "../../server";
+
 import { uploadFileToSpace } from "../../utilitis/uploadTos3";
 
-import { User } from "../auth/auth.model";
+
 
 import { Convirsation } from "../convirsation/convirsation.model";
 import { Notification } from "../notification/notification.model";
 
 import { IMessage } from "./messages.interface";
 import { Message } from "./messages.model";
+import { onlineUsers, userInChat } from "../../socket";
 
 const createMessage = async (payload: IMessage) => {
   // const [sender, recipient] = await Promise.all([
