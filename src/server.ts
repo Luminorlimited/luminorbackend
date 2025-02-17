@@ -30,7 +30,7 @@ initializeSocket(io);
 
 async function bootstrap() {
   try {
-    await mongoose.connect(config.database_url as string, options);
+    await mongoose.connect("mongodb+srv://luminor:BYcHOYLQI2eiZ9IU@cluster0.v0ciw.mongodb.net/luminor?retryWrites=true&w=majority&appName=Cluster0" as string, options);
     console.log("Connected to MongoDB successfully.");
 
     httpServer.listen(config.port, () => {
