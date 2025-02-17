@@ -14,6 +14,7 @@ export const io = new Server(httpServer, {
       "http://localhost:3000",
       "https://luminoor.vercel.app",
       "http://10.0.20.68:3000",
+      "https://www.luminor-ltd.com"
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],

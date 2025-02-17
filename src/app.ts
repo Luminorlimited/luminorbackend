@@ -18,7 +18,8 @@ export const corsOptions = {
     // "https://tasneem-social-frontend.netlify.app",
     "https://luminoor.vercel.app",
      "http://localhost:3000",
-     "http://10.0.20.68:3000"
+     "http://10.0.20.68:3000",
+     "https://www.luminor-ltd.com"
      
   ],
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
