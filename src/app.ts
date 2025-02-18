@@ -10,17 +10,15 @@ import { socialLoginRoutes } from "./modules/socialLogin/socialLogin.route";
 import session from "express-session";
 import { StripeController } from "./modules/stipe/stripe.controller";
 
-
 const app: Application = express();
 
 export const corsOptions = {
   origin: [
-    // "https://tasneem-social-frontend.netlify.app",
     "https://luminoor.vercel.app",
-     "http://localhost:3000",
-     "http://10.0.20.68:3000",
-     "https://www.luminor-ltd.com"
-     
+    "http://localhost:3000",
+    "http://10.0.20.68:3000",
+    "https://www.luminor-ltd.com",
+    "https://www.luminor-ltd.com",
   ],
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   allowedHeaders: ["Content-Type", "Authorization"],

@@ -14,7 +14,8 @@ export const io = new Server(httpServer, {
       "http://localhost:3000",
       "https://luminoor.vercel.app",
       "http://10.0.20.68:3000",
-      "https://www.luminor-ltd.com"
+      "https://luminor-ltd.com",
+      "https://www.luminor-ltd.com",
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -31,7 +32,10 @@ initializeSocket(io);
 
 async function bootstrap() {
   try {
-    await mongoose.connect("mongodb+srv://luminor:BYcHOYLQI2eiZ9IU@cluster0.v0ciw.mongodb.net/luminor?retryWrites=true&w=majority&appName=Cluster0" as string, options);
+    await mongoose.connect(
+      "mongodb+srv://luminor:BYcHOYLQI2eiZ9IU@cluster0.v0ciw.mongodb.net/luminor?retryWrites=true&w=majority&appName=Cluster0" as string,
+      options
+    );
     console.log("Connected to MongoDB successfully.");
 
     httpServer.listen(config.port, () => {
