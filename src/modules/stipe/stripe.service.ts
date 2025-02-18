@@ -176,7 +176,7 @@ const generateNewAccountLink = async (user: IUser) => {
   const accountLink = await stripe.accountLinks.create({
     account: user.stripe?.customerId as string,
     refresh_url: "https://your-platform.com/reauth",
-    return_url: "https://luminoor.vercel.app",
+    return_url: "https://www.luminor-ltd.com",
     type: "account_onboarding",
   });
 
