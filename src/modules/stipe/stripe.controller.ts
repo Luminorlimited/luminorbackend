@@ -77,6 +77,7 @@ const createPaymentIntent = catchAsync(async (req: any, res: any) => {
 const handleWebHook = catchAsync(async (req: any, res: any) => {
   console.log("webhook heat")
   const sig = req.headers["stripe-signature"] as string;
+  console.log(sig,"check sig")
   if (!sig) {
     return sendResponse(res, {
       statusCode: StatusCodes.BAD_REQUEST,
@@ -99,15 +100,18 @@ const handleWebHook = catchAsync(async (req: any, res: any) => {
   switch (event.type) {
     case "account.updated":
       const account = event.data.object;
+      console.log(account,"check account")
       if (
         account.charges_enabled &&
         account.details_submitted &&
         account.payouts_enabled
       ) {
+        console.log("up event accout")
         await RetireProfessionalService.updateProfessionalStripeAccount(
           account
         );
       } else {
+        console.log("else logic")
       }
       break;
 
