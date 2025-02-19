@@ -88,16 +88,21 @@ const handleWebHook = catchAsync(async (req: any, res: any) => {
   }
   let event: Stripe.Event;
   try {
+    console.log("in try catch")
     event = stripe.webhooks.constructEvent(
       req.body,
       sig,
       config.stripe.webhookSecret as string
     );
+    console.log(event,"check event")
   } catch (err) {
     console.error("Webhook signature verification failed.", err);
+    console.log(err,"check error")
     return res.status(400).send("Webhook Error");
   }
+  console.log(event.type)
   switch (event.type) {
+
     case "account.updated":
       const account = event.data.object;
       console.log(account,"check account")
