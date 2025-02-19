@@ -24,16 +24,18 @@ export const corsOptions = {
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
 };
-app.use(cors(corsOptions));
-app.use(cookieParser());
+
 app.use(
   "/api/v1/stripe/payment-webhook",
   express.raw({ type: "application/json" }),
   StripeController.handleWebHook
 );
-//parser
+app.use(cors(corsOptions));
+app.use(cookieParser());
 
 app.use(express.json());
+//parser
+
 app.use(express.urlencoded({ extended: true }));
 
 app.use(
