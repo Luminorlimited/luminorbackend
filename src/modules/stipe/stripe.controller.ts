@@ -75,6 +75,7 @@ const createPaymentIntent = catchAsync(async (req: any, res: any) => {
   });
 });
 const handleWebHook = catchAsync(async (req: any, res: any) => {
+  console.log("webhook heat")
   const sig = req.headers["stripe-signature"] as string;
   if (!sig) {
     return sendResponse(res, {
