@@ -19,6 +19,8 @@ const stripe = new Stripe(config.stripe.secretKey as string, {
   apiVersion: "2024-11-20.acacia",
 });
 const createClient = async (user: IUser, clientData: IClient) => {
+
+  console.log(user,clientData,"check client data")
   const isUserExist = await User.findOne({ email: user.email });
 
   if (isUserExist) {
@@ -61,125 +63,7 @@ const createClient = async (user: IUser, clientData: IClient) => {
     session.endSession();
   }
 };
-// const getClients = async (
-//   filters: IFilters,
-//   paginationOptions: IpaginationOptions
-// ): Promise<IGenericResponse<IClient[]>> => {
-//   const { skip, limit, page, sortBy, sortOrder } =
-//     paginationHelpers.calculatePagination(paginationOptions);
 
-//   const { query, ...filtersData } = filters;
-//   console.log(filtersData, "check filters data");
-
-//   const andCondition = [];
-//   if (query) {
-//     andCondition.push({
-//       $or: searchableField.map((field) => ({
-//         [field]: {
-//           $regex: query as string,
-//           $options: "i",
-//         },
-//       })),
-//     });
-//   }
-//   if (Object.keys(filtersData).length) {
-//     andCondition.push(
-//       ...Object.entries(filtersData).map(([field, value]) => {
-//         if (field === "minBudget") {
-//           const minBudget = parseInt(value as string);
-//           return {
-//             "budgetRange.max": { $gte: minBudget },
-//           };
-//         } else if (field === "maxBudget") {
-//           const maxBudget = parseInt(value as string);
-//           return {
-//             "budgetRange.max": { $gte: maxBudget },
-//           };
-//         }
-//         if (field === "projectMin") {
-//           console.log(field, "chek project min");
-//           const minDuration = parseInt(value as string);
-//           return {
-//             "projectDurationRange.max": { $gte: minDuration },
-//           };
-//         } else if (field === "projectMax") {
-//           const maxDuration = parseInt(value as string);
-//           return {
-//             "projectDurationRange.max": { $gte: maxDuration },
-//           };
-//         } else if (field === "industry") {
-//           const parseArray = Array.isArray(value)
-//             ? value
-//             : JSON.parse(value as string);
-//           return {
-//             industry: { $in: parseArray },
-//           };
-//         } else if (field === "skillType") {
-//           const skiillTypeArray = Array.isArray(value)
-//             ? value
-//             : JSON.parse(value as string);
-//           return {
-//             servicePreference: { $in: skiillTypeArray },
-//           };
-//         } else if (field === "timeline") {
-//           let timelineValues: string[] = [];
-
-//           try {
-//             timelineValues =
-//               typeof value === "string" ? JSON.parse(value) : value;
-//           } catch (error) {
-//             console.error("Error parsing timeline values:", error);
-//             return {};
-//           }
-
-//           if (
-//             timelineValues.includes("shortTerm") &&
-//             timelineValues.includes("Long Term")
-//           ) {
-//             return {};
-//           } else if (timelineValues.includes("shortTerm")) {
-//             return { "projectDurationRange.max": { $lte: 29 } };
-//           } else if (timelineValues.includes("Long Term")) {
-//             return { "projectDurationRange.min": { $gte: 30 } };
-//           }
-
-//           return {};
-//         }
-//         return { [field]: { $regex: value as string, $options: "i" } };
-//       })
-//     );
-//   }
-//   const sortCondition: { [key: string]: SortOrder } = {};
-//   if (sortBy && sortOrder) {
-//     sortCondition[sortBy] = sortOrder;
-//   }
-//   const whereConditions = andCondition.length > 0 ? { $and: andCondition } : {};
-//   const result = await Client.find(whereConditions)
-//     .sort(sortCondition)
-//     .skip(skip)
-//     .limit(limit)
-//     .populate("client");
-//   const count = await Client.countDocuments();
-//   if (andCondition.length > 0) {
-//     return {
-//       meta: {
-//         page,
-//         limit,
-//         count,
-//       },
-//       data: result,
-//     };
-//   } else {
-//     return {
-//       meta: {
-//         page,
-//         limit,
-//         count,
-//       },
-//       data: result,
-//     };
-//   }
-// };
 const getClients = async (
   filters: IFilters,
   paginationOptions: IpaginationOptions
