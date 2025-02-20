@@ -12,7 +12,7 @@ import { StripeController } from "./modules/stipe/stripe.controller";
 
 const app: Application = express();
 
-app.use(
+app.post(
   "/api/v1/stripe/payment-webhook",
   express.raw({ type: "application/json" }),
   StripeController.handleWebHook
