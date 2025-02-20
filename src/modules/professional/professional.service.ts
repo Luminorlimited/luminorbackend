@@ -25,8 +25,7 @@ const createProfessional = async (
   professionalData: IProfessional,
   file: Express.Multer.File
 ) => {
-  console.log(user, "user");
-  console.log(professionalData, "professional data");
+
   const session = await mongoose.startSession();
   try {
     session.startTransaction();
