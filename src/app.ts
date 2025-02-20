@@ -27,9 +27,6 @@ export const corsOptions = {
 
 app.use(
   "/api/v1/stripe/payment-webhook",
-  ()=>{
-   console.log("webhook")
-  },
   express.raw({ type: "application/json" }),
   StripeController.handleWebHook
 );
