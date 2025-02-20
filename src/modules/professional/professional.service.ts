@@ -34,7 +34,7 @@ const createProfessional = async (
       type: "express",
       country: "US",
       email: user.email,
-    });
+    });  console.log("hello")
 
     const accountLink = await stripe.accountLinks.create({
       account: account.id,
