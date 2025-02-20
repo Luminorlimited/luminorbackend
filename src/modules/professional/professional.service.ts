@@ -40,7 +40,7 @@ const createProfessional = async (
     const accountLink = await stripe.accountLinks.create({
       account: account.id,
       refresh_url: "https://your-platform.com/reauth",
-      return_url: "https://luminoor.vercel.app",
+      return_url: "https://www.luminor-ltd.com",
       type: "account_onboarding",
     });
 

@@ -92,8 +92,8 @@ const handleWebHook = catchAsync(async (req: any, res: any) => {
     event = stripe.webhooks.constructEvent(
       req.body,
       sig,
-      // config.stripe.webhookSecret as string
-      "whsec_1mF82w3dGBUwpSw4qbtG2uvJT7Iq6NA0"
+      config.stripe.webhookSecret as string
+    
     );
     console.log(event,"check event")
   } catch (err) {
