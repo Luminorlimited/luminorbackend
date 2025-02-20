@@ -16,7 +16,7 @@ import { Secret } from "jsonwebtoken";
 import { IFilters } from "../../interfaces/filter";
 import Stripe from "stripe";
 const stripe = new Stripe(config.stripe.secretKey as string, {
-  apiVersion: "2024-11-20.acacia",
+  apiVersion: "2025-01-27.acacia",
 });
 const createClient = async (user: IUser, clientData: IClient) => {
 

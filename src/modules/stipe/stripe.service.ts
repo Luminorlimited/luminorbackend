@@ -13,7 +13,7 @@ import { Offer } from "../offers/offer.model";
 import { IUser } from "../auth/auth.interface";
 import emailSender from "../../utilitis/emailSender";
 const stripe = new Stripe(config.stripe_key as string, {
-  apiVersion: "2024-11-20.acacia",
+  apiVersion: "2025-01-27.acacia",
 });
 const getCustomerSavedCardsFromStripe = async (customerId: string) => {
   try {

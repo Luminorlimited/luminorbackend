@@ -157,9 +157,9 @@ export const generateOfferPDF = async (offer: IOffer) => {
     }
 
     doc.end();
-    await new Promise((resolve, reject) => {
-      writeStream.on("finish", resolve);
-      writeStream.on("error", reject);
+    await new Promise<void>((resolve, reject) => {
+      writeStream.on("finish", () => resolve());
+      writeStream.on("error", (error) => reject(error));
     });
 
     const uploadedURL = await uploadFileToSpace(

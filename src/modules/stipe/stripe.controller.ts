@@ -10,7 +10,7 @@ import { User } from "../auth/auth.model";
 import { use } from "passport";
 import ApiError from "../../errors/handleApiError";
 const stripe = new Stripe(config.stripe.secretKey as string, {
-  apiVersion: "2024-11-20.acacia",
+  apiVersion: "2025-01-27.acacia",
 });
 const getCustomerSavedCards = catchAsync(async (req: any, res: any) => {
   const result = await StripeServices.getCustomerSavedCardsFromStripe(

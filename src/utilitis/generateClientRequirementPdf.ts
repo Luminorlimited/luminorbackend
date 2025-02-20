@@ -76,7 +76,7 @@ export const mergePDFs = async (
     mergedDoc.end();
 
     // Wait for the file to be completely written
-    await new Promise((resolve, reject) => {
+    await new Promise((resolve:any, reject:any) => {
       writeStream.on("finish", resolve);
       writeStream.on("error", reject);
     });
