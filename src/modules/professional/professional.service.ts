@@ -29,7 +29,7 @@ const createProfessional = async (
   const session = await mongoose.startSession();
   try {
     session.startTransaction();
-    console.log(user, professionalData, "check professional data");
+
     const account = await stripe.accounts.create({
       type: "express",
       country: "US",
