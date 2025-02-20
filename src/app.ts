@@ -12,6 +12,12 @@ import { StripeController } from "./modules/stipe/stripe.controller";
 
 const app: Application = express();
 
+app.use(
+  "/api/v1/stripe/payment-webhook",
+  ()=> (console.log("webhook")),
+  express.raw({ type: "application/json" }),
+  StripeController.handleWebHook
+);
 export const corsOptions = {
   origin: [
     "https://luminoor.vercel.app",
@@ -24,13 +30,6 @@ export const corsOptions = {
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
 };
-
-app.use(
-  "/api/v1/stripe/payment-webhook",
-  ()=> (console.log("webhook")),
-  express.raw({ type: "application/json" }),
-  StripeController.handleWebHook
-);
 app.use(cors(corsOptions));
 app.use(cookieParser());
 
