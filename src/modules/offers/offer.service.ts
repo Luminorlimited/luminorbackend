@@ -4,23 +4,38 @@ import { User } from "../auth/auth.model";
 import { AgreementType, IOffer } from "./offer.interface";
 import { Offer } from "./offer.model";
 import { StripeServices } from "../stipe/stripe.service";
-
+import Stripe from "stripe";
+import config from "../../config";
+import { RetireProfessionalService } from "../professional/professional.service";
+const stripe = new Stripe(config.stripe.secretKey as string, {
+  apiVersion: "2025-01-27.acacia",
+});
 const createOffer = async (offer: IOffer) => {
   const professional = await User.findById(offer.professionalEmail);
+  let stripeAccount;
   if (!professional?.isActivated) {
     throw new ApiError(
       StatusCodes.BAD_REQUEST,
       "your account is not activate yet"
     );
   }
-  if (professional?.stripe?.isOnboardingSucess === false) {
-    await StripeServices.generateNewAccountLink(professional);
-    throw new ApiError(
-      StatusCodes.UNAUTHORIZED,
-      "we send you a onboaring url.please check your email"
+  if (professional?.stripe?.customerId) {
+    stripeAccount = await stripe.accounts.retrieve(
+      professional.stripe.customerId
     );
+
+    if (!stripeAccount.details_submitted || !stripeAccount.charges_enabled) {
+      await StripeServices.generateNewAccountLink(professional);
+      throw new ApiError(
+        StatusCodes.UNAUTHORIZED,
+        "We sent you an onboarding URL. Please check your email."
+      );
+    }
   }
 
+  await RetireProfessionalService.updateProfessionalStripeAccount(
+    stripeAccount
+  );
   offer.serviceFee = parseFloat(offer.totalPrice.toString()) * 0.2;
   offer.totalReceive = parseFloat(offer.totalPrice.toString());
   offer.totalPrice =
