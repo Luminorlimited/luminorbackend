@@ -8,8 +8,6 @@ import ApiError from "../../errors/handleApiError";
 
 import { uploadFileToSpace } from "../../utilitis/uploadTos3";
 
-
-
 import { Convirsation } from "../convirsation/convirsation.model";
 import { Notification } from "../notification/notification.model";
 
@@ -18,6 +16,7 @@ import { Message } from "./messages.model";
 import { onlineUsers, userInChat } from "../../socket";
 
 const createMessage = async (payload: IMessage) => {
+  console.log(payload, "check payload when save message ");
   // const [sender, recipient] = await Promise.all([
   //   User.findOne({ email: payload.sender }),
   //   User.findOne({ email: payload.recipient }),
@@ -27,7 +26,7 @@ const createMessage = async (payload: IMessage) => {
   //   throw new Error("Sender or recipient not found.");
   // }
   // console.log(payload, "check payload from create message service");
-  console.log(payload,"check meesage payload")
+  console.log(payload, "check meesage payload");
 
   let checkRoom = await Convirsation.findOne({
     $or: [
@@ -55,12 +54,12 @@ const createMessage = async (payload: IMessage) => {
 
   const message = await Message.create(data);
 
-  let lastMessageContent = payload.message
-    ? payload.message
-    : payload.media
-    ? "📷 Image"
-    : payload.meetingLink
+  let lastMessageContent = payload.meetingLink
     ? "🔗 Meeting Link"
+    : payload.media
+    ? getFileType(payload.media)
+    : payload.message
+    ? payload.message
     : "";
 
   let updateFields: any = {
@@ -108,13 +107,11 @@ const getMessages = async (
     .populate("recipient", "name email profileUrl");
 
   if (!messages.length) return [];
-  console.log(messages[0].room,"check room")
+  console.log(messages[0].room, "check room");
 
   const conversationRoom = await Convirsation.findById(messages[0].room)
     .populate("user1", "name email profileUrl")
     .populate("user2", "name email profileUrl");
-
-  
 
   if (!conversationRoom)
     throw new ApiError(StatusCodes.NOT_FOUND, "Room not found");
@@ -207,6 +204,25 @@ const countMessageWithRecipient = async (sender: string, recepient: string) => {
   });
   const filterIds = totalUnseen.map((message) => message._id.toString());
   return { count: totalUnseen.length, totalUnseenId: filterIds };
+};
+const getFileType = (mediaUrl: string) => {
+  const extension = mediaUrl.split(".").pop()?.toLowerCase();
+
+  if (!extension) return "📁 File"; // Default case
+
+  if (["jpg", "jpeg", "png", "gif", "webp"].includes(extension)) {
+    return "📷 Image";
+  } else if (["pdf"].includes(extension)) {
+    return "📄 PDF";
+  } else if (["mp4", "mov", "avi", "mkv"].includes(extension)) {
+    return "🎥 Video";
+  } else if (["mp3", "wav", "ogg"].includes(extension)) {
+    return "🎵 Audio";
+  } else if (["doc", "docx"].includes(extension)) {
+    return "📝 Document";
+  } else {
+    return "📁 File"; // General file
+  }
 };
 export const MessageService = {
   createMessage,

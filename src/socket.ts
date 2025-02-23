@@ -112,7 +112,7 @@ export function initializeSocket(io: Server) {
         const isUnseen = recipientInChatWith === fromUserId ? false : true;
         const savedMessage = await MessageService.createMessage({
           sender: fromUserId,
-          message: media,
+          message: "",
           media: media || null,
           recipient: toUserId,
           isUnseen: isUnseen,
