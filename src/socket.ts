@@ -129,6 +129,7 @@ export function initializeSocket(io: Server) {
         if (toSocketId) {
           socket.to(toSocketId).emit("image-pass", {
             message: populatedMessage,
+            media: populatedMessage,
             fromUserId: fromUserId,
             toUserId: toUserId,
           });
