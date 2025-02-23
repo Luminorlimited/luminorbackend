@@ -13,9 +13,8 @@ export const userInChat = new Map<string, string | null>();
 export function initializeSocket(io: Server) {
   io.on("connection", (socket) => {
     socket.on("register", async (data: any) => {
-      console.log(data, "check data from register");
       // const { email } = JSON.parse(data);
-      console.log(data, "check register data");
+
       const { id } = JSON.parse(data);
       users[id] = socket.id;
 
@@ -39,8 +38,7 @@ export function initializeSocket(io: Server) {
     socket.on("privateMessage", async (data: any) => {
       const { toUserId, message, fromUserId, media, mediaUrl } =
         JSON.parse(data);
-      console.log(data, "private message data");
-
+      // console.log(data, "check data from private message");
       if (!fromUserId) {
         return socket.send(JSON.stringify({ error: "id is required" }));
       }
@@ -93,6 +91,55 @@ export function initializeSocket(io: Server) {
               .emit("conversation-list", toEmailConversationList);
           }
         }
+      } catch (error) {
+        console.error("Error sending private message:", error);
+      }
+    });
+    socket.on("image-pass", async (data: any) => {
+      const { toUserId, fromUserId, media } = JSON.parse(data);
+      console.log(toUserId, fromUserId, media, "to check image pass event");
+
+      if (!fromUserId) {
+        return socket.send(JSON.stringify({ error: "id is required" }));
+      }
+
+      const toSocketId = users[toUserId];
+      console.log(toSocketId, "check to socket id ");
+
+      const recipientInChatWith = userInChat.get(toUserId);
+
+      try {
+        const isUnseen = recipientInChatWith === fromUserId ? false : true;
+        const savedMessage = await MessageService.createMessage({
+          sender: fromUserId,
+          message: media,
+          media: media || null,
+          recipient: toUserId,
+          isUnseen: isUnseen,
+        });
+
+        const toEmailConversationList =
+          await MessageService.getConversationLists(toUserId);
+
+        const populatedMessage = await Message.findById(savedMessage._id)
+          .populate({ path: "sender", select: "name email _id" })
+          .populate({ path: "recipient", select: "name email _id" })
+          .lean();
+
+        if (toSocketId) {
+          socket.to(toSocketId).emit("image-pass", {
+            message: populatedMessage,
+            fromUserId: fromUserId,
+            toUserId: toUserId,
+          });
+
+          if (toEmailConversationList) {
+            socket
+              .to(toSocketId)
+              .emit("conversation-list", toEmailConversationList);
+          }
+        }
+        // socket.emit("image-pass", populatedMessage);
       } catch (error) {
         console.error("Error sending private message:", error);
       }
