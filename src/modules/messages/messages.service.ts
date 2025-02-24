@@ -16,33 +16,30 @@ import { Message } from "./messages.model";
 import { onlineUsers, userInChat } from "../../socket";
 
 const createMessage = async (payload: IMessage) => {
-  console.log(payload, "check payload when save message ");
-  // const [sender, recipient] = await Promise.all([
-  //   User.findOne({ email: payload.sender }),
-  //   User.findOne({ email: payload.recipient }),
-  // ]);
+  console.log(payload, "check message payload");
 
-  // if (!sender || !recipient) {
-  //   throw new Error("Sender or recipient not found.");
-  // }
-  // console.log(payload, "check payload from create message service");
-  console.log(payload, "check meesage payload");
-
+  // Corrected query to find a conversation between two specific users
   let checkRoom = await Convirsation.findOne({
     $or: [
-      { $or: [{ user1: payload.sender }, { user1: payload.recipient }] },
-      { $or: [{ user2: payload.sender }, { user2: payload.recipient }] },
-    ],
+      { user1: payload.sender, user2: payload.recipient },
+      { user1: payload.recipient, user2: payload.sender }
+    ]
   });
 
+  // Create conversation if not found, with correct field initialization
   if (!checkRoom) {
     checkRoom = await Convirsation.create({
       user1: payload.sender,
       user2: payload.recipient,
       lastMessage: "",
+      user1UnseenCount: 0,
+      user2UnseenCount: 0,
+      user1UnseenMessages: [],
+      user2UnseenMessages: []
     });
   }
 
+  // Prepare message data
   const data = {
     sender: payload.sender,
     recipient: payload.recipient,
@@ -52,22 +49,24 @@ const createMessage = async (payload: IMessage) => {
     room: checkRoom._id,
   };
 
+  // Create message
   const message = await Message.create(data);
 
+  // Generate last message content safely
   let lastMessageContent = payload.meetingLink
     ? "🔗 Meeting Link"
     : payload.media
-    ? getFileType(payload.media)
-    : payload.message
-    ? payload.message
-    : "";
+    ? getFileType(payload.media) || "📁 Media"
+    : payload.message || "";
 
+  // Prepare update fields
   let updateFields: any = {
     lastMessageTimestamp: message.createdAt,
     lastMessage: lastMessageContent,
   };
 
-  const recipientInChat = userInChat.get(payload?.recipient.toString());
+  // Update unseen counts correctly
+  const recipientInChat = userInChat.get(payload.recipient.toString());
 
   if (payload.sender.toString() === checkRoom.user1.toString()) {
     if (!recipientInChat || recipientInChat !== payload.sender.toString()) {
@@ -81,12 +80,12 @@ const createMessage = async (payload: IMessage) => {
     }
   }
 
-  await Convirsation.findByIdAndUpdate(checkRoom._id, updateFields, {
-    new: true,
-  });
+  // Update conversation with new last message and unseen count
+  await Convirsation.findByIdAndUpdate(checkRoom._id, updateFields, { new: true });
 
   return message;
 };
+
 const getMessages = async (
   senderId: string,
   recipientId: string,
