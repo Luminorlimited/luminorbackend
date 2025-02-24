@@ -151,6 +151,7 @@ const getSingleMessages = async (sender: string, recipient: string) => {
   return messages;
 };
 const getConversationLists = async (id: string) => {
+
   // const user = await User.findOne({ email });
   // if (!user) {
   //   throw new ApiError(StatusCodes.NOT_FOUND, "User not found");
@@ -161,6 +162,7 @@ const getConversationLists = async (id: string) => {
     .populate("user1", "email name profileUrl _id")
     .populate("user2", "email name profileUrl _id")
     .sort({ lastMessageTimestamp: -1 });
+    console.log(conversations,"check convirsation list")
 
   const conversationList = conversations.map((conversation: any) => {
     const isUser1 = conversation.user1._id.toString() === id.toString();
