@@ -150,40 +150,48 @@ const getSingleMessages = async (sender: string, recipient: string) => {
   }).sort({ createdAt: -1 });
   return messages;
 };
-const getConversationLists = async (id: string) => {
+import mongoose from "mongoose";
 
-  // const user = await User.findOne({ email });
-  // if (!user) {
-  //   throw new ApiError(StatusCodes.NOT_FOUND, "User not found");
-  // }
+const getConversationLists = async (id: string) => {
+  // Convert id to ObjectId for correct MongoDB query
+  const objectId = new mongoose.Types.ObjectId(id);
+
+  // Find conversations where the user is either user1 or user2
   const conversations = await Convirsation.find({
-    $or: [{ user1: id }, { user2: id }],
+    $or: [{ user1: objectId }, { user2: objectId }],
   })
     .populate("user1", "email name profileUrl _id")
     .populate("user2", "email name profileUrl _id")
     .sort({ lastMessageTimestamp: -1 });
-    console.log(conversations,"check convirsation list")
 
+  console.log(conversations, "check conversation list");
+
+  // Map conversation data
   const conversationList = conversations.map((conversation: any) => {
     const isUser1 = conversation.user1._id.toString() === id.toString();
     const otherUser = isUser1 ? conversation.user2 : conversation.user1;
     const unseenMessageCount = isUser1
       ? conversation.user1UnseenCount
       : conversation.user2UnseenCount;
+
     return {
       id: otherUser._id,
       email: otherUser.email,
-      name: `${otherUser.name.firstName.trim()} ${otherUser.name.lastName.trim()}`,
+      name: otherUser.name
+        ? `${otherUser.name.firstName?.trim() || ""} ${otherUser.name.lastName?.trim() || ""}`
+        : "Unknown",
       profileUrl: otherUser.profileUrl || null,
-      isOnline: onlineUsers.get(otherUser.id) || false,
+      isOnline: onlineUsers.get(otherUser._id.toString()) || false,
       room: conversation._id,
       lastMessage: conversation.lastMessage,
       lastMessageTimestamp: conversation.lastMessageTimestamp,
       unseenMessageCount,
     };
   });
+
   return conversationList;
 };
+
 const uploadMessagefile = async (file: any) => {
   const fileUrl = await uploadFileToSpace(file, "message-file");
   return fileUrl;
