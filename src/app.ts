@@ -37,7 +37,14 @@ app.use(express.json());
 
 app.use(express.urlencoded({ extended: true }));
 
-
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "default_secret_key",
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: process.env.NODE_ENV === "production" },
+  })
+);
 
 //handle not found
 app.get("/", (req: Request, res: Response) => {
