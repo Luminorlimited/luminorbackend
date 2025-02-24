@@ -53,7 +53,7 @@ const getConversationLists = catchAsync(async (req: Request, res: Response) => {
     throw new ApiError(StatusCodes.BAD_REQUEST, "header not found");
   }
   const list = await MessageService.getConversationLists(
-    (req.user as any).email as string
+    (req.user as any).id as string
   );
   sendResponse(res, {
     success: true,
