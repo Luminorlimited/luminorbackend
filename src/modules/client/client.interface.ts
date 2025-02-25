@@ -17,6 +17,7 @@ export type IClient = {
   };
 
   dateOfBirth: Date;
+  countryCode:string;
   phoneNumber: string;
   businessType: string;
   companyName?: string;

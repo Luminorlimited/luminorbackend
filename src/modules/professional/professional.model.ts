@@ -13,6 +13,10 @@ const RetireProfessionalSchema = new mongoose.Schema<IProfessional>(
     },
     // Retired Professional account fields
     dateOfBirth: { type: Date, required: true },
+    countryCode: {
+      type: String,
+      required: true,
+    },
     phoneNumber: { type: String, required: true },
 
     linkedinProfile: { type: String },
@@ -46,7 +50,23 @@ const RetireProfessionalSchema = new mongoose.Schema<IProfessional>(
     description: { type: String, default: null },
     expertise: { type: String, default: null },
     industry: { type: String, defaul: null },
-    availability: { type: Number, default: null },
+    duration: { type: Number, default: null },
+    availability: [
+      {
+        day: {
+          type: String,
+          enum: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+          required: true
+        },
+        slots: {
+          type: String,
+          enum: ["Morning", "Afternoon", "Evening"],
+          required: true
+        }
+      }
+    ],
+    
+
 
     preferedProjects: { type: String, default: null },
     hourlyRate: { type: String, default: null },
