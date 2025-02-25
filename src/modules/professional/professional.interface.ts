@@ -17,6 +17,7 @@ export type IProfessional = {
   };
 
   dateOfBirth: Date;
+  countryCode: string;
   phoneNumber: string;
   previousPositions: string[];
   references: Array<{
@@ -43,7 +44,11 @@ export type IProfessional = {
 
   businessType: string;
 
-  availability?: number;
+  duration?: number;
+  availability: Array<{
+    day: string;
+    slots: string;
+  }>;
 
   preferedProjects: string;
   hourlyRate: string;

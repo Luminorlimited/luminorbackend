@@ -15,6 +15,10 @@ const clientSchema = new mongoose.Schema<IClient>(
       type: Date,
       required: true,
     },
+    countryCode:{
+      type:String,
+      required:true
+    },
     phoneNumber: {
       type: String,
       required: true,
