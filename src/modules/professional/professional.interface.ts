@@ -17,7 +17,7 @@ export type IProfessional = {
   };
 
   dateOfBirth: Date;
-  countryCode: string;
+  
   phoneNumber: string;
   previousPositions: string[];
   references: Array<{

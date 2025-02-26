@@ -13,10 +13,7 @@ const RetireProfessionalSchema = new mongoose.Schema<IProfessional>(
     },
     // Retired Professional account fields
     dateOfBirth: { type: Date, required: true },
-    countryCode: {
-      type: String,
-      required: true,
-    },
+   
     phoneNumber: { type: String, required: true },
 
     linkedinProfile: { type: String },
