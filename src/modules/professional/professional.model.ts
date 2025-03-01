@@ -56,7 +56,7 @@ const RetireProfessionalSchema = new mongoose.Schema<IProfessional>(
           required: true
         },
         slots: {
-          type: String,
+          type: [String],
           enum: ["Morning", "Afternoon", "Evening"],
           required: true
         }

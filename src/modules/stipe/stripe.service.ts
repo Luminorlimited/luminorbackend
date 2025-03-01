@@ -231,9 +231,9 @@ const isDuplicateStripecard = async (
 };
 const createStripeCard = async (id: string, paymentMethodId: string) => {
 
-  console.log(id,paymentMethodId)
+
   const user = await User.findById(id );
-  console.log(user,"chekc  user")
+
   if (!user) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "user not found");
   }
@@ -262,7 +262,7 @@ const createStripeCard = async (id: string, paymentMethodId: string) => {
 
 const getStripeCardLists = async (id: string) => {
   const user = await User.findById(id );
-  console.log(user,"chekc  user")
+
   if (!user) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "user not found");
   }

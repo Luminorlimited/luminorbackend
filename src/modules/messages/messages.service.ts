@@ -16,7 +16,7 @@ import { Message } from "./messages.model";
 import { onlineUsers, userInChat } from "../../socket";
 
 const createMessage = async (payload: IMessage) => {
-  console.log(payload, "check message payload");
+
 
   // Corrected query to find a conversation between two specific users
   let checkRoom = await Convirsation.findOne({
@@ -106,7 +106,7 @@ const getMessages = async (
     .populate("recipient", "name email profileUrl");
 
   if (!messages.length) return [];
-  console.log(messages[0].room, "check room");
+ 
 
   const conversationRoom = await Convirsation.findById(messages[0].room)
     .populate("user1", "name email profileUrl")
@@ -163,7 +163,7 @@ const getConversationLists = async (id: string) => {
     .populate("user2", "email name profileUrl _id")
     .sort({ lastMessageTimestamp: -1 });
 
-  console.log(conversations, "check conversation list");
+ 
 
   // Map conversation data
   const conversationList = conversations.map((conversation: any) => {

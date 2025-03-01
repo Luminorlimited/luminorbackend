@@ -132,8 +132,7 @@ export const updateSingleRetireProfessional = async (
   retireProfessionalPayload: Partial<IProfessional>
 ): Promise<IProfessional | null> => {
   const session = await mongoose.startSession();
-  console.log(auth, "check auth");
-  console.log(retireProfessionalPayload, "check retire professional payload");
+
   try {
     session.startTransaction();
     const professionalAccount = await User.findById(id);
@@ -149,7 +148,7 @@ export const updateSingleRetireProfessional = async (
       throw new ApiError(404, "retire professional not found");
     }
 
-    console.log(retireProfessionalPayload, auth);
+
     const updatedUser = await User.findByIdAndUpdate(id, auth, {
       new: true,
       session,
@@ -173,7 +172,7 @@ const getRetireProfessionals = async (
   const { skip, limit, page, sortBy, sortOrder } =
     paginationHelpers.calculatePagination(paginationOptions);
   const { query, ...filtersData } = filters;
-  console.log(filtersData, "check filters data");
+;
   const andCondition = [];
   if (query) {
     andCondition.push({
@@ -236,7 +235,7 @@ const getRetireProfessionals = async (
     const [longitude, latitude, minDistance, maxDistance] = JSON.parse(
       filtersData.location
     );
-    console.log(latitude, longitude, maxDistance, minDistance, "check data");
+   
     aggregationPipeline.push({
       $geoNear: {
         near: {
@@ -296,7 +295,7 @@ const getRetireProfessionalsByLocation = async (
   min: number,
   max: number
 ) => {
-  console.log(long, lat);
+
   const result = await RetireProfessional.find({
     location: {
       $near: {
@@ -320,7 +319,7 @@ const getRetireProfessionalById = async (
   return result;
 };
 const updateProfessionalStripeAccount = async (payload: any) => {
-  console.log(payload, "for update professional");
+
   const updatedUser = await User.findOneAndUpdate(
     { email: payload.email },
     {
@@ -339,7 +338,7 @@ const updateProfessionalStripeAccount = async (payload: any) => {
       },
     });
 
-    console.log(`Transfers capability requested for ${payload.id}`);
+ 
   }
 };
 export const RetireProfessionalService = {

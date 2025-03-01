@@ -268,7 +268,7 @@ const updateUserStatus = async (id: string, status: boolean) => {
     { _id: id },
     { isActivated: status }
   );
-  console.log(result, "check result");
+ 
   return result;
 };
 const forgotPassword = async (userId: string) => {
