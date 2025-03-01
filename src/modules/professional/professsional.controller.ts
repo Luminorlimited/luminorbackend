@@ -41,12 +41,12 @@ const updateSingleRetireProfessional = catchAsync(
     const fileMap: { [key: string]: Express.Multer.File } = {};
     let workSampleUrl;
     let profileImageUrl;
-    // console.log(req.body,"check body data")
-    const { name, ...retireProfessionalProfile } = req.body;
-    const auth = { name };
-    const { workSample, profileImage, availability,...others } = retireProfessionalProfile;
 
-    let updatedProfile = { ...others };
+    const { name, availability, ...retireProfessionalProfile } = req.body;
+    const auth = { name };
+
+    let updatedProfile = { ...retireProfessionalProfile };
+
     if (files.length) {
       files.forEach((file) => {
         fileMap[file.fieldname] = file;
@@ -64,18 +64,28 @@ const updateSingleRetireProfessional = catchAsync(
         );
       }
       updatedProfile = {
-        ...others,
+        ...updatedProfile,
         workSample: workSampleUrl,
         profileUrl: profileImageUrl,
-        availability:JSON.parse(availability)
       };
     }
+
+   
+    if (availability) {
+      try {
+        updatedProfile.availability = JSON.parse(availability);
+      } catch (error) {
+        console.error("Invalid JSON format for availability:", error);
+      }
+    }
+
     const result =
       await RetireProfessionalService.updateSingleRetireProfessional(
         req.params.id,
         auth,
         updatedProfile
       );
+
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,
