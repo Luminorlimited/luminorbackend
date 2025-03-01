@@ -41,9 +41,11 @@ const updateSingleRetireProfessional = catchAsync(
     const fileMap: { [key: string]: Express.Multer.File } = {};
     let workSampleUrl;
     let profileImageUrl;
+    // console.log(req.body,"check body data")
     const { name, ...retireProfessionalProfile } = req.body;
     const auth = { name };
-    const { workSample, profileImage, ...others } = retireProfessionalProfile;
+    const { workSample, profileImage, availability,...others } = retireProfessionalProfile;
+
     let updatedProfile = { ...others };
     if (files.length) {
       files.forEach((file) => {
@@ -65,6 +67,7 @@ const updateSingleRetireProfessional = catchAsync(
         ...others,
         workSample: workSampleUrl,
         profileUrl: profileImageUrl,
+        availability:JSON.parse(availability)
       };
     }
     const result =
