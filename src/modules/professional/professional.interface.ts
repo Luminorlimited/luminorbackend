@@ -47,7 +47,7 @@ export type IProfessional = {
   duration?: number;
   availability: Array<{
     day: string;
-    slots: string;
+    slots: string[];
   }>;
 
   preferedProjects: string;

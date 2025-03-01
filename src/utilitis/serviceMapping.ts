@@ -10,7 +10,7 @@ const industryMapping: { [key: string]: string } = {
 
 // Map expertise to a single industry
 export const getIndustryFromService = (servicePreference: string): string => {
-  console.log(industryMapping[servicePreference] || "Other");
+
   return industryMapping[servicePreference] || "Other";
 };
 

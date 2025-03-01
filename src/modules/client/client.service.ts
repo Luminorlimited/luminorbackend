@@ -20,7 +20,7 @@ const stripe = new Stripe(config.stripe.secretKey as string, {
 });
 const createClient = async (user: IUser, clientData: IClient) => {
 
-  console.log(user,clientData,"check client data")
+
   const isUserExist = await User.findOne({ email: user.email });
 
   if (isUserExist) {
@@ -72,7 +72,7 @@ const getClients = async (
     paginationHelpers.calculatePagination(paginationOptions);
 
   const { query, ...filtersData } = filters;
-  console.log(filtersData, "check filters data");
+
 
   const andCondition = [];
 
@@ -133,7 +133,7 @@ const getClients = async (
             try {
               timelineValues =
                 typeof value === "string" ? JSON.parse(value) : value;
-              console.log(timelineValues, "check timline values");
+        
             } catch (error) {
               console.error("Error parsing timeline values:", error);
               return {};
@@ -144,7 +144,7 @@ const getClients = async (
             ) {
               return {};
             } else if (timelineValues.includes("shortTerm")) {
-              console.log("Filtering for short-term projects (max < 30)");
+           
               andCondition.push({
                 $and: [
                   { "projectDurationRange.max": { $lt: 30 } },
@@ -152,7 +152,7 @@ const getClients = async (
                 ],
               });
             } else if (timelineValues.includes("Long Term")) {
-              console.log("Filtering for long-term projects (min >= 30)");
+             
               andCondition.push({
                 $or: [
                   { "projectDurationRange.min": { $gte: 30 } }, // Long-term projects that start at 30+
@@ -200,7 +200,7 @@ const updateSingleClient = async (
   clientPayload: Partial<IClient>
 ): Promise<IClient | null> => {
   const session = await mongoose.startSession();
-  // console.log(clientPayload, "client payload");
+
   try {
     session.startTransaction();
     const clientAccount = await User.findById(id);

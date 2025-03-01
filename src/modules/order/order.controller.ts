@@ -23,7 +23,7 @@ const createOrder = catchAsync(async (req: Request, res: Response) => {
 const getOrderByProfessional = catchAsync(
   async (req: Request, res: Response) => {
     const user = req.user as any ;
-    console.log(user,"check user")
+   
   
 
     const order = await OrderService.getOrderByProfessional(user?.id);

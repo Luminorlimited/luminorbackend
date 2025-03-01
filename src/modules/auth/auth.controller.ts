@@ -104,7 +104,7 @@ const updateCoverPhoto = catchAsync(async (req: Request, res: Response) => {
     throw new ApiError(StatusCodes.UNAUTHORIZED, "file not found ");
   }
   const coverUrl = await uploadFileToSpace(req.file, "user-cover-photo");
-  console.log(coverUrl, "check coverurl");
+ 
   const result = await AuthService.updateCoverPhoto(
     user.id as string,
     coverUrl
@@ -155,8 +155,7 @@ const updateAdminProfilePic = catchAsync(
 const updateUserStatus = catchAsync(async (req: Request, res: Response) => {
   const id = req.params.id;
   const { status } = req.body;
-  console.log(status);
-  console.log(JSON.parse(status));
+
   const result = await AuthService.updateUserStatus(id, JSON.parse(status));
   sendResponse(res, {
     statusCode: StatusCodes.OK,

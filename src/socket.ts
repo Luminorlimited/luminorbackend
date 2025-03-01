@@ -19,15 +19,15 @@ export function initializeSocket(io: Server) {
       users[id] = socket.id;
 
       onlineUsers.set(id, true);
-      console.log();
+ 
       const conversationList = await MessageService.getConversationLists(id);
-      // console.log(conversationList, "check convirsation list");
+   
 
       socket.emit("conversation-list", conversationList);
     });
     socket.on("userInChat", (data: any) => {
       const { userId, chattingWith } = JSON.parse(data);
-      // console.log(data, "from usein chat");
+
 
       if (chattingWith) {
         userInChat.set(userId, chattingWith);
@@ -38,13 +38,13 @@ export function initializeSocket(io: Server) {
     socket.on("privateMessage", async (data: any) => {
       const { toUserId, message, fromUserId, media, mediaUrl } =
         JSON.parse(data);
-      // console.log(data, "check data from private message");
+      
       if (!fromUserId) {
         return socket.send(JSON.stringify({ error: "id is required" }));
       }
 
       const toSocketId = users[toUserId];
-      console.log(toSocketId, "check to socket id ");
+   
 
       const recipientInChatWith = userInChat.get(toUserId);
 
@@ -97,14 +97,14 @@ export function initializeSocket(io: Server) {
     });
     socket.on("image-pass", async (data: any) => {
       const { toUserId, fromUserId, media } = JSON.parse(data);
-      console.log(toUserId, fromUserId, media, "to check image pass event");
+    
 
       if (!fromUserId) {
         return socket.send(JSON.stringify({ error: "id is required" }));
       }
 
       const toSocketId = users[toUserId];
-      console.log(toSocketId, "check to socket id ");
+
 
       const recipientInChatWith = userInChat.get(toUserId);
 
@@ -148,11 +148,9 @@ export function initializeSocket(io: Server) {
 
     socket.on("sendOffer", async (data: any) => {
       const { toEmail, offer, fromEmail } = JSON.parse(data);
-      console.log(toEmail, "to user id ");
-      console.log(fromEmail, "from user id");
-      console.log(offer, "check offer");
+;
       const toSocketId = users[toEmail];
-      console.log(toSocketId, "check to socket id");
+ 
 
       try {
         offer.totalPrice = calculateTotalPrice(offer);
@@ -184,8 +182,7 @@ export function initializeSocket(io: Server) {
     });
     socket.on("createZoomMeeting", async (data: any) => {
       const { fromUserId, toUserId } = JSON.parse(data);
-      console.log(fromUserId, "from ");
-      console.log(toUserId, "to userId");
+  
       const toSocketId = users[toUserId];
 
       try {
