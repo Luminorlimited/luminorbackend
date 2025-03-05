@@ -7,11 +7,19 @@ import { StripeServices } from "../stipe/stripe.service";
 import Stripe from "stripe";
 import config from "../../config";
 import { RetireProfessionalService } from "../professional/professional.service";
+import { MessageService } from "../messages/messages.service";
+import { Message } from "../messages/messages.model";
+import { users } from "../../socket";
+import { io } from "../../server";
+import mongoose from "mongoose";
 const stripe = new Stripe(config.stripe.secretKey as string, {
   apiVersion: "2025-01-27.acacia",
 });
 const createOffer = async (offer: IOffer) => {
+  // console.log(offer,"check create offer")
+  // console.log(offer.professionalEmail,"check professional email")
   const professional = await User.findById(offer.professionalEmail);
+  console.log(professional,"check professional")
   let stripeAccount;
   if (!professional?.isActivated) {
     throw new ApiError(
@@ -120,6 +128,34 @@ const getSingleOffer = async (id: string) => {
 };
 const deleteSingleOffer = async (id: string) => {
   const offer = await Offer.findByIdAndDelete({ _id: id });
+  const messageContent = `The offer you received has been canceled by ${offer?.clientEmail}.`;
+  const senderId = offer?.clientEmail as mongoose.Types.ObjectId; 
+  const recipientId = offer?.professionalEmail as mongoose.Types.ObjectId; 
+
+  
+  const savedMessage = await MessageService.createMessage({
+    sender: senderId,
+    message: messageContent,
+    recipient: recipientId,
+    isUnseen: true,
+  });
+
+
+  const populatedMessage = await Message.findById(savedMessage._id)
+    .populate({ path: "sender", select: "name email _id" })
+    .populate({ path: "recipient", select: "name email _id" })
+    .lean();
+
+  const toSocketId = users[recipientId.toString()];
+
+  
+  if (toSocketId) {
+    io.to(toSocketId).emit("privateMessage", {
+      message: populatedMessage,
+      fromUserId: senderId,
+      toUserId: recipientId,
+    });
+  }
   return offer;
 };
 const countOffer = async (email: string) => {

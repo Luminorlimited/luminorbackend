@@ -24,7 +24,7 @@ router.get(
 router.get(
   "/client-order",
   auth(ENUM_USER_ROLE.CLIENT),
-  OrderController.getOrderByProfessional
+  OrderController.getOrderByClient
 );
 router.get(
   "/get-order-calculation",

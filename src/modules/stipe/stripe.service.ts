@@ -12,6 +12,10 @@ import { PAYMENTSTATUS } from "../transaction/transaction.interface";
 import { Offer } from "../offers/offer.model";
 import { IUser } from "../auth/auth.interface";
 import emailSender from "../../utilitis/emailSender";
+import { MessageService } from "../messages/messages.service";
+import { Message } from "../messages/messages.model";
+import { users } from "../../socket";
+import { io } from "../../server";
 const stripe = new Stripe(config.stripe_key as string, {
   apiVersion: "2025-01-27.acacia",
 });
@@ -125,7 +129,34 @@ const createPaymentIntentService = async (payload: any) => {
     );
 
     await Offer.deleteOne({ id: offer.id }), { session };
+   
     await session.commitTransaction();
+    const messageContent = `Your Offer Acccepted! `;
+    const senderId = offer.clientEmail;
+    const recipientId = offer.professionalEmail;
+
+    const savedMessage = await MessageService.createMessage({
+      sender: senderId,
+      message: messageContent,
+      recipient: recipientId,
+      isUnseen: true,
+    });
+
+    const populatedMessage = await Message.findById(savedMessage._id)
+      .populate({ path: "sender", select: "name email _id" })
+      .populate({ path: "recipient", select: "name email _id" })
+      .lean();
+
+    const toSocketId = users[recipientId.toString()];
+
+  
+    if (toSocketId) {
+      io.to(toSocketId).emit("privateMessage", {
+        message: populatedMessage,
+        fromUserId: senderId,
+        toUserId: recipientId,
+      });
+    }
   } catch (error) {
     await session.abortTransaction();
     throw error;
@@ -170,6 +201,34 @@ const deliverProject = async (orderId: string) => {
     { $set: { paymentStatus: PAYMENTSTATUS.COMPLETED } },
     { new: true }
   );
+  const messageContent = `Project delivered successfully! 🎉 Please review the submission.`;
+  const senderId = retireProfessional.id; // Sender is the professional
+  const recipientId = order.result.orderFrom; // Recipient is the client
+
+  // Save the message to the database
+  const savedMessage = await MessageService.createMessage({
+    sender: senderId,
+    message: messageContent,
+    recipient: recipientId,
+    isUnseen: true,
+  });
+
+  // Populate the message before sending
+  const populatedMessage = await Message.findById(savedMessage._id)
+    .populate({ path: "sender", select: "name email _id" })
+    .populate({ path: "recipient", select: "name email _id" })
+    .lean();
+
+  const toSocketId = users[recipientId.toString()];
+
+  // Emit the private message event to the recipient
+  if (toSocketId) {
+    io.to(toSocketId).emit("privateMessage", {
+      message: populatedMessage,
+      fromUserId: senderId,
+      toUserId: recipientId,
+    });
+  }
   return { transfer, updateTransaction };
 };
 const generateNewAccountLink = async (user: IUser) => {

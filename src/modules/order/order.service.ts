@@ -21,6 +21,8 @@ const getOrderByProfessional = async (id: string) => {
   }
 };
 const getOrderByClient = async (id: string) => {
+
+  console.log(id,"check id")
   const result = await Order.find({ orderFrom: id })
     .populate("project")
     .populate("transaction")
