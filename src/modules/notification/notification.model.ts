@@ -1,4 +1,4 @@
-import { Schema, model } from "mongoose";
+import mongoose, { Schema, model } from "mongoose";
 import { INotification } from "./notification.interface";
 import { NotificationStatus, NotificationType } from "./notfication.const";
 import { ENUM_NOTIFICATION_STATUS } from "../../enums/notificationStatus";
@@ -6,14 +6,15 @@ import { ENUM_NOTIFICATION_STATUS } from "../../enums/notificationStatus";
 const NotificationSchema = new Schema<INotification>(
   {
     recipient: {
-      type: String,
-      required: true,
-      index: true,
+      type: mongoose.Schema.Types.ObjectId,
+           required: true,
+           ref: "User",
     },
 
     sender: {
-      type: String,
-      required: true,
+     type: mongoose.Schema.Types.ObjectId,
+          required: true,
+          ref: "User",
     },
     message: {
       type: String,

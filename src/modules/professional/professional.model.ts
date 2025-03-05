@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { IProfessional } from "./professional.interface";
 
-import { ENUM_SERVICE_PREFERENCE, INDUSTRIES } from "../../enums/service";
+
 
 // Define the main Professional schema
 const RetireProfessionalSchema = new mongoose.Schema<IProfessional>(

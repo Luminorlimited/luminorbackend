@@ -1,9 +1,12 @@
+import mongoose from "mongoose";
 import { ENUM_NOTIFICATION_STATUS, ENUM_NOTIFICATION_TYPE } from "../../enums/notificationStatus";
 
   
   export type INotification = {
-    recipient: string;
-    sender: string;
+    recipient: mongoose.Types.ObjectId;
+    
+    
+    sender: mongoose.Types.ObjectId;
     message: string;
     type: ENUM_NOTIFICATION_TYPE;
     status?: ENUM_NOTIFICATION_STATUS;

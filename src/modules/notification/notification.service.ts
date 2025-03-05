@@ -20,16 +20,16 @@ import { OfferService } from "../offers/offer.service";
 //      count=await OfferService.countOffer(payload.recipient)
     
 //   }
-//   // if (result) {
-//   //   io.emit(event, {
-//   //     toEmail: payload.recipient,
-//   //     message: payload.message,
-//   //     fromEmail: payload.sender,
-//   //     type: payload.type,
-//   //     status: payload.status,
-//   //     count: count,
-//   //   });
-//   // }
+//   if (result) {
+//     io.emit(event, {
+//       toEmail: payload.recipient,
+//       message: payload.message,
+//       fromEmail: payload.sender,
+//       type: payload.type,
+//       status: payload.status,
+//       count: count,
+//     });
+//   }
 //   return result;
 // };
 

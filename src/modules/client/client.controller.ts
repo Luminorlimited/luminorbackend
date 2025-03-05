@@ -18,7 +18,7 @@ const createClient = catchAsync(async (req: Request, res: Response) => {
       role,
       stripe: { onboardingUrl: "", customerId: "", isOnboardingSucess: false },
       password,
-      isActivated: false,
+      isActivated:true
     },
     others
   );
