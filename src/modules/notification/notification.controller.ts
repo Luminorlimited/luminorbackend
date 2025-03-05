@@ -6,17 +6,14 @@ import { Request, Response } from "express";
 import { NotificationService } from "./notification.service";
 import { INotification } from "./notification.interface";
 
-
 const getUserNotification = catchAsync(async (req: Request, res: Response) => {
-  const { recipient, status, type } = req.query;
-
+ 
+  const user: any = req.user;
   const messages = await NotificationService.getUserNotification(
-    recipient as string,
-    status as string,
-    type as string
+    user.id as string
   );
 
-  sendResponse<INotification[]>(res, {
+  sendResponse(res, {
     success: true,
     statusCode: StatusCodes.OK,
 
@@ -37,22 +34,23 @@ const updateNotification = catchAsync(async (req: Request, res: Response) => {
     data: messages,
   });
 });
-const updateMessageNotification = catchAsync(async (req: Request, res: Response) => {
-  const ids = req.body.ids;
+const updateMessageNotification = catchAsync(
+  async (req: Request, res: Response) => {
+    const ids = req.body.ids;
 
-  const messages = await NotificationService.updateMessageNotification(ids);
+    const messages = await NotificationService.updateMessageNotification(ids);
 
-  sendResponse(res, {
-    success: true,
-    statusCode: StatusCodes.OK,
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
 
-    message: "user notification  update    successfully",
-    data: messages,
-  });
-});
+      message: "user notification  update    successfully",
+      data: messages,
+    });
+  }
+);
 export const NotificationController = {
-
   getUserNotification,
   updateNotification,
-  updateMessageNotification
+  updateMessageNotification,
 };

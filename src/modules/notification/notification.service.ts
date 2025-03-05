@@ -2,61 +2,66 @@ import {
   ENUM_NOTIFICATION_STATUS,
   ENUM_NOTIFICATION_TYPE,
 } from "../../enums/notificationStatus";
-import { ObjectId } from "mongodb";
+
 import { io } from "../../server";
-import { MessageService } from "../messages/messages.service";
+import { users } from "../../socket";
 import { INotification } from "./notification.interface";
 import { Notification } from "./notification.model";
-import { OfferService } from "../offers/offer.service";
 
-// const createNotification = async (payload: INotification, event: string) => {
-//   const result = await Notification.create(payload);
-//   let count;
-//   if (payload.type === ENUM_NOTIFICATION_TYPE.PRIVATEMESSAGE) {
-//     count = await MessageService.countMessages(payload.recipient);
-//   }
-//   else if(payload.type===ENUM_NOTIFICATION_TYPE.OFFER){
+const createNotification = async (payload: INotification, event: string) => {
+  const result = await Notification.create(payload);
+  const unseenCount = await Notification.countDocuments({
+    status: ENUM_NOTIFICATION_STATUS.UNSEEN,
+  });
+  // if (payload.type === ENUM_NOTIFICATION_TYPE.PRIVATEMESSAGE) {
+  //   // count = await MessageService.countMessages(payload.recipient.toString());
+  // } else if (payload.type === ENUM_NOTIFICATION_TYPE.OFFER) {
+  //   //  count=await OfferService.countOffer(payload.recipient.toString())
+  // }
+  // // else if(payload.typ===ENUM_NOTIFICATION_TYPE.ORDER){
 
-//      count=await OfferService.countOffer(payload.recipient)
-    
-//   }
-//   if (result) {
-//     io.emit(event, {
-//       toEmail: payload.recipient,
-//       message: payload.message,
-//       fromEmail: payload.sender,
-//       type: payload.type,
-//       status: payload.status,
-//       count: count,
-//     });
-//   }
-//   return result;
-// };
+  // // }
+  const toSocketId = users[payload.recipient.toString()];
+  console.log(toSocketId,"check to socket id")
+  console.log(payload.recipient,"check recipient")
+  console.log(payload.sender,"check sender")
+  if (result) {
+    io.to(toSocketId).emit(event, {
+      toUser: payload.recipient,
+      message: payload.message,
+      fromUser: payload.sender,
+      type: payload.type,
+      status: payload.status,
+      count: unseenCount,
+    });
+  }
+  return result;
+};
 
 const getUserNotification = async (
   recipient: string,
-  status: string,
-  type: string
+  
 ) => {
   let filters: any = {};
 
-  if (status && recipient && type) {
-    filters.recipient = recipient;
-    filters.status = status;
-    filters.type = type;
-  } else if (status && recipient) {
-    filters.recipient = recipient;
-    filters.status = status;
-  } else if (recipient && type) {
-    filters.recipient = recipient;
+  // if (status && recipient && type) {
+  //   filters.recipient = recipient;
+  //   filters.status = status;
+  //   filters.type = type;
+  // } else if (status && recipient) {
+  //   filters.recipient = recipient;
+  //   filters.status = status;
+  // } else if (recipient && type) {
+  //   filters.recipient = recipient;
 
-    filters.type = type;
-  } else if (recipient) {
-    filters.recipient = recipient;
-  }
+  //   filters.type = type;
+  // } else if (recipient) {
+  //   filters.recipient = recipient;
+  // }
 
-  const result = await Notification.find(filters).sort({ createdAt: -1 });
-  return result;
+  const result = await Notification.find({recipient:recipient}).sort({ createdAt: -1 });
+  const count=await Notification.countDocuments({recipient:recipient,status:ENUM_NOTIFICATION_STATUS.UNSEEN})
+  return {result,count,};
 };
 const updateNotification = async (id: string) => {
   const result = await Notification.findOneAndUpdate(
@@ -68,11 +73,10 @@ const updateNotification = async (id: string) => {
   );
   return result;
 };
-const updateMessageNotification= async (ids: string[]) => {
-
+const updateMessageNotification = async (ids: string[]) => {
   const result = await Notification.updateMany(
     {
-      _id: { $in: ids }, 
+      _id: { $in: ids },
     },
     { status: ENUM_NOTIFICATION_STATUS.SEEN },
     {
@@ -81,13 +85,15 @@ const updateMessageNotification= async (ids: string[]) => {
   );
   return result;
 };
-const updateSingleUserMessageNotification= async (sender:string,recipient: string) => {
-
+const updateSingleUserMessageNotification = async (
+  sender: string,
+  recipient: string
+) => {
   const result = await Notification.updateMany(
     {
-      recipient: recipient, 
-      sender:sender,
-      type:ENUM_NOTIFICATION_TYPE.PRIVATEMESSAGE
+      recipient: recipient,
+      sender: sender,
+      type: ENUM_NOTIFICATION_TYPE.PRIVATEMESSAGE,
     },
     { status: ENUM_NOTIFICATION_STATUS.SEEN },
     {
@@ -97,9 +103,9 @@ const updateSingleUserMessageNotification= async (sender:string,recipient: strin
   return result;
 };
 export const NotificationService = {
-  // createNotification,
+  createNotification,
   getUserNotification,
   updateNotification,
   updateMessageNotification,
-  updateSingleUserMessageNotification
+  updateSingleUserMessageNotification,
 };
