@@ -238,7 +238,7 @@ export function initializeSocket(io: Server) {
         socket.emit("zoomMeetingError", "Failed to create Zoom meeting");
       }
     });
-
+   
     socket.on("disconnect", async (reason) => {
       let id = "";
       for (let [userId, isOnline] of onlineUsers) {

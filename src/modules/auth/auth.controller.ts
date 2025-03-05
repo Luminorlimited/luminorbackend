@@ -160,7 +160,7 @@ const updateUserStatus = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
-    message: `user update status ${status} successfully `,
+    message: `user  status update  successfully `,
     data: result,
   });
 });

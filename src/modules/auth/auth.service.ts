@@ -266,8 +266,52 @@ const updateAdminProfilePic = async (id: string, profileImage: string) => {
 const updateUserStatus = async (id: string, status: boolean) => {
   const result = await User.findOneAndUpdate(
     { _id: id },
-    { isActivated: status }
+    { isActivated: status },
+    {new:true}
   );
+  const html = `<!DOCTYPE html>
+  <html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Account Updated</title>
+  </head>
+  <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f6f9fc; margin: 0; padding: 0; line-height: 1.6;">
+      <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
+          <div style="background-color: #FF7600; background-image: linear-gradient(135deg, #FF7600, #45a049); padding: 30px 20px; text-align: center;">
+              <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 600; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);">Account Updated</h1>
+          </div>
+          <div style="padding: 20px 12px; text-align: center;">
+              <p style="font-size: 18px; color: #333333; margin-bottom: 10px;">Hello,</p>
+              <p style="font-size: 18px; color: #333333; margin-bottom: 20px;">Your account has been successfully updated.</p>
+              <p style="font-size: 18px; color: #333333; margin-bottom: 20px;">You can log in using the link below:</p>
+              <p style="font-size: 18px; font-weight: bold; color: #FF7600; margin: 20px 0;">
+                  <a href="https://www.luminor-ltd.com/user/auth/login" style="text-decoration: none; padding: 12px 20px; background-color: #FF7600; color: #ffffff; border-radius: 6px; display: inline-block; font-weight: bold;">Login to Your Account</a>
+              </p>
+              <p style="font-size: 16px; color: #555555; margin-bottom: 20px; max-width: 400px; margin-left: auto; margin-right: auto;">
+                  If you didn't make this change, please contact support immediately.
+              </p>
+              <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
+                  <p style="font-size: 14px; color: #888888; margin-bottom: 4px;">Thank you for choosing our service!</p>
+                  <p style="font-size: 14px; color: #888888; margin-bottom: 0;">If you didn't request this update, please ignore this email.</p>
+              </div>
+          </div>
+          <div style="background-color: #f9f9f9; padding: 10px; text-align: center; font-size: 12px; color: #999999;">
+              <p style="margin: 0;">© 2023 Your Company Name. All rights reserved.</p>
+          </div>
+      </div>
+  </body>
+  </html>`;
+  
+  if (result?.email && status)  {
+
+    await emailSender("OTP", result.email, html);
+  } else {
+    throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, "Email not found");
+  }
+  
+
+
  
   return result;
 };
