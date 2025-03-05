@@ -128,7 +128,7 @@ const getSingleOffer = async (id: string) => {
 };
 const deleteSingleOffer = async (id: string) => {
   const offer = await Offer.findByIdAndDelete({ _id: id });
-  const messageContent = `The offer you received has been canceled by ${offer?.clientEmail}.`;
+  const messageContent = `Your Offer Canceled!`;
   const senderId = offer?.clientEmail as mongoose.Types.ObjectId; 
   const recipientId = offer?.professionalEmail as mongoose.Types.ObjectId; 
 
