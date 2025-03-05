@@ -16,6 +16,13 @@ import { MessageService } from "../messages/messages.service";
 import { Message } from "../messages/messages.model";
 import { users } from "../../socket";
 import { io } from "../../server";
+import { INotification } from "../notification/notification.interface";
+import {
+  ENUM_NOTIFICATION_STATUS,
+  ENUM_NOTIFICATION_TYPE,
+} from "../../enums/notificationStatus";
+import { NotificationService } from "../notification/notification.service";
+import { off } from "pdfkit";
 const stripe = new Stripe(config.stripe_key as string, {
   apiVersion: "2025-01-27.acacia",
 });
@@ -52,7 +59,8 @@ const refundPaymentToCustomer = async (payload: {
   }
 };
 const createPaymentIntentService = async (payload: any) => {
-  const { offer } = await OfferService.getSingleOffer(payload.offerId);
+  const { offer }: any = await OfferService.getSingleOffer(payload.offerId);
+  
 
   if (!offer) {
     throw new ApiError(StatusCodes.NOT_FOUND, "Offer not found");
@@ -90,7 +98,6 @@ const createPaymentIntentService = async (payload: any) => {
   }
 
   const session = await mongoose.startSession();
-
   let orderResult;
 
   try {
@@ -129,9 +136,10 @@ const createPaymentIntentService = async (payload: any) => {
     );
 
     await Offer.deleteOne({ id: offer.id }), { session };
-   
-    await session.commitTransaction();
-    const messageContent = `Your Offer Acccepted! `;
+
+    await session.commitTransaction(); // Commit the transaction after all operations are successful
+
+    const messageContent = `Your Offer Accepted! `;
     const senderId = offer.clientEmail;
     const recipientId = offer.professionalEmail;
 
@@ -147,29 +155,40 @@ const createPaymentIntentService = async (payload: any) => {
       .populate({ path: "recipient", select: "name email _id" })
       .lean();
 
-    const toSocketId = users[recipientId.toString()];
 
-  
+    const notificationData: INotification = {
+      recipient: recipientId._id as mongoose.Types.ObjectId,
+      sender: senderId._id as mongoose.Types.ObjectId,
+      message: `Your Offer Accepted By ${
+        offer.clientEmail?.name.firstName + offer.clientEmail.name.lastName
+      }`,
+      type: ENUM_NOTIFICATION_TYPE.OFFER,
+      status: ENUM_NOTIFICATION_STATUS.UNSEEN,
+    };
+ 
+    await NotificationService.createNotification(
+      notificationData,
+      "sendNotification"
+    );
+    const toSocketId = users[recipientId._id.toString()];
     if (toSocketId) {
       io.to(toSocketId).emit("privateMessage", {
         message: populatedMessage,
-        fromUserId: senderId,
-        toUserId: recipientId,
+        fromUserId: senderId._id,
+        toUserId: recipientId._id,
       });
     }
   } catch (error) {
-    await session.abortTransaction();
+    await session.abortTransaction(); // Rollback the transaction in case of any error
     throw error;
   } finally {
-    session.endSession();
+    session.endSession(); // Ensure the session ends
   }
 
   return orderResult[0];
 };
 
-const handleAccountUpdated = async (event: any) => {
-  
-};
+const handleAccountUpdated = async (event: any) => {};
 
 const deliverProject = async (orderId: string) => {
   const order = await OrderService.getOrderById(orderId);
@@ -201,15 +220,17 @@ const deliverProject = async (orderId: string) => {
     { $set: { paymentStatus: PAYMENTSTATUS.COMPLETED } },
     { new: true }
   );
-  const messageContent = `Project delivered successfully! 🎉 Please review the submission.`;
-  const senderId = retireProfessional.id; // Sender is the professional
-  const recipientId = order.result.orderFrom; // Recipient is the client
-
+  const messageContent = `Project delivered successfully! By ${
+    retireProfessional.name.firstName + retireProfessional.name.lastName
+  } 🎉 Please review the submission.`;
+  const senderId = retireProfessional._id;
+  const recipientId = order.result.orderFrom;
+ 
   // Save the message to the database
   const savedMessage = await MessageService.createMessage({
     sender: senderId,
     message: messageContent,
-    recipient: recipientId,
+    recipient: recipientId._id,
     isUnseen: true,
   });
 
@@ -219,16 +240,30 @@ const deliverProject = async (orderId: string) => {
     .populate({ path: "recipient", select: "name email _id" })
     .lean();
 
-  const toSocketId = users[recipientId.toString()];
+  const toSocketId = users[recipientId._id.toString()];
 
-  // Emit the private message event to the recipient
+  const notificationData: INotification = {
+    recipient: recipientId._id as mongoose.Types.ObjectId,
+    sender: senderId as mongoose.Types.ObjectId,
+    message: ` ${
+      retireProfessional.name.firstName + " "+ retireProfessional.name.lastName
+    } Delivered the Project` ,
+    type: ENUM_NOTIFICATION_TYPE.OFFER,
+    status: ENUM_NOTIFICATION_STATUS.UNSEEN,
+  };
+
+  await NotificationService.createNotification(
+    notificationData,
+    "sendNotification"
+  );
   if (toSocketId) {
     io.to(toSocketId).emit("privateMessage", {
       message: populatedMessage,
       fromUserId: senderId,
-      toUserId: recipientId,
+      toUserId: recipientId._id,
     });
   }
+
   return { transfer, updateTransaction };
 };
 const generateNewAccountLink = async (user: IUser) => {
@@ -289,9 +324,7 @@ const isDuplicateStripecard = async (
   return duplicateCards;
 };
 const createStripeCard = async (id: string, paymentMethodId: string) => {
-
-
-  const user = await User.findById(id );
+  const user = await User.findById(id);
 
   if (!user) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "user not found");
@@ -320,7 +353,7 @@ const createStripeCard = async (id: string, paymentMethodId: string) => {
 };
 
 const getStripeCardLists = async (id: string) => {
-  const user = await User.findById(id );
+  const user = await User.findById(id);
 
   if (!user) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "user not found");

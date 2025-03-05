@@ -12,6 +12,9 @@ import { Message } from "../messages/messages.model";
 import { users } from "../../socket";
 import { io } from "../../server";
 import mongoose from "mongoose";
+import { NotificationService } from "../notification/notification.service";
+import { INotification } from "../notification/notification.interface";
+import { ENUM_NOTIFICATION_STATUS, ENUM_NOTIFICATION_TYPE } from "../../enums/notificationStatus";
 const stripe = new Stripe(config.stripe.secretKey as string, {
   apiVersion: "2025-01-27.acacia",
 });
@@ -19,7 +22,7 @@ const createOffer = async (offer: IOffer) => {
   // console.log(offer,"check create offer")
   // console.log(offer.professionalEmail,"check professional email")
   const professional = await User.findById(offer.professionalEmail);
-  console.log(professional,"check professional")
+
   let stripeAccount;
   if (!professional?.isActivated) {
     throw new ApiError(
@@ -73,12 +76,25 @@ const createOffer = async (offer: IOffer) => {
   const unseenCount = await Offer.countDocuments({
     clientEmail: offer.clientEmail,
     isSeen: false,
-  });
+  })
+
   const result = await Offer.findByIdAndUpdate(
     newOffer._id,
     { count: unseenCount },
     { new: true }
-  );
+  )
+ 
+  const notificationData:INotification = {
+    recipient: offer.clientEmail as mongoose.Types.ObjectId ,
+    sender: offer.professionalEmail  as mongoose.Types.ObjectId,  
+    message: `You have received a new offer from ${professional.name.firstName  + " "+  professional.name.lastName}`,
+    type: ENUM_NOTIFICATION_TYPE.OFFER,  
+    status:ENUM_NOTIFICATION_STATUS.UNSEEN          
+             
+  };
+  
+  await NotificationService.createNotification(notificationData,"sendNotification");
+  
 
   return result;
 };
@@ -127,16 +143,16 @@ const getSingleOffer = async (id: string) => {
   };
 };
 const deleteSingleOffer = async (id: string) => {
-  const offer = await Offer.findByIdAndDelete({ _id: id });
+  const offer:any = await Offer.findByIdAndDelete({ _id: id }).populate("clientEmail");
   const messageContent = `Your Offer Canceled!`;
   const senderId = offer?.clientEmail as mongoose.Types.ObjectId; 
   const recipientId = offer?.professionalEmail as mongoose.Types.ObjectId; 
 
   
   const savedMessage = await MessageService.createMessage({
-    sender: senderId,
+    sender: senderId._id,
     message: messageContent,
-    recipient: recipientId,
+    recipient: recipientId._id,
     isUnseen: true,
   });
 
@@ -146,16 +162,27 @@ const deleteSingleOffer = async (id: string) => {
     .populate({ path: "recipient", select: "name email _id" })
     .lean();
 
-  const toSocketId = users[recipientId.toString()];
+  const toSocketId = users[recipientId._id.toString()];
 
   
   if (toSocketId) {
     io.to(toSocketId).emit("privateMessage", {
       message: populatedMessage,
-      fromUserId: senderId,
-      toUserId: recipientId,
+      fromUserId: senderId._id,
+      toUserId: recipientId._id,
     });
   }
+  const notificationData:INotification = {
+    recipient: recipientId._id as mongoose.Types.ObjectId ,
+    sender: senderId._id  as mongoose.Types.ObjectId,  
+    message: `${offer?.clientEmail.name.firstName + " "+offer?.clientEmail.name.lastName } has canceled your offer`,
+    type: ENUM_NOTIFICATION_TYPE.OFFER,  
+    status:ENUM_NOTIFICATION_STATUS.UNSEEN          
+             
+  };
+  
+  await NotificationService.createNotification(notificationData,"sendNotification");
+  
   return offer;
 };
 const countOffer = async (email: string) => {
