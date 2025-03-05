@@ -147,7 +147,9 @@ export function initializeSocket(io: Server) {
     });
 
     socket.on("sendOffer", async (data: any) => {
+
       const { toEmail, offer, fromEmail } = JSON.parse(data);
+      console.log(offer,"check offer")
 ;
       const toSocketId = users[toEmail];
  
