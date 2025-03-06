@@ -139,7 +139,7 @@ const createPaymentIntentService = async (payload: any) => {
 
     await session.commitTransaction(); // Commit the transaction after all operations are successful
 
-    const messageContent = `Your Offer Accepted! `;
+    const messageContent = ` Offer Accepted! `;
     const senderId = offer.clientEmail;
     const recipientId = offer.professionalEmail;
 
@@ -166,7 +166,7 @@ const createPaymentIntentService = async (payload: any) => {
       status: ENUM_NOTIFICATION_STATUS.UNSEEN,
     };
  
-    await NotificationService.createNotification(
+   const notification= await NotificationService.createNotification(
       notificationData,
       "sendNotification"
     );
@@ -176,6 +176,8 @@ const createPaymentIntentService = async (payload: any) => {
         message: populatedMessage,
         fromUserId: senderId._id,
         toUserId: recipientId._id,
+        
+       
       });
     }
   } catch (error) {
