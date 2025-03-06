@@ -4,13 +4,18 @@ import {
 } from "../../enums/notificationStatus";
 
 import { io } from "../../server";
-import { users } from "../../socket";
+import { userInChat, users } from "../../socket";
 import { MessageService } from "../messages/messages.service";
 import { INotification } from "./notification.interface";
 import { Notification } from "./notification.model";
 
 const createNotification = async (payload: INotification, event: string) => {
-  console.log(payload,"check payload from createnotification")
+  
+  const recipientInChatWith = userInChat.get(payload.recipient.toString());
+  if (payload.type===ENUM_NOTIFICATION_TYPE.PRIVATEMESSAGE&& recipientInChatWith === payload.sender.toString()) {
+
+    return ; 
+  }
   const result = await Notification.create(payload);
   const unseenCount  =   await Notification.countDocuments({
     status: ENUM_NOTIFICATION_STATUS.UNSEEN,
