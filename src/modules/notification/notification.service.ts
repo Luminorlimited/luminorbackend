@@ -18,6 +18,7 @@ const createNotification = async (payload: INotification, event: string) => {
   }
   const result = await Notification.create(payload);
   const unseenCount  =   await Notification.countDocuments({
+    recipient:payload.recipient,
     status: ENUM_NOTIFICATION_STATUS.UNSEEN,
    
   });
