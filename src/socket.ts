@@ -60,6 +60,7 @@ export function initializeSocket(io: Server) {
           isUnseen: isUnseen,
         });
          
+      
         // const [fromEmailConversationList, toEmailConversationList] =
         //   await Promise.all([
         //     MessageService.getConversationLists(fromEmail),
@@ -79,6 +80,7 @@ export function initializeSocket(io: Server) {
         // });
 
         // socket.emit("conversation-list", fromEmailConversationList);
+     
 
         if (toSocketId) {
           socket.to(toSocketId).emit("privateMessage", {
@@ -93,19 +95,21 @@ export function initializeSocket(io: Server) {
               .emit("conversation-list", toEmailConversationList);
           }
         }
-        if (recipientInChatWith !== fromUserId) {
+        if (toSocketId && recipientInChatWith === fromUserId) {
+          return
+        } else {
           await NotificationService.createNotification(
             {
               recipient: toUserId,
               sender: fromUserId,
-              message:` ${populatedMessage?.sender.name.firstName +" "+populatedMessage?.sender.name.lastName} sent you a message`,
+              message: `${populatedMessage?.sender.name.firstName} ${populatedMessage?.sender.name.lastName} sent you a message`,
               type: ENUM_NOTIFICATION_TYPE.PRIVATEMESSAGE,
               status: ENUM_NOTIFICATION_STATUS.UNSEEN,
             },
             "sendNotification"
           );
+        }
         
-      }
         
       } catch (error) {
         console.error("Error sending private message:", error);
