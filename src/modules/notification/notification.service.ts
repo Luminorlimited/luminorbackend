@@ -22,9 +22,9 @@ const createNotification = async (payload: INotification, event: string) => {
 
   // // }
   const toSocketId = users[payload.recipient.toString()];
-  console.log(toSocketId,"check to socket id")
-  console.log(payload.recipient,"check recipient")
-  console.log(payload.sender,"check sender")
+  // console.log(toSocketId,"check to socket id")
+  // console.log(payload.recipient,"check recipient")
+  // console.log(payload.sender,"check sender")
   if (result) {
     io.to(toSocketId).emit(event, {
       toUser: payload.recipient,
@@ -33,6 +33,7 @@ const createNotification = async (payload: INotification, event: string) => {
       type: payload.type,
       status: payload.status,
       count: unseenCount,
+      notificationId:result._id
     });
   }
   return result;
