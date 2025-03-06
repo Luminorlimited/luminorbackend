@@ -16,6 +16,7 @@ const createNotification = async (payload: INotification, event: string) => {
 
     return ; 
   }
+  console.log("notification hit")
   const result = await Notification.create(payload);
   const unseenCount  =   await Notification.countDocuments({
     recipient:payload.recipient,
