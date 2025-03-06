@@ -5,6 +5,8 @@ import { calculateTotalPrice } from "./utilitis/calculateTotalPrice";
 import { generateOfferPDF } from "./utilitis/generateOfferPdf";
 import { zoomService } from "./modules/zoom/zoom.service";
 import { OfferService } from "./modules/offers/offer.service";
+import { NotificationService } from "./modules/notification/notification.service";
+import { ENUM_NOTIFICATION_STATUS, ENUM_NOTIFICATION_TYPE } from "./enums/notificationStatus";
 
 export const users: { [key: string]: string } = {};
 export const onlineUsers = new Map<string, boolean>();
@@ -57,7 +59,7 @@ export function initializeSocket(io: Server) {
           recipient: toUserId,
           isUnseen: isUnseen,
         });
-
+         
         // const [fromEmailConversationList, toEmailConversationList] =
         //   await Promise.all([
         //     MessageService.getConversationLists(fromEmail),
@@ -66,7 +68,7 @@ export function initializeSocket(io: Server) {
         const toEmailConversationList =
           await MessageService.getConversationLists(toUserId);
 
-        const populatedMessage = await Message.findById(savedMessage._id)
+        const populatedMessage:any = await Message.findById(savedMessage._id)
           .populate({ path: "sender", select: "name email _id" })
           .populate({ path: "recipient", select: "name email _id" })
           .lean();
@@ -91,6 +93,20 @@ export function initializeSocket(io: Server) {
               .emit("conversation-list", toEmailConversationList);
           }
         }
+        if (recipientInChatWith !== fromUserId) {
+          await NotificationService.createNotification(
+            {
+              recipient: toUserId,
+              sender: fromUserId,
+              message:` ${populatedMessage?.sender.name.firstName +" "+populatedMessage?.sender.name.lastName} sent you a message`,
+              type: ENUM_NOTIFICATION_TYPE.PRIVATEMESSAGE,
+              status: ENUM_NOTIFICATION_STATUS.UNSEEN,
+            },
+            "sendNotification"
+          );
+        
+      }
+        
       } catch (error) {
         console.error("Error sending private message:", error);
       }

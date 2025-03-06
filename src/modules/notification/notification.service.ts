@@ -5,21 +5,19 @@ import {
 
 import { io } from "../../server";
 import { users } from "../../socket";
+import { MessageService } from "../messages/messages.service";
 import { INotification } from "./notification.interface";
 import { Notification } from "./notification.model";
 
 const createNotification = async (payload: INotification, event: string) => {
   const result = await Notification.create(payload);
-  const unseenCount = await Notification.countDocuments({
+  const unseenCount  =   await Notification.countDocuments({
     status: ENUM_NOTIFICATION_STATUS.UNSEEN,
+   
   });
-  // if (payload.type === ENUM_NOTIFICATION_TYPE.PRIVATEMESSAGE) {
-  //   // count = await MessageService.countMessages(payload.recipient.toString());
-  // } else if (payload.type === ENUM_NOTIFICATION_TYPE.OFFER) {
-  //   //  count=await OfferService.countOffer(payload.recipient.toString())
-  // }
-  // // else if(payload.typ===ENUM_NOTIFICATION_TYPE.ORDER){
 
+  // // else if(payload.typ===ENUM_NOTIFICATION_TYPE.ORDER){
+   
   // // }
   const toSocketId = users[payload.recipient.toString()];
   // console.log(toSocketId,"check to socket id")
