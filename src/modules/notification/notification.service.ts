@@ -10,6 +10,7 @@ import { INotification } from "./notification.interface";
 import { Notification } from "./notification.model";
 
 const createNotification = async (payload: INotification, event: string) => {
+  console.log(payload,"check payload from createnotification")
   const result = await Notification.create(payload);
   const unseenCount  =   await Notification.countDocuments({
     status: ENUM_NOTIFICATION_STATUS.UNSEEN,
