@@ -94,10 +94,6 @@ export function initializeSocket(io: Server) {
               .to(toSocketId)
               .emit("conversation-list", toEmailConversationList);
           }
-        }
-        if (toSocketId && recipientInChatWith === fromUserId) {
-          return
-        } else {
           await NotificationService.createNotification(
             {
               recipient: toUserId,
@@ -109,7 +105,7 @@ export function initializeSocket(io: Server) {
             "sendNotification"
           );
         }
-        
+       
         
       } catch (error) {
         console.error("Error sending private message:", error);
