@@ -17,6 +17,7 @@ const createProfessional = catchAsync(async (req: Request, res: Response) => {
     email,
     role,
     password,
+   
     isActivated: false,
     stripe: { onboardingUrl: "", customerId: "", isOnboardingSucess: false },
   };

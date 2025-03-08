@@ -25,7 +25,7 @@ export type IUser = {
   profileUrl?: string;
   isDeleted?: boolean;
   isActivated:boolean;
-  isFirstLogin:boolean
+  isFirstLogin?:boolean
  
 };
 
