@@ -50,6 +50,10 @@ const userSchema = new mongoose.Schema<IUser>(
       type: Boolean,
       default: false,
     },
+    isFirstLogin: {
+      type: Boolean,
+      default: true, // Initially true for all new users
+    },
     isActivated:{
     type:Boolean,
     default:true
