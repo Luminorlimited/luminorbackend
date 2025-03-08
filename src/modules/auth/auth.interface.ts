@@ -24,7 +24,8 @@ export type IUser = {
   client?: mongoose.Schema.Types.ObjectId;
   profileUrl?: string;
   isDeleted?: boolean;
-  isActivated:boolean
+  isActivated:boolean;
+  isFirstLogin:boolean
  
 };
 

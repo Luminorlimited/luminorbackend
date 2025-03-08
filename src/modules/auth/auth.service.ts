@@ -90,14 +90,34 @@ const enterOtp = async (payload: any) => {
     email: payload.email.toLowerCase(),
   });
 
+ 
   if (!userData) {
-    throw new ApiError(404, "Your otp is incorrect");
+    throw new ApiError(404, "Your OTP is incorrect");
   }
 
   if (userData.otpExpiry && userData.otpExpiry < new Date()) {
-    throw new ApiError(400, "Your otp has been expired");
+    throw new ApiError(400, "Your OTP has expired");
   }
 
+
+  let redirectTo = "/";
+  if (userData.isFirstLogin) {
+    redirectTo = `/user/editProfile/${userData.role}/${userData._id}`;
+
+   
+    await User.updateOne(
+      { _id: userData.id },
+      { $set: { isFirstLogin: false, otp: null, otpExpiry: null } }
+    );
+  } else {
+  
+    await User.updateOne(
+      { _id: userData.id },
+      { $set: { otp: null, otpExpiry: null } }
+    );
+  }
+
+  // Generate JWT Token
   const accessToken = jwtHelpers.createToken(
     {
       id: userData.id,
@@ -107,17 +127,10 @@ const enterOtp = async (payload: any) => {
     config.jwt.secret as Secret,
     config.jwt.expires_in as string
   );
-  await User.updateOne(
-    { _id: userData.id },
-    {
-      $set: {
-        otp: null,
-        otpExpiry: null,
-      },
-    }
-  );
-  const result = {
+
+  return {
     accessToken,
+    redirectTo,
     user: {
       email: userData.email,
       role: userData.role,
@@ -125,7 +138,6 @@ const enterOtp = async (payload: any) => {
       name: userData.name,
     },
   };
-  return result;
 };
 
 const getProfile = async (id: string) => {
