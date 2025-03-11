@@ -9,7 +9,7 @@ import config from "../config";
 // Configure DigitalOcean Spaces
 const s3 = new S3Client({
   region: "nyc3",
-  endpoint: config.s3.do_space_endpoint,
+  endpoint: "https://nyc3.digitaloceanspaces.com",
   credentials: {
     accessKeyId: config.s3.do_space_accesskey || "", // Ensure this is never undefined
     secretAccessKey: config.s3.do_space_secret_key || "", // Ensure this is never undefined
@@ -18,6 +18,10 @@ const s3 = new S3Client({
 
 // Function to upload a file to DigitalOcean Space
 export const uploadFileToSpace = async (file: any, folder: string) => {
+  console.log("Access Key:", config.s3.do_space_accesskey);
+console.log("Secret Key:", config.s3.do_space_secret_key);
+console.log("Bucket Name:", process.env.DO_SPACE_BUCKET);
+console.log("Endpoint:", config.s3.do_space_endpoint);
   if (!process.env.DO_SPACE_BUCKET) {
     throw new Error(
       "DO_SPACE_BUCKET is not defined in the environment variables."
@@ -35,7 +39,8 @@ export const uploadFileToSpace = async (file: any, folder: string) => {
   try {
     const result = await s3.send(new PutObjectCommand(params));
 
-    return `https://${config.s3.do_space_bucket}.${(
+
+    return `https://${(
       config.s3.do_space_endpoint || "nyc3.digitaloceanspaces.com"
     ).replace("https://", "")}/${params.Key}`;
   } catch (error) {

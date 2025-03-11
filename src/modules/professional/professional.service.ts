@@ -10,13 +10,17 @@ import { IGenericResponse } from "../../interfaces/general";
 import { paginationHelpers } from "../../helpers/paginationHelper";
 import { searchableField } from "../../constants/searchableField";
 
-import { uploadFileToSpace } from "../../utilitis/uploadTos3";
+;
 import { jwtHelpers } from "../../helpers/jwtHelpers";
 import { Secret } from "jsonwebtoken";
 import config from "../../config";
 import { IFilters } from "../../interfaces/filter";
 import Stripe from "stripe";
 import emailSender from "../../utilitis/emailSender";
+import { uploadFileToSpace } from "../../utilitis/uploadTos3";
+
+
+
 const stripe = new Stripe(config.stripe.secretKey as string, {
   apiVersion: "2025-01-27.acacia",
 });
@@ -55,6 +59,7 @@ const createProfessional = async (
     let fileUrl;
     if (file) {
       fileUrl = await uploadFileToSpace(file, "retire-professional");
+  
     }
 
     const newProfessionalData = {
