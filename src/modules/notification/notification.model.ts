@@ -32,6 +32,10 @@ const NotificationSchema = new Schema<INotification>(
       default: ENUM_NOTIFICATION_STATUS.UNSEEN,
       index: true,
     },
+    orderId:{
+      type:String,
+      default:null
+    }
   },
   {
     timestamps: true,

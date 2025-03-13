@@ -5,6 +5,7 @@ import { StripeController } from "./stripe.controller";
 import { multerUpload } from "../../middlewares/multer";
 import { parseBodyData } from "../../middlewares/parseJson";
 import auth from "../../middlewares/auth";
+import { OrderController } from "../order/order.controller";
 
 const router = express.Router();
 
@@ -32,6 +33,8 @@ router.post(
 );
 router.patch("/deliver-project/:id", StripeController.deliverProject);
 router.post("/generate-onboarding-url",auth(),StripeController.generateAccountLink)
+router.get("/delivery-request/:id",StripeController.deliverRequest)
+router.post("/refund-payment/:id",StripeController.refundPaymentToCustomer)
 
 
 export const StripeRoutes = router;

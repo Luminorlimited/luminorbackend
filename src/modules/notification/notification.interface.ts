@@ -14,11 +14,12 @@ import { ENUM_NOTIFICATION_STATUS, ENUM_NOTIFICATION_TYPE } from "../../enums/no
     createdAt?: string;
     updatedAt?: string;
     __v?: number;
-    count?:number
+    count?:number;
+    orderId?:mongoose.Types.ObjectId;
   };
   export type INotificationType =
     "privateMessage"|
-    "offer"
+    "offer"|"order"|"delivery"
   
   export type INotificationStatus = "seen" | "unseen";
   

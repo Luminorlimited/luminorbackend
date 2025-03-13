@@ -5,7 +5,9 @@ import {
   
   export const NotificationType: INotificationType[] = [
     "privateMessage",
-   "offer"
+   "offer",
+   "order",
+   "delivery"
   ];
   
   export const NotificationStatus: INotificationStatus[] = ["seen", "unseen"];
