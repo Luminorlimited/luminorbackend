@@ -38,7 +38,7 @@ const deleteCardFromCustomer = catchAsync(async (req: any, res: any) => {
 });
 
 const refundPaymentToCustomer = catchAsync(async (req: any, res: any) => {
-  const result = await StripeServices.refundPaymentToCustomer(req.body);
+  const result = await StripeServices.refundPaymentToCustomer(req.params.id);
 
   sendResponse(res, {
     statusCode: 200,
@@ -188,6 +188,18 @@ const generateAccountLink=catchAsync(async (req: any, res: any) => {
     data: result,
   });
 });
+const deliverRequest=catchAsync(async (req: any, res: any) => {
+
+
+  
+  const result = await StripeServices.deliverRequest(req.params.id);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Delivery Request Send Successfully",
+    data: result,
+  });
+});
 export const StripeController = {
   getCustomerSavedCards,
   deleteCardFromCustomer,
@@ -197,5 +209,6 @@ export const StripeController = {
   deliverProject,
   getStripeCardLists,
   createStripeCard,
-  generateAccountLink
+  generateAccountLink,
+  deliverRequest
 };

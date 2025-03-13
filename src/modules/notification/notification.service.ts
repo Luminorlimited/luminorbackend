@@ -10,13 +10,14 @@ import { INotification } from "./notification.interface";
 import { Notification } from "./notification.model";
 
 const createNotification = async (payload: INotification, event: string) => {
+  // console.log(payload,"check payload ")
   
   const recipientInChatWith = userInChat.get(payload.recipient.toString());
   if (payload.type===ENUM_NOTIFICATION_TYPE.PRIVATEMESSAGE&& recipientInChatWith === payload.sender.toString()) {
 
     return ; 
   }
-  console.log("notification hit")
+  // console.log("notification hit")
   const result = await Notification.create(payload);
   const unseenCount  =   await Notification.countDocuments({
     recipient:payload.recipient,
@@ -29,6 +30,8 @@ const createNotification = async (payload: INotification, event: string) => {
   // // }
   const toSocketId = users[payload.recipient.toString()];
   // console.log(toSocketId,"check to socket id")
+  // console.log(payload.recipient,"check recipinet")
+  // console.log(toSocketId,"check to socket id")
   // console.log(payload.recipient,"check recipient")
   // console.log(payload.sender,"check sender")
   if (result) {
@@ -39,6 +42,8 @@ const createNotification = async (payload: INotification, event: string) => {
       type: payload.type,
       status: payload.status,
       count: unseenCount,
+      orderId:payload.orderId,
+      
       notificationId:result._id
     });
   }

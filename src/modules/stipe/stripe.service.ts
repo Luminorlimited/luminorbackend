@@ -45,12 +45,13 @@ const deleteCardFromCustomer = async (paymentMethodId: string) => {
     throw new ApiError(StatusCodes.BAD_REQUEST, error.message);
   }
 };
-const refundPaymentToCustomer = async (payload: {
-  paymentIntentId: string;
-}) => {
+const refundPaymentToCustomer = async (orderId:string) => {
+
   try {
+   
+     const order=await Order.findById(orderId)
     const refund = await stripe.refunds.create({
-      payment_intent: payload?.paymentIntentId,
+      payment_intent: order?.paymentIntentId
     });
 
     return refund;
@@ -189,6 +190,41 @@ const createPaymentIntentService = async (payload: any) => {
 
   return orderResult[0];
 };
+
+const deliverRequest=async(orderId:string)=>{
+  const order = await OrderService.getOrderById(orderId);
+  // console.log(order,"check order")
+  if (!order || !order.result) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "order not found");
+  }
+  const retireProfessional = await User.findOne({
+    _id: order?.result.orderReciver,
+  });
+  if (!retireProfessional) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "user not found");
+  }
+  if (!order) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "order not found");
+  }
+
+  const notificationData: INotification = {
+    recipient:order.result?.orderFrom._id as mongoose.Types.ObjectId,
+    sender: order.result.orderReciver._id as mongoose.Types.ObjectId,
+    message: ` ${
+        retireProfessional.name.firstName +""+retireProfessional.name.lastName
+    } send you a delivery request` ,
+    type: ENUM_NOTIFICATION_TYPE.DELIVERY,
+    status: ENUM_NOTIFICATION_STATUS.UNSEEN,
+    orderId:order.result._id
+  };
+
+ const notification= await NotificationService.createNotification(
+    notificationData,
+    "sendNotification"
+  );
+  return notification
+ 
+}
 
 const handleAccountUpdated = async (event: any) => {};
 
@@ -381,4 +417,5 @@ export const StripeServices = {
   generateNewAccountLink,
   getStripeCardLists,
   createStripeCard,
+  deliverRequest
 };
