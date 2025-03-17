@@ -49,12 +49,62 @@ const refundPaymentToCustomer = async (orderId:string) => {
 
   try {
    
-     const order=await Order.findById(orderId)
+     const order:any=await Order.findById(orderId).populate("orderFrom").populate("orderReciver")
+ 
+    
+    const messageContent = `order cancelled by ${order?.orderFrom.name.firstName +""} `;
+    const senderId = order?.orderFrom._id as mongoose.Types.ObjectId;
+    console.log(senderId,"check senderId")
+    const recipientId = order?.orderReciver._id as mongoose.Types.ObjectId;
+
+    const savedMessage = await MessageService.createMessage({
+      sender: senderId,
+      message: messageContent,
+      recipient: recipientId,
+      isUnseen: true,
+    });
+
+    const populatedMessage = await Message.findById(savedMessage._id)
+      .populate({ path: "sender", select: "name email _id" })
+      .populate({ path: "recipient", select: "name email _id" })
+      .lean();
+
+
+    const notificationData: INotification = {
+      recipient: recipientId._id as mongoose.Types.ObjectId,
+      sender: senderId._id as mongoose.Types.ObjectId,
+      message: `Your Order  Cancell By ${
+        order?.orderFrom.name.firstName +""+order?.orderFrom.name.lastName
+      }`,
+      type: ENUM_NOTIFICATION_TYPE.OFFER,
+      status: ENUM_NOTIFICATION_STATUS.UNSEEN,
+    };
+ 
+   const notification= await NotificationService.createNotification(
+      notificationData,
+      "sendNotification"
+    );
+    const toSocketId = users[recipientId._id.toString()];
+    if (toSocketId) {
+      io.to(toSocketId).emit("privateMessage", {
+        message: populatedMessage,
+        fromUserId: senderId._id,
+        toUserId: recipientId._id,
+        
+       
+      });
+    }
+
     const refund = await stripe.refunds.create({
       payment_intent: order?.paymentIntentId
     });
-
+  
+    await Transaction.updateOne(
+      { orderId: orderId }, 
+      { $set: { paymentStatus: PAYMENTSTATUS.REFUNDED } }
+    );
     return refund;
+
   } catch (error: any) {
     throw new ApiError(StatusCodes.BAD_REQUEST, error.message);
   }
@@ -229,7 +279,7 @@ const deliverRequest=async(orderId:string)=>{
 const handleAccountUpdated = async (event: any) => {};
 
 const deliverProject = async (orderId: string) => {
-  const order = await OrderService.getOrderById(orderId);
+  const order:any = await OrderService.getOrderById(orderId);
   if (!order || !order.result) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "order not found");
   }
@@ -258,15 +308,15 @@ const deliverProject = async (orderId: string) => {
     { $set: { paymentStatus: PAYMENTSTATUS.COMPLETED } },
     { new: true }
   );
-  const messageContent = `Project delivered successfully! By ${
-    retireProfessional.name.firstName + retireProfessional.name.lastName
-  } 🎉 Please review the submission.`;
-  const senderId = retireProfessional._id;
-  const recipientId = order.result.orderFrom;
+  const messageContent = `Your Project Successfully Acccept By ${
+    order.client.name.firstName + order.client.name.lastName
+  }`;
+  const senderId = order.result.orderFrom;
+  const recipientId = order.result.orderReciver;
  
   // Save the message to the database
   const savedMessage = await MessageService.createMessage({
-    sender: senderId,
+    sender: senderId._id,
     message: messageContent,
     recipient: recipientId._id,
     isUnseen: true,
@@ -282,10 +332,10 @@ const deliverProject = async (orderId: string) => {
 
   const notificationData: INotification = {
     recipient: recipientId._id as mongoose.Types.ObjectId,
-    sender: senderId as mongoose.Types.ObjectId,
-    message: ` ${
-      retireProfessional.name.firstName + " "+ retireProfessional.name.lastName
-    } Delivered the Project` ,
+    sender: senderId._id as mongoose.Types.ObjectId,
+    message: `Your Project Successfully Acccept By ${
+      order.client.name.firstName + order.client.name.lastName
+    }` ,
     type: ENUM_NOTIFICATION_TYPE.OFFER,
     status: ENUM_NOTIFICATION_STATUS.UNSEEN,
   };
