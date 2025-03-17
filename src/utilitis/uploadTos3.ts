@@ -18,10 +18,7 @@ const s3 = new S3Client({
 
 // Function to upload a file to DigitalOcean Space
 export const uploadFileToSpace = async (file: any, folder: string) => {
-  console.log("Access Key:", config.s3.do_space_accesskey);
-console.log("Secret Key:", config.s3.do_space_secret_key);
-console.log("Bucket Name:", process.env.DO_SPACE_BUCKET);
-console.log("Endpoint:", config.s3.do_space_endpoint);
+
   if (!process.env.DO_SPACE_BUCKET) {
     throw new Error(
       "DO_SPACE_BUCKET is not defined in the environment variables."
