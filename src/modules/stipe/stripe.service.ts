@@ -45,16 +45,17 @@ const deleteCardFromCustomer = async (paymentMethodId: string) => {
     throw new ApiError(StatusCodes.BAD_REQUEST, error.message);
   }
 };
-const refundPaymentToCustomer = async (orderId:string) => {
-
+const refundPaymentToCustomer = async (orderId: string) => {
   try {
-   
-     const order:any=await Order.findById(orderId).populate("orderFrom").populate("orderReciver")
- 
-    
-    const messageContent = `order cancelled by ${order?.orderFrom.name.firstName +""} `;
+    const order: any = await Order.findById(orderId)
+      .populate("orderFrom")
+      .populate("orderReciver");
+
+    const messageContent = `order cancelled by ${
+      order?.orderFrom.name.firstName + ""
+    } `;
     const senderId = order?.orderFrom._id as mongoose.Types.ObjectId;
-    console.log(senderId,"check senderId")
+    console.log(senderId, "check senderId");
     const recipientId = order?.orderReciver._id as mongoose.Types.ObjectId;
 
     const savedMessage = await MessageService.createMessage({
@@ -69,18 +70,17 @@ const refundPaymentToCustomer = async (orderId:string) => {
       .populate({ path: "recipient", select: "name email _id" })
       .lean();
 
-
     const notificationData: INotification = {
       recipient: recipientId._id as mongoose.Types.ObjectId,
       sender: senderId._id as mongoose.Types.ObjectId,
       message: `Your Order  Cancell By ${
-        order?.orderFrom.name.firstName +""+order?.orderFrom.name.lastName
+        order?.orderFrom.name.firstName + "" + order?.orderFrom.name.lastName
       }`,
       type: ENUM_NOTIFICATION_TYPE.OFFER,
       status: ENUM_NOTIFICATION_STATUS.UNSEEN,
     };
- 
-   const notification= await NotificationService.createNotification(
+
+    const notification = await NotificationService.createNotification(
       notificationData,
       "sendNotification"
     );
@@ -90,28 +90,24 @@ const refundPaymentToCustomer = async (orderId:string) => {
         message: populatedMessage,
         fromUserId: senderId._id,
         toUserId: recipientId._id,
-        
-       
       });
     }
 
     const refund = await stripe.refunds.create({
-      payment_intent: order?.paymentIntentId
+      payment_intent: order?.paymentIntentId,
     });
-  
+
     await Transaction.updateOne(
-      { orderId: orderId }, 
+      { orderId: orderId },
       { $set: { paymentStatus: PAYMENTSTATUS.REFUNDED } }
     );
     return refund;
-
   } catch (error: any) {
     throw new ApiError(StatusCodes.BAD_REQUEST, error.message);
   }
 };
 const createPaymentIntentService = async (payload: any) => {
   const { offer }: any = await OfferService.getSingleOffer(payload.offerId);
-  
 
   if (!offer) {
     throw new ApiError(StatusCodes.NOT_FOUND, "Offer not found");
@@ -206,7 +202,6 @@ const createPaymentIntentService = async (payload: any) => {
       .populate({ path: "recipient", select: "name email _id" })
       .lean();
 
-
     const notificationData: INotification = {
       recipient: recipientId._id as mongoose.Types.ObjectId,
       sender: senderId._id as mongoose.Types.ObjectId,
@@ -216,8 +211,8 @@ const createPaymentIntentService = async (payload: any) => {
       type: ENUM_NOTIFICATION_TYPE.OFFER,
       status: ENUM_NOTIFICATION_STATUS.UNSEEN,
     };
- 
-   const notification= await NotificationService.createNotification(
+
+    const notification = await NotificationService.createNotification(
       notificationData,
       "sendNotification"
     );
@@ -227,8 +222,6 @@ const createPaymentIntentService = async (payload: any) => {
         message: populatedMessage,
         fromUserId: senderId._id,
         toUserId: recipientId._id,
-        
-       
       });
     }
   } catch (error) {
@@ -241,7 +234,7 @@ const createPaymentIntentService = async (payload: any) => {
   return orderResult[0];
 };
 
-const deliverRequest=async(orderId:string)=>{
+const deliverRequest = async (orderId: string) => {
   const order = await OrderService.getOrderById(orderId);
   // console.log(order,"check order")
   if (!order || !order.result) {
@@ -258,28 +251,25 @@ const deliverRequest=async(orderId:string)=>{
   }
 
   const notificationData: INotification = {
-    recipient:order.result?.orderFrom._id as mongoose.Types.ObjectId,
+    recipient: order.result?.orderFrom._id as mongoose.Types.ObjectId,
     sender: order.result.orderReciver._id as mongoose.Types.ObjectId,
     message: ` ${
-        retireProfessional.name.firstName +""+retireProfessional.name.lastName
-    } send you a delivery request` ,
+      retireProfessional.name.firstName + "" + retireProfessional.name.lastName
+    } send you a delivery request`,
     type: ENUM_NOTIFICATION_TYPE.DELIVERY,
     status: ENUM_NOTIFICATION_STATUS.UNSEEN,
-    orderId:order.result._id
+    orderId: order.result._id,
   };
 
- const notification= await NotificationService.createNotification(
+  const notification = await NotificationService.createNotification(
     notificationData,
     "sendNotification"
   );
-  return notification
- 
-}
-
-const handleAccountUpdated = async (event: any) => {};
+  return notification;
+};
 
 const deliverProject = async (orderId: string) => {
-  const order:any = await OrderService.getOrderById(orderId);
+  const order: any = await OrderService.getOrderById(orderId);
   if (!order || !order.result) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "order not found");
   }
@@ -313,7 +303,7 @@ const deliverProject = async (orderId: string) => {
   }`;
   const senderId = order.result.orderFrom;
   const recipientId = order.result.orderReciver;
- 
+
   // Save the message to the database
   const savedMessage = await MessageService.createMessage({
     sender: senderId._id,
@@ -335,7 +325,7 @@ const deliverProject = async (orderId: string) => {
     sender: senderId._id as mongoose.Types.ObjectId,
     message: `Your Project Successfully Acccept By ${
       order.client.name.firstName + order.client.name.lastName
-    }` ,
+    }`,
     type: ENUM_NOTIFICATION_TYPE.OFFER,
     status: ENUM_NOTIFICATION_STATUS.UNSEEN,
   };
@@ -457,15 +447,18 @@ const getStripeCardLists = async (id: string) => {
   });
   return result;
 };
+
+const revision = async () => {};
 export const StripeServices = {
   getCustomerSavedCardsFromStripe,
   deleteCardFromCustomer,
   refundPaymentToCustomer,
   createPaymentIntentService,
-  handleAccountUpdated,
+
   deliverProject,
   generateNewAccountLink,
   getStripeCardLists,
   createStripeCard,
-  deliverRequest
+  deliverRequest,
+  revision,
 };

@@ -104,7 +104,7 @@ const updateCoverPhoto = catchAsync(async (req: Request, res: Response) => {
     throw new ApiError(StatusCodes.UNAUTHORIZED, "file not found ");
   }
   const coverUrl = await uploadFileToSpace(req.file, "user-cover-photo");
- 
+
   const result = await AuthService.updateCoverPhoto(
     user.id as string,
     coverUrl
@@ -186,6 +186,22 @@ const resetPassword = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+const searchService = catchAsync(async (req: Request, res: Response) => {
+  const user = req.user as any;
+  console.log(user);
+  const search = req.query.search;
+  console.log(search);
+  const result = await AuthService.searchService(
+    user?.role as string,
+    search as string
+  );
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: ` reset password successfully`,
+    data: result,
+  });
+});
 export const AuthController = {
   loginUser,
   enterOtp,
@@ -202,4 +218,5 @@ export const AuthController = {
   updateUserStatus,
   forgotPassword,
   resetPassword,
+  searchService,
 };
