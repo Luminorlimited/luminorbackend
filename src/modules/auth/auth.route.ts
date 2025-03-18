@@ -51,3 +51,4 @@ router.patch("/delete-user/:id", AuthController.delteUser);
 router.patch("/update-status/:id", AuthController.updateUserStatus);
 router.post("/forget-password", auth(), AuthController.forgotPassword);
 router.patch("/reset-password", auth(), AuthController.resetPassword);
+router.get("/search-service", auth(), AuthController.searchService);

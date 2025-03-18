@@ -11,6 +11,8 @@ import { ENUM_USER_ROLE } from "../../enums/user";
 import { RetireProfessional } from "../professional/professional.model";
 import { Client } from "../client/client.model";
 import bcrypt from "bcrypt";
+import { IClient } from "../client/client.interface";
+import { IProfessional } from "../professional/professional.interface";
 const loginUser = async (payload: ILoginUser) => {
   const { email, password } = payload;
   const isUserExist = await User.isUserExist(email);
@@ -90,7 +92,6 @@ const enterOtp = async (payload: any) => {
     email: payload.email.toLowerCase(),
   });
 
- 
   if (!userData) {
     throw new ApiError(404, "Your OTP is incorrect");
   }
@@ -99,18 +100,15 @@ const enterOtp = async (payload: any) => {
     throw new ApiError(400, "Your OTP has expired");
   }
 
-
   let redirectTo = "/";
   if (userData.isFirstLogin) {
     redirectTo = `/user/editProfile/${userData.role}/${userData._id}`;
 
-   
     await User.updateOne(
       { _id: userData.id },
       { $set: { isFirstLogin: false, otp: null, otpExpiry: null } }
     );
   } else {
-  
     await User.updateOne(
       { _id: userData.id },
       { $set: { otp: null, otpExpiry: null } }
@@ -279,7 +277,7 @@ const updateUserStatus = async (id: string, status: boolean) => {
   const result = await User.findOneAndUpdate(
     { _id: id },
     { isActivated: status },
-    {new:true}
+    { new: true }
   );
   const html = `<!DOCTYPE html>
   <html lang="en">
@@ -314,17 +312,13 @@ const updateUserStatus = async (id: string, status: boolean) => {
       </div>
   </body>
   </html>`;
-  
-  if (result?.email && status)  {
 
+  if (result?.email && status) {
     await emailSender("OTP", result.email, html);
   } else {
     throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, "Email not found");
   }
-  
 
-
- 
   return result;
 };
 const forgotPassword = async (userId: string) => {
@@ -403,6 +397,24 @@ const resetPassword = async (userId: string, payload: any) => {
 
   return { message: "Password reset successfully" };
 };
+const searchService = async (
+  role: string,
+  searchQuery: string
+): Promise<IClient[] | IProfessional[]> => {
+  let result: IClient[] | IProfessional[] = [];
+  const normalizedQuery = (searchQuery ?? "").toString().trim();
+  if (role === ENUM_USER_ROLE.CLIENT) {
+    result = await RetireProfessional.find<IProfessional>({
+      expertise: { $regex: normalizedQuery, $options: "i" },
+    });
+  } else if (role === ENUM_USER_ROLE.RETIREPROFESSIONAL) {
+    result = await Client.find<IClient>({
+      servicePreference: { $regex: normalizedQuery, $options: "i" },
+    });
+  }
+
+  return result;
+};
 
 export const AuthService = {
   loginUser,
@@ -420,4 +432,5 @@ export const AuthService = {
   updateUserStatus,
   forgotPassword,
   resetPassword,
+  searchService,
 };
