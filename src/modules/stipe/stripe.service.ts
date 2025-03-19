@@ -172,6 +172,7 @@ const createPaymentIntentService = async (payload: any) => {
       project: payload.offerId,
       paymentIntentId: paymentIntent.id,
       transaction: transaction[0]._id,
+      revisions: [],
     };
 
     orderResult = await Order.create([order], { session });
@@ -182,7 +183,7 @@ const createPaymentIntentService = async (payload: any) => {
       { session }
     );
 
-    await Offer.deleteOne({ id: offer.id }), { session };
+    await Offer.deleteOne({ _id: offer._id }), { session };
 
     await session.commitTransaction(); // Commit the transaction after all operations are successful
 

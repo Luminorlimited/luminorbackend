@@ -1,6 +1,18 @@
 import mongoose, { model } from "mongoose";
-import { IOrder } from "./order.interface";
-
+import { IOrder, IRevision } from "./order.interface";
+const revisionSchema = new mongoose.Schema<IRevision>(
+  {
+    requestedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    revisionNumber: { type: Number, required: true },
+    description: { type: String, required: true },
+    createdAt: { type: Date, default: Date.now },
+  },
+  { _id: false }
+);
 const orderSchema = new mongoose.Schema<IOrder>(
   {
     clientRequerment: {
@@ -34,6 +46,8 @@ const orderSchema = new mongoose.Schema<IOrder>(
       type: String,
       required: true,
     },
+    revision: revisionSchema,
+
     transaction: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Transaction",
