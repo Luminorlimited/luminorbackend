@@ -11,6 +11,9 @@ import { uploadFileToSpace } from "../../utilitis/uploadTos3";
 const createProfessional = catchAsync(async (req: Request, res: Response) => {
   const file = req.file as unknown as Express.Multer.File;
 
+
+  
+
   const { name, email, role, password, ...others } = req.body;
   const user = {
     name,
