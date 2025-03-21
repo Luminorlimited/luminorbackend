@@ -19,7 +19,7 @@ import { ENUM_NOTIFICATION_STATUS, ENUM_NOTIFICATION_TYPE } from "../../enums/no
   };
   export type INotificationType =
     "privateMessage"|
-    "offer"|"order"|"delivery"
+    "offer"|"order"|"delivery"|"revision"
   
   export type INotificationStatus = "seen" | "unseen";
   

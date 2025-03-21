@@ -23,6 +23,7 @@ import {
 } from "../../enums/notificationStatus";
 import { NotificationService } from "../notification/notification.service";
 import { off } from "pdfkit";
+import moment from "moment";
 const stripe = new Stripe(config.stripe_key as string, {
   apiVersion: "2025-01-27.acacia",
 });
@@ -73,9 +74,7 @@ const refundPaymentToCustomer = async (orderId: string) => {
     const notificationData: INotification = {
       recipient: recipientId._id as mongoose.Types.ObjectId,
       sender: senderId._id as mongoose.Types.ObjectId,
-      message: `Your Order  Cancell By ${
-        order?.orderFrom.name.firstName + "" + order?.orderFrom.name.lastName
-      }`,
+      message: `Your Offer has been declined. please speak to the clint`,
       type: ENUM_NOTIFICATION_TYPE.OFFER,
       status: ENUM_NOTIFICATION_STATUS.UNSEEN,
     };
@@ -345,6 +344,77 @@ const deliverProject = async (orderId: string) => {
 
   return { transfer, updateTransaction };
 };
+const revision=async(orderId:string,clientId:string,payload:any)=>{
+
+  const order: any = await Order.findById(orderId)
+  .populate("orderFrom")
+  .populate("orderReciver");
+  if(!order){
+    throw new ApiError( StatusCodes.BAD_REQUEST,"order  not found")
+  }
+  if(order.orderFrom._id.toString() !== clientId){
+    throw new ApiError(StatusCodes.BAD_REQUEST,"only this order client have the authrothy to give revesion request")
+  } 
+ const senderId = order?.orderFrom._id as mongoose.Types.ObjectId;
+const messageContent = `You have a revision request from ${
+  order?.orderFrom.name.firstName + "" + order?.orderFrom.name.lastName 
+}  `;
+const recipientId = order?.orderReciver._id as mongoose.Types.ObjectId;
+ const savedMessage = await MessageService.createMessage({
+  sender: senderId,
+  message: messageContent,
+  recipient: recipientId,
+  isUnseen: true,
+});
+const populatedMessage = await Message.findById(savedMessage._id)
+  .populate({ path: "sender", select: "name email _id" })
+  .populate({ path: "recipient", select: "name email _id" })
+  .lean();
+const notificationData: INotification = {
+  recipient: recipientId._id as mongoose.Types.ObjectId,
+  sender: senderId._id as mongoose.Types.ObjectId,
+  message: messageContent,
+  type: ENUM_NOTIFICATION_TYPE.REVISION,
+  status: ENUM_NOTIFICATION_STATUS.UNSEEN,
+};
+const notification = await NotificationService.createNotification(
+  notificationData,
+  "sendNotification"
+);
+const toSocketId = users[recipientId._id.toString()];
+if (toSocketId) {
+  io.to(toSocketId).emit("privateMessage", {
+    message: populatedMessage,
+    fromUserId: senderId._id,
+    toUserId: recipientId._id,
+  });
+}
+
+ const timeLength = moment().add(payload.duration, "days").toDate();
+
+  const updatedOrder = await Order.findByIdAndUpdate(
+    orderId,
+    {
+      revision: {
+        requestedBy: clientId,
+       
+        timeLength:timeLength,
+        description:payload.description,
+        createdAt: new Date(),
+      },
+        $inc: { revisionCount: 1 },
+    },
+    { new: true } // Return the updated order
+  );
+  const updateTransaction = await Transaction.findOneAndUpdate(
+    { orderId: orderId},
+    { $set: { paymentStatus: PAYMENTSTATUS.REVISION } },
+    { new: true }
+  );
+
+  return {updatedOrder,updateTransaction};
+
+}
 const generateNewAccountLink = async (user: IUser) => {
   const accountLink = await stripe.accountLinks.create({
     account: user.stripe?.customerId as string,
@@ -449,7 +519,7 @@ const getStripeCardLists = async (id: string) => {
   return result;
 };
 
-const revision = async () => {};
+
 export const StripeServices = {
   getCustomerSavedCardsFromStripe,
   deleteCardFromCustomer,

@@ -145,7 +145,17 @@ const deliverProject = catchAsync(async (req: any, res: any) => {
     data: result,
   });
 });
+const revesion = catchAsync(async (req: any, res: any) => {
 
+  console.log(req.user,"check user")
+  const result = await StripeServices.revision(req.params.id,req.user.id,req.body);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "project deliver successfully",
+    data: result,
+  });
+});
 const getStripeCardLists=catchAsync(async (req: any, res: any) => {
   const user=req.user
   const result = await StripeServices.getStripeCardLists(req.user.id);
@@ -210,5 +220,6 @@ export const StripeController = {
   getStripeCardLists,
   createStripeCard,
   generateAccountLink,
-  deliverRequest
+  deliverRequest,
+  revesion
 };

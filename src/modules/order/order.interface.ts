@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 export type IRevision = {
   requestedBy: mongoose.Types.ObjectId; 
-  revisionNumber: number;
+  timeLength:Date;
   description: string;
   createdAt: Date;
 };
@@ -14,5 +14,6 @@ export type IOrder = {
   project: mongoose.Types.ObjectId;
   paymentIntentId: string;
   transaction: mongoose.Types.ObjectId;
-  revision:IRevision
+  revision:IRevision,
+  revisionCount?:number
 };

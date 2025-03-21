@@ -35,6 +35,6 @@ router.patch("/deliver-project/:id", StripeController.deliverProject);
 router.post("/generate-onboarding-url",auth(),StripeController.generateAccountLink)
 router.get("/delivery-request/:id",StripeController.deliverRequest)
 router.post("/refund-payment/:id",StripeController.refundPaymentToCustomer)
-
+router.patch("/revision-request/:id",auth(),StripeController.revesion)
 
 export const StripeRoutes = router;

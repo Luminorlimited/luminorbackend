@@ -7,7 +7,7 @@ const revisionSchema = new mongoose.Schema<IRevision>(
       ref: "User",
       required: true,
     },
-    revisionNumber: { type: Number, required: true },
+    timeLength:Date,
     description: { type: String, required: true },
     createdAt: { type: Date, default: Date.now },
   },
@@ -47,6 +47,10 @@ const orderSchema = new mongoose.Schema<IOrder>(
       required: true,
     },
     revision: revisionSchema,
+    revisionCount:{
+      type:Number,
+      default:0
+    },
 
     transaction: {
       type: mongoose.Schema.Types.ObjectId,
