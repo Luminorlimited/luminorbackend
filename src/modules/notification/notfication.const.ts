@@ -7,7 +7,8 @@ import {
     "privateMessage",
    "offer",
    "order",
-   "delivery"
+   "delivery",
+   "revision",
   ];
   
   export const NotificationStatus: INotificationStatus[] = ["seen", "unseen"];
