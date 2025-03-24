@@ -198,7 +198,7 @@ const searchService = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
-    message: ` reset password successfully`,
+    message: ` user search get  successfully`,
     data: result,
   });
 });
