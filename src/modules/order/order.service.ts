@@ -8,7 +8,7 @@ const createOrder = async (payload: IOrder) => {
 };
 const getOrderByProfessional = async (id: string) => {
   try {
-    const result = await Order.find({ orderReciver: id })
+    const result = await Order.find({ orderReciver: id }).sort({ createdAt: -1 })
       .populate("project")
       .populate("transaction")
       .populate("orderFrom")
@@ -23,7 +23,7 @@ const getOrderByProfessional = async (id: string) => {
 const getOrderByClient = async (id: string) => {
 
 
-  const result = await Order.find({ orderFrom: id })
+  const result = await Order.find({ orderFrom: id }).sort({ createdAt: -1 })
     .populate("project")
     .populate("transaction")
     .populate("orderFrom")
