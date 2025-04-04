@@ -19,8 +19,7 @@ const stripe = new Stripe(config.stripe.secretKey as string, {
   apiVersion: "2025-01-27.acacia",
 });
 const createOffer = async (offer: IOffer) => {
-  // console.log(offer,"check create offer")
-  // console.log(offer.professionalEmail,"check professional email")
+
   const professional = await User.findById(offer.professionalEmail);
 
   let stripeAccount;
