@@ -410,7 +410,7 @@ if (toSocketId) {
     { orderId: orderId},
     { $set: { paymentStatus: PAYMENTSTATUS.REVISION } },
     { new: true }
-  ).populate("requestedBy");
+  );
 
   return {updatedOrder,updateTransaction};
 
