@@ -8,5 +8,6 @@ export enum ENUM_NOTIFICATION_STATUS {
     OFFER="offer",
    ORDER="order",
    DELIVERY="delivery",
-   REVISION="revision"
+   REVISION="revision",
+   PAYOUT="payout"
   }
