@@ -9,6 +9,8 @@ import { mergePDFs } from "../../utilitis/generateClientRequirementPdf";
 import { User } from "../auth/auth.model";
 import { use } from "passport";
 import ApiError from "../../errors/handleApiError";
+import { NotificationService } from "../notification/notification.service";
+import { ENUM_NOTIFICATION_STATUS, ENUM_NOTIFICATION_TYPE } from "../../enums/notificationStatus";
 const stripe = new Stripe(config.stripe.secretKey as string, {
   apiVersion: "2025-01-27.acacia",
 });
@@ -131,11 +133,51 @@ const handleWebHook = catchAsync(async (req: any, res: any) => {
     case "customer.created":
       break;
     case "account.external_account.created":
+     
+    case "payout.created": {
+      const payout = event.data.object as Stripe.Payout;
+
+    
+      const destination = payout.destination; 
+
+    
+      const user = await User.findOne({ "stripe.customerId": destination });
+  
+      if (!user) {
+        console.log("User not found for payout with customerId:", destination);
+        return;
+      }
+      await NotificationService.createNotification({
+        recipient: user._id,
+        sender:  user._id,
+        message: `A payout of ${payout.amount / 100} ${payout.currency.toUpperCase()} has been created.`,
+        type: ENUM_NOTIFICATION_TYPE.PAYOUT,
+        status: ENUM_NOTIFICATION_STATUS.UNSEEN,
+      },"sendNotification");
+      break;
+    }
+
+    case "payout.paid": {
+      const payout = event.data.object as Stripe.Payout;
+      const destination = payout.destination; 
+      const user = await User.findOne({ "stripe.customerId": destination });
+      if (!user) {
+        console.log("User not found for payout with customerId:", destination);
+        return;
+      }
+      await NotificationService.createNotification({
+        recipient: user._id,
+        sender:user._id,
+        message: `A payout of ${payout.amount / 100} ${payout.currency.toUpperCase()} has been paid.`,
+        type: ENUM_NOTIFICATION_TYPE.PAYOUT,
+        status: ENUM_NOTIFICATION_STATUS.UNSEEN,
+      },"sendNotification");
+      break;
+    }
     default:
   }
   res.status(200).send("Event received");
 });
-
 const deliverProject = catchAsync(async (req: any, res: any) => {
   const result = await StripeServices.deliverProject(req.params.id);
   sendResponse(res, {
