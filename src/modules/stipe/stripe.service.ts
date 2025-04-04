@@ -56,7 +56,7 @@ const refundPaymentToCustomer = async (orderId: string) => {
       order?.orderFrom.name.firstName + ""
     } `;
     const senderId = order?.orderFrom._id as mongoose.Types.ObjectId;
-    console.log(senderId, "check senderId");
+    
     const recipientId = order?.orderReciver._id as mongoose.Types.ObjectId;
 
     const savedMessage = await MessageService.createMessage({
@@ -74,7 +74,7 @@ const refundPaymentToCustomer = async (orderId: string) => {
     const notificationData: INotification = {
       recipient: recipientId._id as mongoose.Types.ObjectId,
       sender: senderId._id as mongoose.Types.ObjectId,
-      message: `Your Offer has been declined. please speak to the clint`,
+      message: `Your offer has been declined. please speak to the client`,
       type: ENUM_NOTIFICATION_TYPE.OFFER,
       status: ENUM_NOTIFICATION_STATUS.UNSEEN,
     };
@@ -356,9 +356,7 @@ const revision=async(orderId:string,clientId:string,payload:any)=>{
     throw new ApiError(StatusCodes.BAD_REQUEST,"only this order client have the authrothy to give revesion request")
   } 
  const senderId = order?.orderFrom._id as mongoose.Types.ObjectId;
-const messageContent = `You have a revision request from ${
-  order?.orderFrom.name.firstName + "" + order?.orderFrom.name.lastName 
-}  `;
+ const messageContent = `You have a revision request from ${order?.orderFrom.name.firstName} ${order?.orderFrom.name.lastName}.\nView details: https://luminor-ltd.com/deliver-details/${orderId}`;
 const recipientId = order?.orderReciver._id as mongoose.Types.ObjectId;
  const savedMessage = await MessageService.createMessage({
   sender: senderId,
