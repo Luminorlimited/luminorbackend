@@ -157,23 +157,23 @@ const handleWebHook = catchAsync(async (req: any, res: any) => {
       break;
     }
 
-    case "payout.paid": {
-      const payout = event.data.object as Stripe.Payout;
-      const destination = payout.destination; 
-      const user = await User.findOne({ "stripe.customerId": destination });
-      if (!user) {
-        console.log("User not found for payout with customerId:", destination);
-        return;
-      }
-      await NotificationService.createNotification({
-        recipient: user._id,
-        sender:user._id,
-        message: `A payout of ${payout.amount / 100} ${payout.currency.toUpperCase()} has been paid.`,
-        type: ENUM_NOTIFICATION_TYPE.PAYOUT,
-        status: ENUM_NOTIFICATION_STATUS.UNSEEN,
-      },"sendNotification");
-      break;
-    }
+    // case "payout.paid": {
+    //   const payout = event.data.object as Stripe.Payout;
+    //   const destination = payout.destination; 
+    //   const user = await User.findOne({ "stripe.customerId": destination });
+    //   if (!user) {
+    //     console.log("User not found for payout with customerId:", destination);
+    //     return;
+    //   }
+    //   await NotificationService.createNotification({
+    //     recipient: user._id,
+    //     sender:user._id,
+    //     message: `A payout of ${payout.amount / 100} ${payout.currency.toUpperCase()} has been paid.`,
+    //     type: ENUM_NOTIFICATION_TYPE.PAYOUT,
+    //     status: ENUM_NOTIFICATION_STATUS.UNSEEN,
+    //   },"sendNotification");
+    //   break;
+    // }
     default:
   }
   res.status(200).send("Event received");
