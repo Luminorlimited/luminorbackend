@@ -188,9 +188,9 @@ const resetPassword = catchAsync(async (req: Request, res: Response) => {
 });
 const searchService = catchAsync(async (req: Request, res: Response) => {
   const user = req.user as any;
-  console.log(user);
+
   const search = req.query.search;
-  console.log(search);
+
   const result = await AuthService.searchService(
     user?.role as string,
     search as string
