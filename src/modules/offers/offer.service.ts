@@ -143,7 +143,7 @@ const getSingleOffer = async (id: string) => {
 };
 const deleteSingleOffer = async (id: string) => {
   const offer:any = await Offer.findByIdAndDelete({ _id: id }).populate("clientEmail");
-  const messageContent = ` Offer Canceled!`;
+  const messageContent = ` Your offer has been declined, please speak to the retired professional`;
   const senderId = offer?.clientEmail as mongoose.Types.ObjectId; 
   const recipientId = offer?.professionalEmail as mongoose.Types.ObjectId; 
 
