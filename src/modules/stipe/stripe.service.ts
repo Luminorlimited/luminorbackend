@@ -255,7 +255,7 @@ const deliverRequest = async (orderId: string) => {
     sender: order.result.orderReciver._id as mongoose.Types.ObjectId,
     message: ` ${
       retireProfessional.name.firstName + "" + retireProfessional.name.lastName
-    } send you a delivery request`,
+    } sent  you a delivery request`,
     type: ENUM_NOTIFICATION_TYPE.DELIVERY,
     status: ENUM_NOTIFICATION_STATUS.UNSEEN,
     orderId: order.result._id,
@@ -298,7 +298,7 @@ const deliverProject = async (orderId: string) => {
     { $set: { paymentStatus: PAYMENTSTATUS.COMPLETED } },
     { new: true }
   );
-  const messageContent = `Your Project Successfully Acccept By ${
+  const messageContent = `Your project has been successfully accepted by ${
     order.client.name.firstName + order.client.name.lastName
   }`;
   const senderId = order.result.orderFrom;
@@ -323,7 +323,7 @@ const deliverProject = async (orderId: string) => {
   const notificationData: INotification = {
     recipient: recipientId._id as mongoose.Types.ObjectId,
     sender: senderId._id as mongoose.Types.ObjectId,
-    message: `Your Project Successfully Acccept By ${
+    message: `Your project has been successfully accepted by ${
       order.client.name.firstName + order.client.name.lastName
     }`,
     type: ENUM_NOTIFICATION_TYPE.OFFER,
