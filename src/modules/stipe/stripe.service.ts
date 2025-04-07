@@ -7,7 +7,7 @@ import { Order } from "../order/order.model";
 import { OfferService } from "../offers/offer.service";
 import { OrderService } from "../order/order.service";
 import { Transaction } from "../transaction/transaction.model";
-import mongoose from "mongoose";
+import mongoose, { ObjectId } from "mongoose";
 import { PAYMENTSTATUS } from "../transaction/transaction.interface";
 import { Offer } from "../offers/offer.model";
 import { IUser } from "../auth/auth.interface";
@@ -345,7 +345,7 @@ const deliverProject = async (orderId: string) => {
   return { transfer, updateTransaction };
 };
 const revision=async(orderId:string,clientId:string,payload:any)=>{
-
+  
   const order: any = await Order.findById(orderId)
   .populate("orderFrom")
   .populate("orderReciver");
@@ -357,6 +357,7 @@ const revision=async(orderId:string,clientId:string,payload:any)=>{
   } 
  const senderId = order?.orderFrom._id as mongoose.Types.ObjectId;
  const messageContent = `You have a revision request from ${order?.orderFrom.name.firstName} ${order?.orderFrom.name.lastName}.\nView details: https://luminor-ltd.com/deliver-details/${orderId}`;
+ const notifcationContent=`You have a revision request from ${order?.orderFrom.name.firstName} ${order?.orderFrom.name.lastName}`;
 const recipientId = order?.orderReciver._id as mongoose.Types.ObjectId;
  const savedMessage = await MessageService.createMessage({
   sender: senderId,
@@ -371,9 +372,10 @@ const populatedMessage = await Message.findById(savedMessage._id)
 const notificationData: INotification = {
   recipient: recipientId._id as mongoose.Types.ObjectId,
   sender: senderId._id as mongoose.Types.ObjectId,
-  message: messageContent,
+  message: notifcationContent,
   type: ENUM_NOTIFICATION_TYPE.REVISION,
   status: ENUM_NOTIFICATION_STATUS.UNSEEN,
+  orderId: order._id as mongoose.Types.ObjectId ,
 };
 const notification = await NotificationService.createNotification(
   notificationData,
