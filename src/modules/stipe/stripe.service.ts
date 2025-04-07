@@ -186,7 +186,9 @@ const createPaymentIntentService = async (payload: any) => {
 
     await session.commitTransaction(); // Commit the transaction after all operations are successful
 
-    const messageContent = ` Offer Accepted! `;
+    const messageContent =`Your offer has been accepted By ${
+        offer.clientEmail?.name.firstName + offer.clientEmail.name.lastName
+      }`;
     const senderId = offer.clientEmail;
     const recipientId = offer.professionalEmail;
 
@@ -205,7 +207,7 @@ const createPaymentIntentService = async (payload: any) => {
     const notificationData: INotification = {
       recipient: recipientId._id as mongoose.Types.ObjectId,
       sender: senderId._id as mongoose.Types.ObjectId,
-      message: `Your Offer Accepted By ${
+      message: `Your offer has been accepted By ${
         offer.clientEmail?.name.firstName + offer.clientEmail.name.lastName
       }`,
       type: ENUM_NOTIFICATION_TYPE.OFFER,
@@ -328,6 +330,7 @@ const deliverProject = async (orderId: string) => {
     }`,
     type: ENUM_NOTIFICATION_TYPE.OFFER,
     status: ENUM_NOTIFICATION_STATUS.UNSEEN,
+    orderId: order.result._id,
   };
 
   await NotificationService.createNotification(
