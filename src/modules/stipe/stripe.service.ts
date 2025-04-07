@@ -52,9 +52,9 @@ const refundPaymentToCustomer = async (orderId: string) => {
       .populate("orderFrom")
       .populate("orderReciver");
 
-    const messageContent = `Your order has been declined. please speak to the client `;
+    const messageContent = `Your order has been declined. please speak to the client. `;
     const senderId = order?.orderFrom._id as mongoose.Types.ObjectId;
-    
+
     const recipientId = order?.orderReciver._id as mongoose.Types.ObjectId;
 
     const savedMessage = await MessageService.createMessage({
@@ -72,9 +72,10 @@ const refundPaymentToCustomer = async (orderId: string) => {
     const notificationData: INotification = {
       recipient: recipientId._id as mongoose.Types.ObjectId,
       sender: senderId._id as mongoose.Types.ObjectId,
-      message: `Your offer has been declined. please speak to the client`,
+      message: `Your order has been declined. please speak to the client.`,
       type: ENUM_NOTIFICATION_TYPE.OFFER,
       status: ENUM_NOTIFICATION_STATUS.UNSEEN,
+      orderId:order._id
     };
 
     const notification = await NotificationService.createNotification(
@@ -107,7 +108,7 @@ const createPaymentIntentService = async (payload: any) => {
   const { offer }: any = await OfferService.getSingleOffer(payload.offerId);
 
   if (!offer) {
-    throw new ApiError(StatusCodes.NOT_FOUND, "Offer not found");
+    throw new ApiError(StatusCodes.NOT_FOUND, "Offer not found.");
   }
 
   await stripe.paymentMethods.attach(payload.paymentMethodId, {
@@ -180,13 +181,11 @@ const createPaymentIntentService = async (payload: any) => {
       { session }
     );
 
-  
-
     await session.commitTransaction(); // Commit the transaction after all operations are successful
 
-    const messageContent =`Your offer has been accepted By ${
-        offer.clientEmail?.name.firstName + offer.clientEmail.name.lastName
-      }`;
+    const messageContent = `Your offer has been accepted By ${
+      offer.clientEmail?.name.firstName + offer.clientEmail.name.lastName
+    }.`;
     const senderId = offer.clientEmail;
     const recipientId = offer.professionalEmail;
 
@@ -207,9 +206,10 @@ const createPaymentIntentService = async (payload: any) => {
       sender: senderId._id as mongoose.Types.ObjectId,
       message: `Your offer has been accepted By ${
         offer.clientEmail?.name.firstName + offer.clientEmail.name.lastName
-      }`,
+      }.`,
       type: ENUM_NOTIFICATION_TYPE.OFFER,
       status: ENUM_NOTIFICATION_STATUS.UNSEEN,
+      orderId: orderResult[0]._id,
     };
 
     const notification = await NotificationService.createNotification(
@@ -236,7 +236,7 @@ const createPaymentIntentService = async (payload: any) => {
 
 const deliverRequest = async (orderId: string) => {
   const order = await OrderService.getOrderById(orderId);
-  // console.log(order,"check order")
+
   if (!order || !order.result) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "order not found");
   }
@@ -249,17 +249,43 @@ const deliverRequest = async (orderId: string) => {
   if (!order) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "order not found");
   }
+  const senderId = order.result.orderFrom;
+  const recipientId = order.result.orderReciver;
+ 
+  const toSocketId = users[order.result?.orderFrom._id.toString()];
 
   const notificationData: INotification = {
     recipient: order.result?.orderFrom._id as mongoose.Types.ObjectId,
     sender: order.result.orderReciver._id as mongoose.Types.ObjectId,
     message: ` ${
       retireProfessional.name.firstName + "" + retireProfessional.name.lastName
-    } sent  you a delivery request`,
+    } sent  you a delivery request.`,
     type: ENUM_NOTIFICATION_TYPE.DELIVERY,
     status: ENUM_NOTIFICATION_STATUS.UNSEEN,
     orderId: order.result._id,
   };
+
+  const savedMessage = await MessageService.createMessage({
+    sender: senderId._id,
+    message: ` ${
+      retireProfessional.name.firstName + "" + retireProfessional.name.lastName
+    } sent  you a delivery request.`,
+    recipient: recipientId._id,
+    isUnseen: true,
+  });
+
+  // Populate the message before sending
+  const populatedMessage = await Message.findById(savedMessage._id)
+    .populate({ path: "sender", select: "name email _id" })
+    .populate({ path: "recipient", select: "name email _id" })
+    .lean();
+  if (toSocketId) {
+    io.to(toSocketId).emit("privateMessage", {
+      message: populatedMessage,
+      fromUserId: senderId._id,
+      toUserId: recipientId._id,
+    });
+  }
 
   const notification = await NotificationService.createNotification(
     notificationData,
@@ -325,7 +351,7 @@ const deliverProject = async (orderId: string) => {
     sender: senderId._id as mongoose.Types.ObjectId,
     message: `Your project has been successfully accepted by ${
       order.client.name.firstName + order.client.name.lastName
-    }`,
+    }.`,
     type: ENUM_NOTIFICATION_TYPE.OFFER,
     status: ENUM_NOTIFICATION_STATUS.UNSEEN,
     orderId: order.result._id,
@@ -345,77 +371,78 @@ const deliverProject = async (orderId: string) => {
 
   return { transfer, updateTransaction };
 };
-const revision=async(orderId:string,clientId:string,payload:any)=>{
-  
+const revision = async (orderId: string, clientId: string, payload: any) => {
   const order: any = await Order.findById(orderId)
-  .populate("orderFrom")
-  .populate("orderReciver");
-  if(!order){
-    throw new ApiError( StatusCodes.BAD_REQUEST,"order  not found")
+    .populate("orderFrom")
+    .populate("orderReciver");
+  if (!order) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "order  not found");
   }
-  if(order.orderFrom._id.toString() !== clientId){
-    throw new ApiError(StatusCodes.BAD_REQUEST,"only this order client have the authrothy to give revesion request")
-  } 
- const senderId = order?.orderFrom._id as mongoose.Types.ObjectId;
- const messageContent = `You have a revision request from ${order?.orderFrom.name.firstName} ${order?.orderFrom.name.lastName}.\nView details: https://luminor-ltd.com/deliver-details/${orderId}`;
- const notifcationContent=`You have a revision request from ${order?.orderFrom.name.firstName} ${order?.orderFrom.name.lastName}`;
-const recipientId = order?.orderReciver._id as mongoose.Types.ObjectId;
- const savedMessage = await MessageService.createMessage({
-  sender: senderId,
-  message: messageContent,
-  recipient: recipientId,
-  isUnseen: true,
-});
-const populatedMessage = await Message.findById(savedMessage._id)
-  .populate({ path: "sender", select: "name email _id" })
-  .populate({ path: "recipient", select: "name email _id" })
-  .lean();
-const notificationData: INotification = {
-  recipient: recipientId._id as mongoose.Types.ObjectId,
-  sender: senderId._id as mongoose.Types.ObjectId,
-  message: notifcationContent,
-  type: ENUM_NOTIFICATION_TYPE.REVISION,
-  status: ENUM_NOTIFICATION_STATUS.UNSEEN,
-  orderId: order._id as mongoose.Types.ObjectId ,
-};
-const notification = await NotificationService.createNotification(
-  notificationData,
-  "sendNotification"
-);
-const toSocketId = users[recipientId._id.toString()];
-if (toSocketId) {
-  io.to(toSocketId).emit("privateMessage", {
-    message: populatedMessage,
-    fromUserId: senderId._id,
-    toUserId: recipientId._id,
+  if (order.orderFrom._id.toString() !== clientId) {
+    throw new ApiError(
+      StatusCodes.BAD_REQUEST,
+      "only this order client have the authrothy to give revesion request."
+    );
+  }
+  const senderId = order?.orderFrom._id as mongoose.Types.ObjectId;
+  const messageContent = `You have a revision request from ${order?.orderFrom.name.firstName} ${order?.orderFrom.name.lastName}.\nView details: https://luminor-ltd.com/deliver-details/${orderId}`;
+  const notifcationContent = `You have a revision request from ${order?.orderFrom.name.firstName} ${order?.orderFrom.name.lastName}.`;
+  const recipientId = order?.orderReciver._id as mongoose.Types.ObjectId;
+  const savedMessage = await MessageService.createMessage({
+    sender: senderId,
+    message: messageContent,
+    recipient: recipientId,
+    isUnseen: true,
   });
-}
+  const populatedMessage = await Message.findById(savedMessage._id)
+    .populate({ path: "sender", select: "name email _id" })
+    .populate({ path: "recipient", select: "name email _id" })
+    .lean();
+  const notificationData: INotification = {
+    recipient: recipientId._id as mongoose.Types.ObjectId,
+    sender: senderId._id as mongoose.Types.ObjectId,
+    message: notifcationContent,
+    type: ENUM_NOTIFICATION_TYPE.REVISION,
+    status: ENUM_NOTIFICATION_STATUS.UNSEEN,
+    orderId: order._id as mongoose.Types.ObjectId,
+  };
+  const notification = await NotificationService.createNotification(
+    notificationData,
+    "sendNotification"
+  );
+  const toSocketId = users[recipientId._id.toString()];
+  if (toSocketId) {
+    io.to(toSocketId).emit("privateMessage", {
+      message: populatedMessage,
+      fromUserId: senderId._id,
+      toUserId: recipientId._id,
+    });
+  }
 
- const timeLength = moment().add(payload.duration, "days").toDate();
+  const timeLength = moment().add(payload.duration, "days").toDate();
 
   const updatedOrder = await Order.findByIdAndUpdate(
     orderId,
     {
       revision: {
         requestedBy: clientId,
-       
-        timeLength:timeLength,
-        description:payload.description,
+
+        timeLength: timeLength,
+        description: payload.description,
         createdAt: new Date(),
       },
-        $inc: { revisionCount: 1 },
+      $inc: { revisionCount: 1 },
     },
     { new: true } // Return the updated order
   );
   const updateTransaction = await Transaction.findOneAndUpdate(
-    { orderId: orderId},
+    { orderId: orderId },
     { $set: { paymentStatus: PAYMENTSTATUS.REVISION } },
     { new: true }
   );
 
-  return {updatedOrder,updateTransaction};
-
-}
+  return { updatedOrder, updateTransaction };
+};
 const generateNewAccountLink = async (user: IUser) => {
   const accountLink = await stripe.accountLinks.create({
     account: user.stripe?.customerId as string,
@@ -519,7 +546,6 @@ const getStripeCardLists = async (id: string) => {
   });
   return result;
 };
-
 
 export const StripeServices = {
   getCustomerSavedCardsFromStripe,
