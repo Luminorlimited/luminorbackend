@@ -52,7 +52,7 @@ const refundPaymentToCustomer = async (orderId: string) => {
       .populate("orderFrom")
       .populate("orderReciver");
 
-    const messageContent = `Your order has been declined. please speak to the client. `;
+    const messageContent = `Your order has been cancelled. Please speak to the client. `;
     const senderId = order?.orderFrom._id as mongoose.Types.ObjectId;
 
     const recipientId = order?.orderReciver._id as mongoose.Types.ObjectId;
@@ -72,7 +72,7 @@ const refundPaymentToCustomer = async (orderId: string) => {
     const notificationData: INotification = {
       recipient: recipientId._id as mongoose.Types.ObjectId,
       sender: senderId._id as mongoose.Types.ObjectId,
-      message: `Your order has been declined. please speak to the client.`,
+      message: `Your order has been cancelled. Please speak to the client.`,
       type: ENUM_NOTIFICATION_TYPE.OFFER,
       status: ENUM_NOTIFICATION_STATUS.UNSEEN,
       orderId:order._id
