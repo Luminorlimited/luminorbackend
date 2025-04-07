@@ -52,9 +52,7 @@ const refundPaymentToCustomer = async (orderId: string) => {
       .populate("orderFrom")
       .populate("orderReciver");
 
-    const messageContent = `order cancelled by ${
-      order?.orderFrom.name.firstName + ""
-    } `;
+    const messageContent = `Your order has been declined. please speak to the client `;
     const senderId = order?.orderFrom._id as mongoose.Types.ObjectId;
     
     const recipientId = order?.orderReciver._id as mongoose.Types.ObjectId;
