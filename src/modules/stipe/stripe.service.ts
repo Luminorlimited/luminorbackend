@@ -267,7 +267,7 @@ const deliverRequest = async (orderId: string) => {
 
   const savedMessage = await MessageService.createMessage({
     sender: senderId._id,
-    message: `you received s a delivery request. \nView details: <a>https://luminor-ltd.com/project/${orderId}`,
+    message: `You received  a delivery request.\nView details: https://luminor-ltd.com/project/${orderId}`,
     recipient: recipientId._id,
     isUnseen: true,
   });
