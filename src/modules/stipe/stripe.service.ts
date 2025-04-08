@@ -257,9 +257,7 @@ const deliverRequest = async (orderId: string) => {
   const notificationData: INotification = {
     recipient: order.result?.orderFrom._id as mongoose.Types.ObjectId,
     sender: order.result.orderReciver._id as mongoose.Types.ObjectId,
-    message: ` ${
-      retireProfessional.name.firstName + "" + retireProfessional.name.lastName
-    } sent  you a delivery request. \nView details: https://luminor-ltd.com/project/${orderId}`,
+    message: `you received a delivery request. \nView details:https://luminor-ltd.com/project/${orderId}`,
     type: ENUM_NOTIFICATION_TYPE.DELIVERY,
     status: ENUM_NOTIFICATION_STATUS.UNSEEN,
     orderId: order.result._id,
@@ -436,7 +434,7 @@ const revision = async (orderId: string, clientId: string, payload: any) => {
   );
   const updateTransaction = await Transaction.findOneAndUpdate(
     { orderId: orderId },
-    { $set: { paymentStatus: PAYMENTSTATUS.PENDING } },
+    { $set: { paymentStatus: PAYMENTSTATUS.REVISION } },
     { new: true }
   );
 
