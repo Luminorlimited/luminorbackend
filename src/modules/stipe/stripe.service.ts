@@ -257,7 +257,9 @@ const deliverRequest = async (orderId: string) => {
   const notificationData: INotification = {
     recipient: order.result?.orderFrom._id as mongoose.Types.ObjectId,
     sender: order.result.orderReciver._id as mongoose.Types.ObjectId,
-    message: `you received a delivery request. \nView details:https://luminor-ltd.com/project/${orderId}`,
+    message: ` ${
+      retireProfessional.name.firstName + "" + retireProfessional.name.lastName
+    } sent  you a delivery request.`,
     type: ENUM_NOTIFICATION_TYPE.DELIVERY,
     status: ENUM_NOTIFICATION_STATUS.UNSEEN,
     orderId: order.result._id,
@@ -265,9 +267,7 @@ const deliverRequest = async (orderId: string) => {
 
   const savedMessage = await MessageService.createMessage({
     sender: senderId._id,
-    message: ` ${
-      retireProfessional.name.firstName + "" + retireProfessional.name.lastName
-    } sent  you a delivery request.`,
+    message: `you received s a delivery request. \nView details: <a>https://luminor-ltd.com/project/${orderId}`,
     recipient: recipientId._id,
     isUnseen: true,
   });
