@@ -144,7 +144,7 @@ const handleWebHook = catchAsync(async (req: any, res: any) => {
       const user = await User.findOne({ "stripe.customerId": destination });
   
       if (!user) {
-        console.log("User not found for payout with customerId:", destination);
+   
         return;
       }
       await NotificationService.createNotification({
@@ -189,7 +189,7 @@ const deliverProject = catchAsync(async (req: any, res: any) => {
 });
 const revesion = catchAsync(async (req: any, res: any) => {
 
-  console.log(req.user,"check user")
+
   const result = await StripeServices.revision(req.params.id,req.user.id,req.body);
   sendResponse(res, {
     statusCode: 200,
