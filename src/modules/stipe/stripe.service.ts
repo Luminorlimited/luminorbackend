@@ -420,20 +420,19 @@ const revision = async (orderId: string, clientId: string, payload: any) => {
   }
 
   const timeLength = moment().add(payload.duration, "days").toDate();
-
+  const revisionData = {
+    requestedBy: clientId,
+    timeLength: timeLength,
+    description: payload.description,
+    createdAt: new Date(),
+  };
   const updatedOrder = await Order.findByIdAndUpdate(
     orderId,
     {
-      revision: {
-        requestedBy: clientId,
-
-        timeLength: timeLength,
-        description: payload.description,
-        createdAt: new Date(),
-      },
+      $push: { revision: revisionData },
       $inc: { revisionCount: 1 },
     },
-    { new: true } // Return the updated order
+    { new: true }
   );
   const updateTransaction = await Transaction.findOneAndUpdate(
     { orderId: orderId },

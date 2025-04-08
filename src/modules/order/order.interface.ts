@@ -14,6 +14,6 @@ export type IOrder = {
   project: mongoose.Types.ObjectId;
   paymentIntentId: string;
   transaction: mongoose.Types.ObjectId;
-  revision:IRevision,
+  revision:IRevision[],
   revisionCount?:number
 };
