@@ -46,7 +46,10 @@ const orderSchema = new mongoose.Schema<IOrder>(
       type: String,
       required: true,
     },
-    revision: revisionSchema,
+    revision: {
+      type:[revisionSchema],
+      default:[]
+    },
     revisionCount:{
       type:Number,
       default:0
