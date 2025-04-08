@@ -259,7 +259,7 @@ const deliverRequest = async (orderId: string) => {
     sender: order.result.orderReciver._id as mongoose.Types.ObjectId,
     message: ` ${
       retireProfessional.name.firstName + "" + retireProfessional.name.lastName
-    } sent  you a delivery request.`,
+    } sent  you a delivery request. \nView details: https://luminor-ltd.com/project/${orderId}`,
     type: ENUM_NOTIFICATION_TYPE.DELIVERY,
     status: ENUM_NOTIFICATION_STATUS.UNSEEN,
     orderId: order.result._id,
