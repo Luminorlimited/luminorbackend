@@ -436,7 +436,7 @@ const revision = async (orderId: string, clientId: string, payload: any) => {
   );
   const updateTransaction = await Transaction.findOneAndUpdate(
     { orderId: orderId },
-    { $set: { paymentStatus: PAYMENTSTATUS.REVISION } },
+    { $set: { paymentStatus: PAYMENTSTATUS.PENDING } },
     { new: true }
   );
 
