@@ -47,8 +47,10 @@ router.patch(
   AuthController.updateCoverPhoto
 );
 router.get("/get-single-user/:id", AuthController.getSingleUserById);
-router.patch("/delete-user/:id", AuthController.delteUser);
-router.patch("/update-status/:id", AuthController.updateUserStatus);
+router.patch("/delete-user/:id",auth(ENUM_USER_ROLE.ADMIN),
+AuthController.delteUser);
+router.patch("/update-status/:id",auth(ENUM_USER_ROLE.ADMIN),
+AuthController.updateUserStatus);
 router.post("/forget-password", auth(), AuthController.forgotPassword);
 router.patch("/reset-password", auth(), AuthController.resetPassword);
 router.get("/search-service", auth(), AuthController.searchService);
