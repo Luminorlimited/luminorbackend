@@ -5,9 +5,8 @@ import cookieParser from "cookie-parser";
 import { routes } from "./routes";
 import globalErrorHandler from "./middlewares/globalErrorHandler";
 import { StatusCodes } from "http-status-codes";
-import passport from "passport";
-import { socialLoginRoutes } from "./modules/socialLogin/socialLogin.route";
-import session from "express-session";
+
+
 import { StripeController } from "./modules/stipe/stripe.controller";
 
 const app: Application = express();
@@ -37,14 +36,14 @@ app.use(express.json());
 
 app.use(express.urlencoded({ extended: true }));
 
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET || "default_secret_key",
-    resave: false,
-    saveUninitialized: true,
-    cookie: { secure: process.env.NODE_ENV === "production" },
-  })
-);
+// app.use(
+//   session({
+//     secret: process.env.SESSION_SECRET || "default_secret_key",
+//     resave: false,
+//     saveUninitialized: true,
+//     cookie: { secure: process.env.NODE_ENV === "production" },
+//   })
+// );
 
 //handle not found
 app.get("/", (req: Request, res: Response) => {
@@ -61,9 +60,7 @@ app.get("/payment", (req, res) => {
   res.render("stripe"); // Assuming your file is named braintree.ejs
 });
 
-app.use(passport.initialize());
-app.use(passport.session());
-app.use(socialLoginRoutes);
+
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.use("/api/v1", routes);
