@@ -71,7 +71,7 @@ const loginUser = async (payload: ILoginUser) => {
      </div>
  </body>
  </html>`;
-  await emailSender("OTP", userEmail, html);
+  await emailSender("Luminor OTP", userEmail, html);
   const result = await User.updateOne(
     { _id: userId },
     {
@@ -320,7 +320,7 @@ const forgotPassword = async (userId: string) => {
   </html>`;
 
   // Send the OTP email
-  await emailSender("OTP", userData.email, html);
+  await emailSender("Luminor OTP", userData.email, html);
   const result = await User.updateOne(
     { _id: userId },
     {
@@ -391,7 +391,7 @@ const updateUserStatus = async (id: string, status: string) => {
       }
     );
 
-    subject = "Account Activated";
+    subject = "Luminor Account Activated";
     html = `<!DOCTYPE html>
 <html lang="en">
 <head>
