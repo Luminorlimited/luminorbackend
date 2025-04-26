@@ -8,6 +8,7 @@ import { IClient } from "./client.interface";
 import { ClientService } from "./client.service";
 import { StatusCodes } from "http-status-codes";
 import { uploadFileToSpace } from "../../utilitis/uploadTos3";
+import { IS_ACTIVATE } from "../../enums/user";
 const createClient = catchAsync(async (req: Request, res: Response) => {
   const data = req.body;
   const { name, email, role, password, ...others } = data;
@@ -18,7 +19,7 @@ const createClient = catchAsync(async (req: Request, res: Response) => {
       role,
       stripe: { onboardingUrl: "", customerId: "", isOnboardingSucess: false },
       password,
-      isActivated:true
+      isActivated:IS_ACTIVATE.ACTIVE
     },
     others
   );

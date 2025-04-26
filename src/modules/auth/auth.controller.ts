@@ -156,7 +156,7 @@ const updateUserStatus = catchAsync(async (req: Request, res: Response) => {
   const id = req.params.id;
   const { status } = req.body;
 
-  const result = await AuthService.updateUserStatus(id, JSON.parse(status));
+  const result = await AuthService.updateUserStatus(id, (status));
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,

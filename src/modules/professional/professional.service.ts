@@ -33,24 +33,24 @@ const createProfessional = async (
   try {
     session.startTransaction();
 
-    // Create a Stripe account
-    const account = await stripe.accounts.create({
-      type: "express",
-      country: "US",
-      email: user.email,
-    });
+    // // Create a Stripe account
+    // const account = await stripe.accounts.create({
+    //   type: "express",
+    //   country: "US",
+    //   email: user.email,
+    // });
 
-    const accountLink = await stripe.accountLinks.create({
-      account: account.id,
-      refresh_url: "https://your-platform.com/reauth",
-      return_url: "https://www.luminor-ltd.com",
-      type: "account_onboarding",
-    });
+    // const accountLink = await stripe.accountLinks.create({
+    //   account: account.id,
+    //   refresh_url: "https://your-platform.com/reauth",
+    //   return_url: "https://www.luminor-ltd.com",
+    //   type: "account_onboarding",
+    // });
 
-    if (user.stripe) {
-      user.stripe.onboardingUrl = accountLink.url;
-      user.stripe.customerId = account.id;
-    }
+    // if (user.stripe) {
+    //   user.stripe.onboardingUrl = accountLink.url;
+    //   user.stripe.customerId = account.id;
+    // }
 
     // Create User
     const newUser = await User.create([user], { session });
@@ -76,31 +76,38 @@ const createProfessional = async (
     session.endSession();
 
     // Send onboarding email **only after a successful transaction**
-    const html = `
-      <div style="max-width: 600px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif; color: #333; border: 1px solid #ddd; border-radius: 10px;">
-        <h2 style="color: #007bff; text-align: center;">Complete Your Onboarding</h2>
-        <p>Dear <b>${user.name.firstName}</b>,</p>
-        <p>We’re excited to have you onboard! To get started, please complete your onboarding process by clicking the link below:</p>
-        <div style="text-align: center; margin: 20px 0;">
-          <a href=${accountLink.url} style="background-color: #007bff; color: #fff; padding: 12px 20px; border-radius: 5px; text-decoration: none; font-weight: bold;">
-            Complete Onboarding
-          </a>
+    const html = `<!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Profile Under Review</title>
+    </head>
+    <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f6f9fc; margin: 0; padding: 0; line-height: 1.6;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
+            <div style="background-color: #FF7600; background-image: linear-gradient(135deg, #FF7600, #45a049); padding: 30px 20px; text-align: center;">
+                <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 600; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);">Profile Under Review</h1>
+            </div>
+            <div style="padding: 20px 20px; text-align: left;">
+                <p style="font-size: 18px; color: #333333; margin-bottom: 10px;">Dear <b>${user.name.firstName}</b>,</p>
+                <p style="font-size: 16px; color: #333333; margin-bottom: 16px;">Thank you for registering as a retired professional on <strong>Luminor</strong>.</p>
+                <p style="font-size: 16px; color: #333333; margin-bottom: 16px;">We have successfully received your information. Our team is currently reviewing your profile to ensure everything meets our onboarding criteria.</p>
+                <p style="font-size: 16px; color: #333333; margin-bottom: 16px;">You will receive an update via email once the verification process is complete. If we require any additional information, we will contact you using this email address.</p>
+                <p style="font-size: 16px; color: #333333; margin-bottom: 24px;">Thank you for your patience and welcome aboard!</p>
+                <p style="font-size: 16px; color: #333333;"><strong>The Luminor Support Team</strong></p>
+    
+                <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e0e0e0; text-align: center;">
+                    <p style="font-size: 14px; color: #888888; margin-bottom: 4px;">If you didn’t create this account or believe this was a mistake, please contact our support team immediately.</p>
+                </div>
+            </div>
+            <div style="background-color: #f9f9f9; padding: 10px; text-align: center; font-size: 12px; color: #999999;">
+                <p style="margin: 0;">© 2025 Luminor. All rights reserved.</p>
+            </div>
         </div>
-        <p>If the button above doesn’t work, you can also copy and paste this link into your browser:</p>
-        <p style="word-break: break-all; background-color: #f4f4f4; padding: 10px; border-radius: 5px;">
-          ${accountLink.url}
-        </p>
-        <p><b>Note:</b> This link is valid for a limited time. Please complete your onboarding as soon as possible.</p>
-        <p>Thank you,</p>
-        <p><b>The Support Team</b></p>
-        <hr style="border: 0; height: 1px; background: #ddd; margin: 20px 0;">
-        <p style="font-size: 12px; color: #777; text-align: center;">
-          If you didn’t request this, please ignore this email or contact support.
-        </p>
-      </div>
-    `;
-
-    await emailSender("Your Onboarding Url", user.email, html);
+    </body>
+    </html>`;
+  await emailSender("Profile Under Review  Luminor", user.email, html);
+  
 
     // Generate access token
     const accessToken = jwtHelpers.createToken(
@@ -117,7 +124,7 @@ const createProfessional = async (
       accessToken,
       user: newUser,
       retireProfessinal: newProfessionalData,
-      stripe: accountLink,
+      
     };
   } catch (error: any) {
     await session.abortTransaction();

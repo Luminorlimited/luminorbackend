@@ -1,6 +1,6 @@
 import mongoose, { model } from "mongoose";
 import { IUser, IUserExistReturn, UserModel } from "./auth.interface";
-import { ENUM_USER_ROLE } from "../../enums/user";
+import { ENUM_USER_ROLE, IS_ACTIVATE } from "../../enums/user";
 import config from "../../config";
 import bcrypt from "bcrypt";
 
@@ -54,10 +54,10 @@ const userSchema = new mongoose.Schema<IUser>(
       type: Boolean,
       default: true, // Initially true for all new users
     },
-    isActivated:{
-    type:Boolean,
-    default:true
-    }
+    isActivated: {
+      type: String,
+      enum: IS_ACTIVATE,
+    },
   },
   { timestamps: true, versionKey: false }
 );

@@ -1,5 +1,5 @@
 import mongoose, { Model } from "mongoose";
-import { ENUM_USER_ROLE } from "../../enums/user";
+import { ENUM_USER_ROLE, IS_ACTIVATE } from "../../enums/user";
 
 export type IUser = {
   password: string;
@@ -24,10 +24,17 @@ export type IUser = {
   client?: mongoose.Schema.Types.ObjectId;
   profileUrl?: string;
   isDeleted?: boolean;
-  isActivated:boolean;
+  isActivated:IS_ACTIVATE;
   isFirstLogin?:boolean
  
 };
+
+
+enum isActivated {
+  PENDING,
+  ACTIVE,
+  INACTIVE
+}
 
 export type IUserExistReturn = {
   _id: mongoose.Types.ObjectId;
