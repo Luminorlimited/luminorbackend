@@ -299,7 +299,7 @@ const forgotPassword = async (userId: string) => {
   </head>
   <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f6f9fc; margin: 0; padding: 0; line-height: 1.6;">
       <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
-          <div style="background-color: #FF7600; background-image: linear-gradient(135deg, #FF7600, #45a049); padding: 30px 20px; text-align: center;">
+          <div style="background-color: #5633d1;  padding: 30px 20px; text-align: center;">
               <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 600; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);">OTP Verification</h1>
           </div>
           <div style="padding: 20px 12px; text-align: center;">
@@ -340,6 +340,7 @@ const forgotPassword = async (userId: string) => {
 };
 const updateUserStatus = async (id: string, status: string) => {
   const result = await User.findOne({ _id: id });
+  
 
   console.log(result, "check result");
 
@@ -400,7 +401,7 @@ const updateUserStatus = async (id: string, status: string) => {
 </head>
 <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f6f9fc; margin: 0; padding: 0; line-height: 1.6;">
     <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
-        <div style="background-color: #FF7600; background-image: linear-gradient(135deg, #FF7600, #45a049); padding: 30px 20px; text-align: center;">
+        <div style="background-color: #5633d1; padding: 30px 20px; text-align: center;">
             <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 600;">Account Activated</h1>
         </div>
         <div style="padding: 20px 20px; text-align: left;">
@@ -408,7 +409,7 @@ const updateUserStatus = async (id: string, status: string) => {
             <p style="font-size: 16px; color: #333333;">You have successfully been onboarded to <strong>Luminor</strong>.</p>
             <p style="font-size: 16px; color: #333333;">Please also fill out the following form to onboard to your Stripe account for future payments:</p>
             <div style="text-align: center; margin: 20px 0;">
-                <a href="${onboardingUrl}" style="background-color: #45a049; color: #fff; padding: 12px 20px; border-radius: 6px; text-decoration: none; font-weight: bold;">Complete Stripe Onboarding</a>
+                <a href="${onboardingUrl}" style="background-color: #5633d1; color: #fff; padding: 12px 20px; border-radius: 6px; text-decoration: none; font-weight: bold;">Complete Stripe Onboarding</a>
             </div>
 
             <p style="font-size: 14px; color: #d9534f; text-align: center; margin-top: -10px;">
@@ -442,14 +443,14 @@ const updateUserStatus = async (id: string, status: string) => {
 </head>
 <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f6f9fc; margin: 0; padding: 0; line-height: 1.6;">
     <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
-        <div style="background-color: #FF7600; background-image: linear-gradient(135deg, #FF7600, #45a049); padding: 30px 20px; text-align: center;">
+        <div style="background-color: #5633d1; padding: 30px 20px; text-align: center;">
             <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 600;">Application Declined</h1>
         </div>
         <div style="padding: 20px 20px; text-align: left;">
             <p style="font-size: 18px; color: #333333;">Dear <b>${userName}</b>,</p>
             <p style="font-size: 16px; color: #333333;">Unfortunately, your application for <strong>Luminor</strong> has been declined.</p>
             <p style="font-size: 16px; color: #333333;">If you have any questions, please contact us at:</p>
-            <p style="font-size: 16px; font-weight: bold; color: #FF7600;">📧 luminorlimited@gmail.com</p>
+            <p style="font-size: 16px; font-weight: bold; color: #5633d1;">📧 luminorlimited@gmail.com</p>
             <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e0e0e0; text-align: center;">
                 <p style="font-size: 14px; color: #888888;">Thank you for considering Luminor.</p>
             </div>

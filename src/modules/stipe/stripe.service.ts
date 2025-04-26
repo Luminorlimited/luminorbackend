@@ -458,7 +458,7 @@ const generateNewAccountLink = async (user: IUser) => {
 <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f6f9fc; margin: 0; padding: 0; line-height: 1.6;">
   <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
     
-    <div style="background-color: #FF7600; background-image: linear-gradient(135deg, #FF7600, #45a049); padding: 30px 20px; text-align: center;">
+    <div style="background-color: #5633d1;  padding: 30px 20px; text-align: center;">
       <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 600;">Complete Your Onboarding</h1>
     </div>
 
@@ -467,7 +467,7 @@ const generateNewAccountLink = async (user: IUser) => {
       <p style="font-size: 16px; color: #333333;">We’re excited to have you onboard! To complete your onboarding, please click the button below:</p>
 
       <div style="text-align: center; margin: 20px 0;">
-        <a href="${accountLink.url}" style="background-color: #45a049; color: #ffffff; padding: 12px 20px; border-radius: 6px; text-decoration: none; font-weight: bold;">Complete Stripe Onboarding</a>
+        <a href="${accountLink.url}" style="background-color: #5633d1; color: #ffffff; padding: 12px 20px; border-radius: 6px; text-decoration: none; font-weight: bold;">Complete Stripe Onboarding</a>
       </div>
 
       <p style="font-size: 16px; color: #333333;">If the button above doesn't work, you can also copy and paste this link into your browser:</p>
@@ -480,9 +480,9 @@ const generateNewAccountLink = async (user: IUser) => {
         Note: This Stripe onboarding link will expire within a few minutes.<br/>
     If the link is not working, please generate a new onboarding link by clicking the button below.
       </p>
-     <div style="text-align: center; margin: 20px 10px;">
+      <div style="text-align: center; margin: 20px 10px;">
                 <a href="https://www.luminor-ltd.com/user/auth/generate-stripe-link" style="background-color: #6c757d; color: #fff; padding: 10px 16px; border-radius: 6px; text-decoration: none; font-size: 14px;">Generate New Onboarding Link</a>
-      </div>
+            </div>
 
       <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e0e0e0; text-align: center;">
         <p style="font-size: 14px; color: #888888;">Thank you for choosing Luminor!</p>

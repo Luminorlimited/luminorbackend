@@ -85,14 +85,15 @@ const createProfessional = async (
     </head>
     <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f6f9fc; margin: 0; padding: 0; line-height: 1.6;">
         <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
-            <div style="background-color: #FF7600; background-image: linear-gradient(135deg, #FF7600, #45a049); padding: 30px 20px; text-align: center;">
+            <div style="background-color: #5633d1; padding: 30px 20px; text-align: center;">
                 <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 600; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);">Profile Under Review</h1>
             </div>
             <div style="padding: 20px 20px; text-align: left;">
                 <p style="font-size: 18px; color: #333333; margin-bottom: 10px;">Dear <b>${user.name.firstName}</b>,</p>
                 <p style="font-size: 16px; color: #333333; margin-bottom: 16px;">Thank you for registering as a retired professional on <strong>Luminor</strong>.</p>
                 <p style="font-size: 16px; color: #333333; margin-bottom: 16px;">We have successfully received your information. Our team is currently reviewing your profile to ensure everything meets our onboarding criteria.</p>
-                <p style="font-size: 16px; color: #333333; margin-bottom: 16px;">You will receive an update via email once the verification process is complete. If we require any additional information, we will contact you using this email address.</p>
+                <p style="font-size: 16px; color: #333333; margin-bottom: 16px;">You will receive an update via email once the verification process is complete. If we require any additional information, please contact using this email address.</p>
+                 <p style="font-size: 16px; font-weight: bold; color: #5633d1;">📧 luminorlimited@gmail.com</p>
                 <p style="font-size: 16px; color: #333333; margin-bottom: 24px;">Thank you for your patience and welcome aboard!</p>
                 <p style="font-size: 16px; color: #333333;"><strong>The Luminor Support Team</strong></p>
     
