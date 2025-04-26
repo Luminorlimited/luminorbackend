@@ -498,7 +498,7 @@ const generateNewAccountLink = async (user: IUser) => {
 </body>
 </html>`;
 
-  await emailSender("Complete Your Stripe Onboarding", user.email, html);
+  await emailSender("Luminor  Onboarding Url", user.email, html);
 };
 
 const isDuplicateStripecard = async (
