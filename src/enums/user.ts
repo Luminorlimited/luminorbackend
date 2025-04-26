@@ -4,3 +4,9 @@ export enum ENUM_USER_ROLE {
   CLIENT = "client",
   ADMIN="admin"
 }
+
+export enum IS_ACTIVATE{
+  PENDING="pending",
+  ACTIVE="active",
+  INACTIVE="inactive"
+}

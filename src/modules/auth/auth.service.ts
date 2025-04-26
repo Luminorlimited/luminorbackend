@@ -4,15 +4,18 @@ import ApiError from "../../errors/handleApiError";
 import { ILoginUser } from "./auth.interface";
 import { User } from "./auth.model";
 import { StatusCodes } from "http-status-codes";
-
+import Stripe from "stripe";
 import emailSender from "../../utilitis/emailSender";
 import { jwtHelpers } from "../../helpers/jwtHelpers";
-import { ENUM_USER_ROLE } from "../../enums/user";
+import { ENUM_USER_ROLE, IS_ACTIVATE } from "../../enums/user";
 import { RetireProfessional } from "../professional/professional.model";
 import { Client } from "../client/client.model";
 import bcrypt from "bcrypt";
 import { IClient } from "../client/client.interface";
 import { IProfessional } from "../professional/professional.interface";
+const stripe = new Stripe(config.stripe.secretKey as string, {
+  apiVersion: "2025-01-27.acacia",
+});
 const loginUser = async (payload: ILoginUser) => {
   const { email, password } = payload;
   const isUserExist = await User.isUserExist(email);
@@ -274,7 +277,6 @@ const updateAdminProfilePic = async (id: string, profileImage: string) => {
   }
 };
 
-
 const forgotPassword = async (userId: string) => {
   const userData = await User.findById(userId);
 
@@ -336,83 +338,140 @@ const forgotPassword = async (userId: string) => {
   }
   return randomOtp;
 };
-const updateUserStatus = async (id: string, status: boolean) => {
-  const result = await User.findOneAndUpdate(
-    { _id: id },
-    { isActivated: status },
-    { new: true }
-  );
+const updateUserStatus = async (id: string, status: string) => {
+  const result = await User.findOne({ _id: id });
+
+  console.log(result, "check result");
 
   if (!result?.email) {
     throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, "Email not found");
   }
 
-  let subject: string;
-  let html: string;
+  const userName = result.name?.firstName || "User";
+  let subject = "Account Update";
+  let html = `
+    <p>Hi ${userName},</p>
+    <p>Your account status has been updated. Please contact support for more information.</p>
+  `;
 
-  if (status) {
-    // Activated Account Email
+  if (status === IS_ACTIVATE.ACTIVE) {
+    let accountId = result.stripe?.customerId;
+    let onboardingUrl = result.stripe?.onboardingUrl;
+    let isOnboardingCompleted = result.stripe?.isOnboardingSucess;
+
+    if (!accountId) {
+      const account = await stripe.accounts.create({
+        type: "express",
+        country: "US",
+        email: result.email,
+      });
+      accountId = account.id;
+    }
+
+    if (!isOnboardingCompleted) {
+      const accountLink = await stripe.accountLinks.create({
+        account: accountId,
+        refresh_url: "https://your-platform.com/reauth",
+        return_url: "https://www.luminor-ltd.com",
+        type: "account_onboarding",
+      });
+      onboardingUrl = accountLink.url;
+    }
+
+    await User.findOneAndUpdate(
+      { _id: result._id },
+      {
+        $set: {
+          "stripe.customerId": accountId,
+          "stripe.onboardingUrl": onboardingUrl,
+          "stripe.isOnboardingSucess": isOnboardingCompleted ?? false,
+          isActivated: IS_ACTIVATE.ACTIVE,
+        },
+      }
+    );
+
     subject = "Account Activated";
     html = `<!DOCTYPE html>
-  <html lang="en">
-  <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Account Updated</title>
-  </head>
-  <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f6f9fc; margin: 0; padding: 0; line-height: 1.6;">
-      <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
-          <div style="background-color: #FF7600; background-image: linear-gradient(135deg, #FF7600, #45a049); padding: 30px 20px; text-align: center;">
-              <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 600; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);">Account Updated</h1>
-          </div>
-          <div style="padding: 20px 12px; text-align: center;">
-              <p style="font-size: 18px; color: #333333; margin-bottom: 10px;">Hello,</p>
-              <p style="font-size: 18px; color: #333333; margin-bottom: 20px;">Your account has been successfully updated.</p>
-              <p style="font-size: 18px; color: #333333; margin-bottom: 20px;">You can log in using the link below:</p>
-              <p style="font-size: 18px; font-weight: bold; color: #FF7600; margin: 20px 0;">
-                  <a href="https://www.luminor-ltd.com/user/auth/login" style="text-decoration: none; padding: 12px 20px; background-color: #FF7600; color: #ffffff; border-radius: 6px; display: inline-block; font-weight: bold;">Login to Your Account</a>
-              </p>
-              <p style="font-size: 16px; color: #555555; margin-bottom: 20px; max-width: 400px; margin-left: auto; margin-right: auto;">
-                  If you didn't make this change, please contact support immediately.
-              </p>
-              <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
-                  <p style="font-size: 14px; color: #888888; margin-bottom: 4px;">Thank you for choosing our service!</p>
-                  <p style="font-size: 14px; color: #888888; margin-bottom: 0;">If you didn't request this update, please ignore this email.</p>
-              </div>
-          </div>
-          <div style="background-color: #f9f9f9; padding: 10px; text-align: center; font-size: 12px; color: #999999;">
-              <p style="margin: 0;">© 2023 Your Company Name. All rights reserved.</p>
-          </div>
-      </div>
-  </body>
-  </html>`;
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Account Activated</title>
+</head>
+<body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f6f9fc; margin: 0; padding: 0; line-height: 1.6;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
+        <div style="background-color: #FF7600; background-image: linear-gradient(135deg, #FF7600, #45a049); padding: 30px 20px; text-align: center;">
+            <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 600;">Account Activated</h1>
+        </div>
+        <div style="padding: 20px 20px; text-align: left;">
+            <p style="font-size: 18px; color: #333333;">Dear <b>${userName}</b>,</p>
+            <p style="font-size: 16px; color: #333333;">You have successfully been onboarded to <strong>Luminor</strong>.</p>
+            <p style="font-size: 16px; color: #333333;">Please also fill out the following form to onboard to your Stripe account for future payments:</p>
+            <div style="text-align: center; margin: 20px 0;">
+                <a href="${onboardingUrl}" style="background-color: #45a049; color: #fff; padding: 12px 20px; border-radius: 6px; text-decoration: none; font-weight: bold;">Complete Stripe Onboarding</a>
+            </div>
 
-  } else {
-    // Rejected Account Email
-    subject = "Application Declined";
+            <p style="font-size: 14px; color: #d9534f; text-align: center; margin-top: -10px;">
+              Note: This Stripe onboarding link will expire within a few minutes.<br/>
+    If the link is not working, please generate a new onboarding link by clicking the button below.
+           </p>
+            </p>
+
+            <div style="text-align: center; margin: 20px 10px;">
+                <a href="https://www.luminor-ltd.com/user/auth/generate-stripe-link" style="background-color: #6c757d; color: #fff; padding: 10px 16px; border-radius: 6px; text-decoration: none; font-size: 14px;">Generate New Onboarding Link</a>
+            </div>
+
+            <p style="font-size: 16px; color: #333333;">We look forward to having you on our platform.</p>
+
+           
+        </div>
+        <div style="background-color: #f9f9f9; padding: 10px; text-align: center; font-size: 12px; color: #999999;">
+            <p style="margin: 0;">© 2025 Luminor. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>`;
+  } else if (status === IS_ACTIVATE.INACTIVE) {
+    subject = "Luminor Application Declined";
     html = `<!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta charset="UTF-8">
-      <title>Application Declined</title>
-    </head>
-    <body style="font-family: Arial, sans-serif; background-color: #f6f9fc; padding: 20px;">
-      <div style="max-width: 600px; background-color: white; margin: auto; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
-        <h2 style="color: #D32F2F;">❌ Application Declined</h2>
-        <p>Unfortunately, your application has been declined.</p>
-        <p>If you have any questions or believe this was a mistake, please contact us at:</p>
-        <p><strong>📧 luminorlimited@gmail.com</strong></p>
-        <hr>
-        <p style="font-size: 12px; color: #888;">© 2023 Luminor Ltd. All rights reserved.</p>
-      </div>
-    </body>
-    </html>`;
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Application Declined</title>
+</head>
+<body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f6f9fc; margin: 0; padding: 0; line-height: 1.6;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
+        <div style="background-color: #FF7600; background-image: linear-gradient(135deg, #FF7600, #45a049); padding: 30px 20px; text-align: center;">
+            <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 600;">Application Declined</h1>
+        </div>
+        <div style="padding: 20px 20px; text-align: left;">
+            <p style="font-size: 18px; color: #333333;">Dear <b>${userName}</b>,</p>
+            <p style="font-size: 16px; color: #333333;">Unfortunately, your application for <strong>Luminor</strong> has been declined.</p>
+            <p style="font-size: 16px; color: #333333;">If you have any questions, please contact us at:</p>
+            <p style="font-size: 16px; font-weight: bold; color: #FF7600;">📧 luminorlimited@gmail.com</p>
+            <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e0e0e0; text-align: center;">
+                <p style="font-size: 14px; color: #888888;">Thank you for considering Luminor.</p>
+            </div>
+        </div>
+        <div style="background-color: #f9f9f9; padding: 10px; text-align: center; font-size: 12px; color: #999999;">
+            <p style="margin: 0;">© 2025 Luminor. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>`;
+
+    await User.findOneAndUpdate(
+      { _id: result._id },
+      { $set: { isActivated: IS_ACTIVATE.INACTIVE } }
+    );
   }
 
+  // ✅ Send Email
   await emailSender(subject, result.email, html);
+
   return result;
 };
-
 const resetPassword = async (userId: string, payload: any) => {
   const hashedPassword = await bcrypt.hash(payload.password, 12);
 
@@ -446,6 +505,7 @@ const searchService = async (
 
   return result;
 };
+
 
 export const AuthService = {
   loginUser,

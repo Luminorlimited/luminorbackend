@@ -39,7 +39,7 @@ async function bootstrap() {
     console.log("Connected to MongoDB successfully.");
 
     httpServer.listen(config.port, () => {
-      console.log(`Server running at port ${config.port}`);
+      (`Server running at port ${config.port}`);
     });
   } catch (error) {
     console.error("Failed to connect to MongoDB:", error);

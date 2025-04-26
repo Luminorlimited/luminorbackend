@@ -75,7 +75,7 @@ const refundPaymentToCustomer = async (orderId: string) => {
       message: `Your order has been cancelled. Please speak to the client.`,
       type: ENUM_NOTIFICATION_TYPE.OFFER,
       status: ENUM_NOTIFICATION_STATUS.UNSEEN,
-      orderId:order._id
+      orderId: order._id,
     };
 
     const notification = await NotificationService.createNotification(
@@ -251,7 +251,7 @@ const deliverRequest = async (orderId: string) => {
   }
   const senderId = order.result.orderFrom;
   const recipientId = order.result.orderReciver;
- 
+
   const toSocketId = users[order.result?.orderFrom._id.toString()];
 
   const notificationData: INotification = {
@@ -448,37 +448,57 @@ const generateNewAccountLink = async (user: IUser) => {
     type: "account_onboarding",
   });
 
-  const html = `
-  <div style="max-width: 600px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif; color: #333; border: 1px solid #ddd; border-radius: 10px;">
-    <h2 style="color: #007bff; text-align: center;">Complete Your Onboarding</h2>
-  
-    <p>Dear <b>${user.name.firstName}</b>,</p>
-  
-    <p>We’re excited to have you onboard! To get started, please complete your onboarding process by clicking the link below:</p>
-  
-    <div style="text-align: center; margin: 20px 0;">
-      <a href=${accountLink.url} style="background-color: #007bff; color: #fff; padding: 12px 20px; border-radius: 5px; text-decoration: none; font-weight: bold;">
-        Complete Onboarding
-      </a>
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Complete Your Onboarding</title>
+</head>
+<body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f6f9fc; margin: 0; padding: 0; line-height: 1.6;">
+  <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
+    
+    <div style="background-color: #FF7600; background-image: linear-gradient(135deg, #FF7600, #45a049); padding: 30px 20px; text-align: center;">
+      <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 600;">Complete Your Onboarding</h1>
     </div>
-  
-    <p>If the button above doesn’t work, you can also copy and paste this link into your browser:</p>
-    <p style="word-break: break-all; background-color: #f4f4f4; padding: 10px; border-radius: 5px;">
-      ${accountLink.url}
-    </p>
-  
-    <p><b>Note:</b> This link is valid for a limited time. Please complete your onboarding as soon as possible.</p>
-  
-    <p>Thank you,</p>
-    <p><b>The Support Team</b></p>
-  
-    <hr style="border: 0; height: 1px; background: #ddd; margin: 20px 0;">
-    <p style="font-size: 12px; color: #777; text-align: center;">
-      If you didn’t request this, please ignore this email or contact support.
-    </p>
+
+    <div style="padding: 20px 20px; text-align: left;">
+      <p style="font-size: 18px; color: #333333;">Dear <b>${user.name.firstName}</b>,</p>
+      <p style="font-size: 16px; color: #333333;">We’re excited to have you onboard! To complete your onboarding, please click the button below:</p>
+
+      <div style="text-align: center; margin: 20px 0;">
+        <a href="${accountLink.url}" style="background-color: #45a049; color: #ffffff; padding: 12px 20px; border-radius: 6px; text-decoration: none; font-weight: bold;">Complete Stripe Onboarding</a>
+      </div>
+
+      <p style="font-size: 16px; color: #333333;">If the button above doesn't work, you can also copy and paste this link into your browser:</p>
+
+      <p style="word-break: break-all; background-color: #f0f8f0; padding: 10px; border-radius: 5px; color: #555555;">
+        ${accountLink.url}
+      </p>
+
+      <p style="font-size: 14px; color: #d9534f; text-align: center;">
+        Note: This Stripe onboarding link will expire within a few minutes.<br/>
+    If the link is not working, please generate a new onboarding link by clicking the button below.
+      </p>
+     <div style="text-align: center; margin: 20px 10px;">
+                <a href="https://www.luminor-ltd.com/user/auth/generate-stripe-link" style="background-color: #6c757d; color: #fff; padding: 10px 16px; border-radius: 6px; text-decoration: none; font-size: 14px;">Generate New Onboarding Link</a>
+      </div>
+
+      <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e0e0e0; text-align: center;">
+        <p style="font-size: 14px; color: #888888;">Thank you for choosing Luminor!</p>
+        <p style="font-size: 12px; color: #999999;">If you didn’t request this onboarding, you can ignore this email safely.</p>
+      </div>
+    </div>
+
+    <div style="background-color: #f9f9f9; padding: 10px; text-align: center; font-size: 12px; color: #999999;">
+      <p style="margin: 0;">© 2025 Luminor. All rights reserved.</p>
+    </div>
+
   </div>
-  `;
-  await emailSender("Your Onboarding Url", user.email, html);
+</body>
+</html>`;
+
+  await emailSender("Complete Your Stripe Onboarding", user.email, html);
 };
 
 const isDuplicateStripecard = async (
