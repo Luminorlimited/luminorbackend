@@ -339,6 +339,7 @@ const forgotPassword = async (userId: string) => {
   return randomOtp;
 };
 const updateUserStatus = async (id: string, status: string) => {
+
   const result = await User.findOne({ _id: id });
    let updatedUser;
 
@@ -359,7 +360,7 @@ const updateUserStatus = async (id: string, status: string) => {
 
   if (status === IS_ACTIVATE.ACTIVE) {
     let accountId = result.stripe?.customerId;
-    console.log(accountId,"check accountid")
+ 
     let onboardingUrl = result.stripe?.onboardingUrl;
     let isOnboardingCompleted = result.stripe?.isOnboardingSucess;
     console.log(isOnboardingCompleted,"check is onbaording complete")
@@ -427,7 +428,7 @@ const updateUserStatus = async (id: string, status: string) => {
             </p>
 
             <div style="text-align: center; margin: 20px 10px;">
-                <a href="https://www.luminor-ltd.com/user/auth/generate-stripe-link" style="background-color: #6c757d; color: #fff; padding: 10px 16px; border-radius: 6px; text-decoration: none; font-size: 14px;">Generate New Onboarding Link</a>
+                <a href=https://www.luminor-ltd.com/user/editProfile/retireProfessional/${id}" style="background-color: #6c757d; color: #fff; padding: 10px 16px; border-radius: 6px; text-decoration: none; font-size: 14px;">Generate New Onboarding Link</a>
             </div>
 
             <p style="font-size: 16px; color: #333333;">We look forward to having you on our platform.</p>
