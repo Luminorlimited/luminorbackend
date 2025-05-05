@@ -7,7 +7,7 @@ import { StatusCodes } from "http-status-codes";
 import Stripe from "stripe";
 import emailSender from "../../utilitis/emailSender";
 import { jwtHelpers } from "../../helpers/jwtHelpers";
-import { ENUM_USER_ROLE, IS_ACTIVATE } from "../../enums/user";
+import { activeEnumValue, ENUM_USER_ROLE, IS_ACTIVATE } from "../../enums/user";
 import { RetireProfessional } from "../professional/professional.model";
 import { Client } from "../client/client.model";
 import bcrypt from "bcrypt";
@@ -342,7 +342,9 @@ const updateUserStatus = async (id: string, status: string) => {
   const result = await User.findOne({ _id: id });
    let updatedUser;
 
-  console.log(result, "check result");
+   if (!activeEnumValue.includes(status as string)) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid status provided.");
+   }  
 
   if (!result?.email) {
     throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, "Email not found");

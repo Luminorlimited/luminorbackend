@@ -10,3 +10,5 @@ export enum IS_ACTIVATE{
   ACTIVE="active",
   INACTIVE="inactive"
 }
+
+export const activeEnumValue=["pending","active","inactive"]
