@@ -440,10 +440,10 @@ const revision = async (orderId: string, clientId: string, payload: any) => {
 
   return { updatedOrder, updateTransaction };
 };
-const generateNewAccountLink = async (user: IUser) => {
+const generateNewAccountLink = async (user:any) => {
   const accountLink = await stripe.accountLinks.create({
     account: user.stripe?.customerId as string,
-    refresh_url: "https://your-platform.com/reauth",
+    refresh_url: `https://www.luminor-ltd.com/user/editProfile/retireProfessional/${user._id}`,
     return_url: "https://www.luminor-ltd.com",
     type: "account_onboarding",
   });
