@@ -340,7 +340,7 @@ const forgotPassword = async (userId: string) => {
 };
 const updateUserStatus = async (id: string, status: string) => {
   const result = await User.findOne({ _id: id });
-  
+   let updatedUser;
 
   console.log(result, "check result");
 
@@ -380,7 +380,7 @@ const updateUserStatus = async (id: string, status: string) => {
       onboardingUrl = accountLink.url;
     }
 
-    await User.findOneAndUpdate(
+    updatedUser=  await User.findOneAndUpdate(
       { _id: result._id },
       {
         $set: {
@@ -392,6 +392,7 @@ const updateUserStatus = async (id: string, status: string) => {
 
         
       },
+      
       
      {new:true}
     );
@@ -467,7 +468,7 @@ const updateUserStatus = async (id: string, status: string) => {
 </body>
 </html>`;
 
-    await User.findOneAndUpdate(
+    updatedUser= await User.findOneAndUpdate(
       { _id: result._id },
       { $set: { isActivated: IS_ACTIVATE.INACTIVE } },
       {new:true}
@@ -477,7 +478,7 @@ const updateUserStatus = async (id: string, status: string) => {
   // ✅ Send Email
   await emailSender(subject, result.email, html);
 
-  return result;
+  return updatedUser;
 };
 const resetPassword = async (userId: string, payload: any) => {
   const hashedPassword = await bcrypt.hash(payload.password, 12);
