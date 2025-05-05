@@ -357,9 +357,10 @@ const updateUserStatus = async (id: string, status: string) => {
 
   if (status === IS_ACTIVATE.ACTIVE) {
     let accountId = result.stripe?.customerId;
+    console.log(accountId,"check accountid")
     let onboardingUrl = result.stripe?.onboardingUrl;
     let isOnboardingCompleted = result.stripe?.isOnboardingSucess;
-
+    console.log(isOnboardingCompleted,"check is onbaording complete")
     if (!accountId) {
       const account = await stripe.accounts.create({
         type: "express",
@@ -384,11 +385,15 @@ const updateUserStatus = async (id: string, status: string) => {
       {
         $set: {
           "stripe.customerId": accountId,
-          "stripe.onboardingUrl": onboardingUrl,
+          "stripe.onboardingUrl": onboardingUrl || "",
           "stripe.isOnboardingSucess": isOnboardingCompleted ?? false,
           isActivated: IS_ACTIVATE.ACTIVE,
         },
-      }
+
+        
+      },
+      
+     {new:true}
     );
 
     subject = "Luminor Account Activated";
@@ -464,7 +469,8 @@ const updateUserStatus = async (id: string, status: string) => {
 
     await User.findOneAndUpdate(
       { _id: result._id },
-      { $set: { isActivated: IS_ACTIVATE.INACTIVE } }
+      { $set: { isActivated: IS_ACTIVATE.INACTIVE } },
+      {new:true}
     );
   }
 
