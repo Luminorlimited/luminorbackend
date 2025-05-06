@@ -481,7 +481,7 @@ const generateNewAccountLink = async (user:any) => {
     If the link is not working, please generate a new onboarding link by clicking the button below.
       </p>
       <div style="text-align: center; margin: 20px 10px;">
-                <a href="https://www.luminor-ltd.com/user/auth/generate-stripe-link" style="background-color: #6c757d; color: #fff; padding: 10px 16px; border-radius: 6px; text-decoration: none; font-size: 14px;">Generate New Onboarding Link</a>
+                <a href="https://www.luminor-ltd.com/user/editProfile/retireProfessional/${user._id}" style="background-color: #6c757d; color: #fff; padding: 10px 16px; border-radius: 6px; text-decoration: none; font-size: 14px;">Generate New Onboarding Link</a>
             </div>
 
       <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e0e0e0; text-align: center;">
