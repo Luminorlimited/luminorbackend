@@ -10,7 +10,6 @@ import { IGenericResponse } from "../../interfaces/general";
 import { paginationHelpers } from "../../helpers/paginationHelper";
 import { searchableField } from "../../constants/searchableField";
 
-;
 import { jwtHelpers } from "../../helpers/jwtHelpers";
 import { Secret } from "jsonwebtoken";
 import config from "../../config";
@@ -18,8 +17,6 @@ import { IFilters } from "../../interfaces/filter";
 import Stripe from "stripe";
 import emailSender from "../../utilitis/emailSender";
 import { uploadFileToSpace } from "../../utilitis/uploadTos3";
-
-
 
 const stripe = new Stripe(config.stripe.secretKey as string, {
   apiVersion: "2025-01-27.acacia",
@@ -59,7 +56,6 @@ const createProfessional = async (
     let fileUrl;
     if (file) {
       fileUrl = await uploadFileToSpace(file, "retire-professional");
-  
     }
 
     const newProfessionalData = {
@@ -92,7 +88,9 @@ const createProfessional = async (
                 <p style="font-size: 18px; color: #333333; margin-bottom: 10px;">Dear <b>${user.name.firstName}</b>,</p>
                 <p style="font-size: 16px; color: #333333; margin-bottom: 16px;">Thank you for registering as a retired professional on <strong>Luminor</strong>.</p>
                 <p style="font-size: 16px; color: #333333; margin-bottom: 16px;">We have successfully received your information. Our team is currently reviewing your profile to ensure everything meets our onboarding criteria.</p>
-                <p style="font-size: 16px; color: #333333; margin-bottom: 16px;">You will receive an update via email once the verification process is complete. If we require any additional information, please contact using this email address.</p>
+                <p style="font-size: 16px; color: #333333; margin-bottom: 16px;">You will receive an update via email once the verification process is complete.</p>
+                <p style="font-size: 16px; color: #333333;">If you have any questions, please contact us at:</p>
+            <p style="font-size: 16px; font-weight: bold; color: #5633d1;">📧 luminorlimited@gmail.com</p>
                  <p style="font-size: 16px; font-weight: bold; color: #5633d1;">📧 luminorlimited@gmail.com</p>
                 <p style="font-size: 16px; color: #333333; margin-bottom: 24px;">Thank you for your patience and welcome aboard!</p>
                 <p style="font-size: 16px; color: #333333;"><strong>The Luminor Support Team</strong></p>
@@ -107,8 +105,7 @@ const createProfessional = async (
         </div>
     </body>
     </html>`;
-  await emailSender("Profile Under Review  Luminor", user.email, html);
-  
+    await emailSender("Profile Under Review  Luminor", user.email, html);
 
     // Generate access token
     const accessToken = jwtHelpers.createToken(
@@ -125,7 +122,6 @@ const createProfessional = async (
       accessToken,
       user: newUser,
       retireProfessinal: newProfessionalData,
-      
     };
   } catch (error: any) {
     await session.abortTransaction();
@@ -161,7 +157,6 @@ export const updateSingleRetireProfessional = async (
       throw new ApiError(404, "retire professional not found");
     }
 
-
     const updatedUser = await User.findByIdAndUpdate(id, auth, {
       new: true,
       session,
@@ -185,7 +180,6 @@ const getRetireProfessionals = async (
   const { skip, limit, page, sortBy, sortOrder } =
     paginationHelpers.calculatePagination(paginationOptions);
   const { query, ...filtersData } = filters;
-;
   const andCondition = [];
   if (query) {
     andCondition.push({
@@ -248,7 +242,7 @@ const getRetireProfessionals = async (
     const [longitude, latitude, minDistance, maxDistance] = JSON.parse(
       filtersData.location
     );
-   
+
     aggregationPipeline.push({
       $geoNear: {
         near: {
@@ -308,7 +302,6 @@ const getRetireProfessionalsByLocation = async (
   min: number,
   max: number
 ) => {
-
   const result = await RetireProfessional.find({
     location: {
       $near: {
@@ -332,7 +325,6 @@ const getRetireProfessionalById = async (
   return result;
 };
 const updateProfessionalStripeAccount = async (payload: any) => {
-
   const updatedUser = await User.findOneAndUpdate(
     { email: payload.email },
     {
@@ -350,8 +342,6 @@ const updateProfessionalStripeAccount = async (payload: any) => {
         transfers: { requested: true },
       },
     });
-
- 
   }
 };
 export const RetireProfessionalService = {
