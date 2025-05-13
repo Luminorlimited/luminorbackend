@@ -92,12 +92,7 @@ const createProfessional = async (
                 <p style="font-size: 16px; color: #333333;">If you have any questions, please contact us at:</p>
             <p style="font-size: 16px; font-weight: bold; color: #5633d1;">📧 luminorlimited@gmail.com</p>
           
-                <p style="font-size: 16px; color: #333333; margin-bottom: 24px;">Thank you for your patience and welcome aboard!</p>
-                <p style="font-size: 16px; color: #333333;"><strong>The Luminor Support Team</strong></p>
-    
-                <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e0e0e0; text-align: center;">
-                    <p style="font-size: 14px; color: #888888; margin-bottom: 4px;">If you didn’t create this account or believe this was a mistake, please contact our support team immediately.</p>
-                </div>
+          
             </div>
             <div style="background-color: #f9f9f9; padding: 10px; text-align: center; font-size: 12px; color: #999999;">
                 <p style="margin: 0;">© 2025 Luminor. All rights reserved.</p>
