@@ -90,7 +90,7 @@ const createProfessional = async (
                 <p style="font-size: 16px; color: #333333; margin-bottom: 16px;">We have successfully received your information. Our team is currently reviewing your profile to ensure everything meets our onboarding criteria.</p>
                 <p style="font-size: 16px; color: #333333; margin-bottom: 16px;">You will receive an update via email once the verification process is complete.</p>
                 <p style="font-size: 16px; color: #333333;">If you have any questions, please contact us at:</p>
-            <p style="font-size: 16px; font-weight: bold; color: #5633d1;">📧 luminorlimited@gmail.com</p>
+            <p style="font-size: 16px; font-weight: bold; color: #5633d1;">luminorlimited@gmail.com</p>
           
           
             </div>
