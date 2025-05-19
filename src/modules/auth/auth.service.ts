@@ -459,7 +459,7 @@ const updateUserStatus = async (id: string, status: string) => {
             <p style="font-size: 18px; color: #333333;">Dear <b>${userName}</b>,</p>
             <p style="font-size: 16px; color: #333333;">Unfortunately, your application for <strong>Luminor</strong> has been declined.</p>
             <p style="font-size: 16px; color: #333333;">If you have any questions, please contact us at:</p>
-            <p style="font-size: 16px; font-weight: bold; color: #5633d1;">📧 luminorlimited@gmail.com</p>
+            <p style="font-size: 16px; font-weight: bold; color: #5633d1;">luminorlimited@gmail.com</p>
             <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e0e0e0; text-align: center;">
                 <p style="font-size: 14px; color: #888888;">Thank you for considering Luminor.</p>
             </div>
