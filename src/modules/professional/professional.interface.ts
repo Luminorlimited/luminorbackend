@@ -28,10 +28,10 @@ export type IProfessional = {
   technicalSkill: string[];
   cvOrCoverLetter?: string;
   linkedinProfile?: string;
-  location?: {
-    type: string;
-    coordinates: [number];
-  };
+  // location?: {
+  //   type: string;
+  //   coordinates: [number];
+  // };
 
   //retire professional profile field
 

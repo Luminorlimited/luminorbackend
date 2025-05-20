@@ -32,15 +32,15 @@ const clientSchema = new mongoose.Schema<IClient>(
     },
     
     problemAreas: { type: String, default: null },
-    location: {
-      type: {
-        type: String,
-        enum: ["Point"],
-      },
-      coordinates: {
-        type: [Number],
-      },
-    },
+    // location: {
+    //   type: {
+    //     type: String,
+    //     enum: ["Point"],
+    //   },
+    //   coordinates: {
+    //     type: [Number],
+    //   },
+    // },
     description: { type: String, default: null },
 
     servicePreference: {
