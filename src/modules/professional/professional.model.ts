@@ -33,15 +33,15 @@ const RetireProfessionalSchema = new mongoose.Schema<IProfessional>(
     technicalSkill: { type: [String], required: true },
     cvOrCoverLetter: { type: String, default: null },
     // Retired professional profile (optional)
-    location: {
-      type: {
-        type: String,
-        enum: ["Point"],
-      },
-      coordinates: {
-        type: [Number],
-      },
-    },
+    // location: {
+    //   type: {
+    //     type: String,
+    //     enum: ["Point"],
+    //   },
+    //   coordinates: {
+    //     type: [Number],
+    //   },
+    // },
     profileUrl: { type: String, default: null },
     bio: { type: String, default: null },
     description: { type: String, default: null },

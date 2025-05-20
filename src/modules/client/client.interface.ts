@@ -29,10 +29,10 @@ export type IClient = {
   profileUrl?: string;
   coverUrl?:string
   problemAreas?: string;
-  location?: {
-    type: string;
-    coordinates: [number];
-  };
+  // location?: {
+  //   type: string;
+  //   coordinates: [number];
+  // };
   description?: string;
   companyWebsite: string;
   servicePreference?: string;
