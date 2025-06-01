@@ -64,4 +64,7 @@ export default {
     email: process.env.EMAIL,
     app_pass: process.env.APP_PASS,
   },
+   brevo: {
+    brevo_api_key: process.env.BREVO_API_KEY,
+  },
 };
