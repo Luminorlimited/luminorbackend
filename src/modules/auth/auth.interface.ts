@@ -46,6 +46,7 @@ export type IUserExistReturn = {
     firstName: string;
     lastName: string;
   };
+  isActivated:"pending"|"active"|"inactive"
 };
 
 export type ILoginUser = {
@@ -65,7 +66,7 @@ export type UserModel = {
   isUserExist(
     email: string
   ): Promise<
-    Pick<IUserExistReturn, "email" | "password" | "_id" | "role" | "name">
+    Pick<IUserExistReturn, "email" | "password" | "_id" | "role" | "name"|"isActivated">
   >;
   isPasswordMatched(
     givenPassword: string,

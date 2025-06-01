@@ -64,7 +64,7 @@ const userSchema = new mongoose.Schema<IUser>(
 userSchema.statics.isUserExist = async function (
   email: string
 ): Promise<IUserExistReturn | null> {
-  return await User.findOne({ email }).select("+password");
+  return await User.findOne({ email }).select("+password ");
 };
 userSchema.statics.isPasswordMatched = async function (
   givenPassword: string,

@@ -28,7 +28,15 @@ const loginUser = async (payload: ILoginUser) => {
   ) {
     throw new ApiError(StatusCodes.UNAUTHORIZED, "Password is incorrect");
   }
+  if (isUserExist.isActivated !== IS_ACTIVATE.ACTIVE) {
+    throw new ApiError(
+      StatusCodes.UNAUTHORIZED,
+      "your account is not activate yet.please contect with support"
+    );
+  }
+
   const { _id: userId, email: userEmail, role } = isUserExist;
+  console.log(isUserExist, "check is User exist");
   const randomOtp = Math.floor(1000 + Math.random() * 9000).toString();
   const otpExpiry = new Date(Date.now() + 5 * 60 * 1000);
   if (isUserExist.role === ENUM_USER_ROLE.ADMIN) {
@@ -71,7 +79,7 @@ const loginUser = async (payload: ILoginUser) => {
      </div>
  </body>
  </html>`;
-  await emailSender("Luminor OTP", userEmail, html);
+  // await emailSender("Luminor OTP", userEmail, html);
   const result = await User.updateOne(
     { _id: userId },
     {
@@ -339,13 +347,12 @@ const forgotPassword = async (userId: string) => {
   return randomOtp;
 };
 const updateUserStatus = async (id: string, status: string) => {
-
   const result = await User.findOne({ _id: id });
-   let updatedUser;
+  let updatedUser;
 
-   if (!activeEnumValue.includes(status as string)) {
+  if (!activeEnumValue.includes(status as string)) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid status provided.");
-   }  
+  }
 
   if (!result?.email) {
     throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, "Email not found");
@@ -360,10 +367,10 @@ const updateUserStatus = async (id: string, status: string) => {
 
   if (status === IS_ACTIVATE.ACTIVE) {
     let accountId = result.stripe?.customerId;
- 
+
     let onboardingUrl = result.stripe?.onboardingUrl;
     let isOnboardingCompleted = result.stripe?.isOnboardingSucess;
-    console.log(isOnboardingCompleted,"check is onbaording complete")
+    console.log(isOnboardingCompleted, "check is onbaording complete");
     if (!accountId) {
       const account = await stripe.accounts.create({
         type: "express",
@@ -383,7 +390,7 @@ const updateUserStatus = async (id: string, status: string) => {
       onboardingUrl = accountLink.url;
     }
 
-    updatedUser=  await User.findOneAndUpdate(
+    updatedUser = await User.findOneAndUpdate(
       { _id: result._id },
       {
         $set: {
@@ -392,12 +399,9 @@ const updateUserStatus = async (id: string, status: string) => {
           "stripe.isOnboardingSucess": isOnboardingCompleted ?? false,
           isActivated: IS_ACTIVATE.ACTIVE,
         },
-
-        
       },
-      
-      
-     {new:true}
+
+      { new: true }
     );
 
     subject = "Luminor Account Activated";
@@ -471,10 +475,10 @@ const updateUserStatus = async (id: string, status: string) => {
 </body>
 </html>`;
 
-    updatedUser= await User.findOneAndUpdate(
+    updatedUser = await User.findOneAndUpdate(
       { _id: result._id },
       { $set: { isActivated: IS_ACTIVATE.INACTIVE } },
-      {new:true}
+      { new: true }
     );
   }
 
@@ -516,7 +520,6 @@ const searchService = async (
 
   return result;
 };
-
 
 export const AuthService = {
   loginUser,
