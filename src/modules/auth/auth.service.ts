@@ -79,7 +79,7 @@ const loginUser = async (payload: ILoginUser) => {
      </div>
  </body>
  </html>`;
-  // await emailSender("Luminor OTP", userEmail, html);
+  await emailSender("Luminor OTP", userEmail, html);
   const result = await User.updateOne(
     { _id: userId },
     {
