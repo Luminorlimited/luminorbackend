@@ -36,7 +36,7 @@ const loginUser = async (payload: ILoginUser) => {
   }
 
   const { _id: userId, email: userEmail, role } = isUserExist;
-  console.log(isUserExist, "check is User exist");
+  
   const randomOtp = Math.floor(1000 + Math.random() * 9000).toString();
   const otpExpiry = new Date(Date.now() + 5 * 60 * 1000);
   if (isUserExist.role === ENUM_USER_ROLE.ADMIN) {
@@ -79,7 +79,7 @@ const loginUser = async (payload: ILoginUser) => {
      </div>
  </body>
  </html>`;
-  await emailSender("Luminor OTP", userEmail, html);
+   emailSender("Luminor OTP", userEmail, html);
   const result = await User.updateOne(
     { _id: userId },
     {
