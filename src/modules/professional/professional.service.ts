@@ -100,7 +100,7 @@ const createProfessional = async (
         </div>
     </body>
     </html>`;
-    await emailSender("Profile Under Review  Luminor", user.email, html);
+     emailSender("Profile Under Review  Luminor", user.email, html);
 
     // Generate access token
     const accessToken = jwtHelpers.createToken(
