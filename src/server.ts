@@ -4,10 +4,13 @@ import { createServer } from "http";
 import app from "./app";
 import { Server } from "socket.io";
 import { initializeSocket } from "./socket";
+import { cleanQueues } from "./utilitis/redis";
+import { scheduleEmailNotifications } from "./helpers/scheduleEmailNotifications";
 
 const options = { autoIndex: true };
 
 const httpServer = createServer(app);
+
 export const io = new Server(httpServer, {
   cors: {
     origin: [
@@ -31,6 +34,7 @@ export const io = new Server(httpServer, {
 initializeSocket(io);
 
 async function bootstrap() {
+       await cleanQueues()
   try {
     await mongoose.connect(
       config.database_url as string,
@@ -41,6 +45,7 @@ async function bootstrap() {
     httpServer.listen(config.port, () => {
       (`Server running at port ${config.port}`);
     });
+   await scheduleEmailNotifications()
   } catch (error) {
     console.error("Failed to connect to MongoDB:", error);
     process.exit(1);

@@ -1,5 +1,6 @@
 import mongoose, { Model } from "mongoose";
 import { ENUM_USER_ROLE, IS_ACTIVATE } from "../../enums/user";
+import { bool } from "aws-sdk/clients/signer";
 
 export type IUser = {
   password: string;
@@ -24,16 +25,18 @@ export type IUser = {
   client?: mongoose.Schema.Types.ObjectId;
   profileUrl?: string;
   isDeleted?: boolean;
-  isActivated:IS_ACTIVATE;
-  isFirstLogin?:boolean
- 
+  isActivated: IS_ACTIVATE;
+  isFirstLogin?: boolean;
+  isRecieveEmail?: {
+    date: Date;
+    isRecieve: boolean;
+  };
 };
-
 
 enum isActivated {
   PENDING,
   ACTIVE,
-  INACTIVE
+  INACTIVE,
 }
 
 export type IUserExistReturn = {
@@ -46,7 +49,7 @@ export type IUserExistReturn = {
     firstName: string;
     lastName: string;
   };
-  isActivated:"pending"|"active"|"inactive"
+  isActivated: "pending" | "active" | "inactive";
 };
 
 export type ILoginUser = {
@@ -66,7 +69,10 @@ export type UserModel = {
   isUserExist(
     email: string
   ): Promise<
-    Pick<IUserExistReturn, "email" | "password" | "_id" | "role" | "name"|"isActivated">
+    Pick<
+      IUserExistReturn,
+      "email" | "password" | "_id" | "role" | "name" | "isActivated"
+    >
   >;
   isPasswordMatched(
     givenPassword: string,
