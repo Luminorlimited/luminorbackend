@@ -5,9 +5,13 @@ import cookieParser from "cookie-parser";
 import { routes } from "./routes";
 import globalErrorHandler from "./middlewares/globalErrorHandler";
 import { StatusCodes } from "http-status-codes";
-
+import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
 
 import { StripeController } from "./modules/stipe/stripe.controller";
+import { ExpressAdapter } from "@bull-board/express";
+import { createBullBoard } from "@bull-board/api";
+import { emailNotificationQueue } from "./utilitis/redis";
+
 
 const app: Application = express();
 
@@ -64,7 +68,20 @@ app.get("/payment", (req, res) => {
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.use("/api/v1", routes);
+const serverAdapter = new ExpressAdapter();
 
+serverAdapter.setBasePath("/admin/queues");
+// Global Error Handler
+
+createBullBoard({
+  queues: [
+    new BullMQAdapter(emailNotificationQueue),
+
+  ],
+
+  serverAdapter,
+});
+app.use("/admin/queues", serverAdapter.getRouter());
 app.use(globalErrorHandler);
 //global error handler
 

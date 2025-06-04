@@ -151,44 +151,96 @@ const getSingleMessages = async (sender: string, recipient: string) => {
 };
 import mongoose from "mongoose";
 
-const getConversationLists = async (id: string) => {
-  // Convert id to ObjectId for correct MongoDB query
-  const objectId = new mongoose.Types.ObjectId(id);
-
-  // Find conversations where the user is either user1 or user2
-  const conversations = await Convirsation.find({
-    $or: [{ user1: objectId }, { user2: objectId }],
-  })
-    .populate("user1", "email name profileUrl _id")
-    .populate("user2", "email name profileUrl _id")
-    .sort({ lastMessageTimestamp: -1 });
+// const getConversationLists = async (id: string) => {
+//   // Convert id to ObjectId for correct MongoDB query
+//   const objectId = new mongoose.Types.ObjectId(id);
+//   console.log(objectId,"check objectid from getconvirstaiont list")
+//   // Find conversations where the user is either user1 or user2
+//   const conversations = await Convirsation.find({
+//     $or: [{ user1: objectId }, { user2: objectId }],
+//   })
+//     .populate("user1", "email name profileUrl _id")
+//     .populate("user2", "email name profileUrl _id")
+//     .sort({ lastMessageTimestamp: -1 });
 
  
 
-  // Map conversation data
-  const conversationList = conversations.map((conversation: any) => {
-    const isUser1 = conversation.user1._id.toString() === id.toString();
-    const otherUser = isUser1 ? conversation.user2 : conversation.user1;
-    const unseenMessageCount = isUser1
-      ? conversation.user1UnseenCount
-      : conversation.user2UnseenCount;
+//   // Map conversation data
+//   const conversationList = conversations.map((conversation: any) => {
+//     const isUser1 = conversation.user1._id.toString() === id.toString();
+//     const otherUser = isUser1 ? conversation.user2 : conversation.user1;
+//     const unseenMessageCount = isUser1
+//       ? conversation.user1UnseenCount
+//       : conversation.user2UnseenCount;
 
-    return {
-      id: otherUser._id,
-      email: otherUser.email,
-      name: otherUser.name
-        ? `${otherUser.name.firstName?.trim() || ""} ${otherUser.name.lastName?.trim() || ""}`
-        : "Unknown",
-      profileUrl: otherUser.profileUrl || null,
-      isOnline: onlineUsers.get(otherUser._id.toString()) || false,
-      room: conversation._id,
-      lastMessage: conversation.lastMessage,
-      lastMessageTimestamp: conversation.lastMessageTimestamp,
-      unseenMessageCount,
-    };
-  });
+//     return {
+//       id: otherUser._id,
+//       email: otherUser.email,
+//       name: otherUser.name
+//         ? `${otherUser.name.firstName?.trim() || ""} ${otherUser.name.lastName?.trim() || ""}`
+//         : "Unknown",
+//       profileUrl: otherUser.profileUrl || null,
+//       isOnline: onlineUsers.get(otherUser._id.toString()) || false,
+//       room: conversation._id,
+//       lastMessage: conversation.lastMessage,
+//       lastMessageTimestamp: conversation.lastMessageTimestamp,
+//       unseenMessageCount,
+//     };
+//   });
 
-  return conversationList;
+//   return conversationList;
+// };
+export const getConversationLists = async (id: string) => {
+  try {
+    // Convert id to ObjectId for MongoDB queries
+    const objectId = new mongoose.Types.ObjectId(id);
+
+
+    // Get all conversations where the user is either user1 or user2
+    const conversations = await Convirsation.find({
+      $or: [{ user1: objectId }, { user2: objectId }],
+    })
+      .populate("user1", "email name profileUrl _id")
+      .populate("user2", "email name profileUrl _id")
+      .sort({ lastMessageTimestamp: -1 });
+
+    // Map over the conversations and extract relevant data
+    const conversationList = conversations
+      .map((conversation: any) => {
+        // Safety check for populated fields
+        if (!conversation.user1 || !conversation.user2) {
+          console.warn("Missing user in conversation:", conversation._id);
+          return null; // Will be filtered out
+        }
+
+        const isUser1 = conversation.user1._id.toString() === id.toString();
+        const otherUser = isUser1 ? conversation.user2 : conversation.user1;
+        const unseenMessageCount = isUser1
+          ? conversation.user1UnseenCount
+          : conversation.user2UnseenCount;
+
+        return {
+          id: otherUser._id,
+          email: otherUser.email,
+          name: otherUser.name
+            ? `${otherUser.name.firstName?.trim() || ""} ${otherUser.name.lastName?.trim() || ""}`.trim()
+            : "Unknown",
+          profileUrl: otherUser.profileUrl || null,
+          isOnline: onlineUsers.get(otherUser._id.toString()) || false,
+          room: conversation._id,
+          lastMessage: conversation.lastMessage,
+          lastMessageTimestamp: conversation.lastMessageTimestamp,
+          unseenMessageCount,
+        };
+      })
+      .filter(Boolean); // Remove nulls from list
+
+    return conversationList;
+
+  } catch (error) {
+    console.error("Error in getConversationLists:", error);
+    return [];
+  }
 };
 
 const uploadMessagefile = async (file: any) => {

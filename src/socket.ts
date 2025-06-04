@@ -6,7 +6,15 @@ import { generateOfferPDF } from "./utilitis/generateOfferPdf";
 import { zoomService } from "./modules/zoom/zoom.service";
 import { OfferService } from "./modules/offers/offer.service";
 import { NotificationService } from "./modules/notification/notification.service";
-import { ENUM_NOTIFICATION_STATUS, ENUM_NOTIFICATION_TYPE } from "./enums/notificationStatus";
+import {
+  ENUM_NOTIFICATION_STATUS,
+  ENUM_NOTIFICATION_TYPE,
+} from "./enums/notificationStatus";
+import { emailWorker } from "./email/emailWorker";
+import ApiError from "./errors/handleApiError";
+import { StatusCodes } from "http-status-codes";
+import { emailNotificationQueue } from "./utilitis/redis";
+import { handleOfflineMessage } from "./helpers/handleOfflineMessage";
 
 export const users: { [key: string]: string } = {};
 export const onlineUsers = new Map<string, boolean>();
@@ -18,18 +26,18 @@ export function initializeSocket(io: Server) {
       // const { email } = JSON.parse(data);
 
       const { id } = JSON.parse(data);
+      // console.log(JSON.parse(data));
+      // console.log(id, "check id from register");
       users[id] = socket.id;
 
       onlineUsers.set(id, true);
- 
+
       const conversationList = await MessageService.getConversationLists(id);
-   
 
       socket.emit("conversation-list", conversationList);
     });
     socket.on("userInChat", (data: any) => {
       const { userId, chattingWith } = JSON.parse(data);
-
 
       if (chattingWith) {
         userInChat.set(userId, chattingWith);
@@ -40,13 +48,12 @@ export function initializeSocket(io: Server) {
     socket.on("privateMessage", async (data: any) => {
       const { toUserId, message, fromUserId, media, mediaUrl } =
         JSON.parse(data);
-      
+
       if (!fromUserId) {
         return socket.send(JSON.stringify({ error: "id is required" }));
       }
 
       const toSocketId = users[toUserId];
-   
 
       const recipientInChatWith = userInChat.get(toUserId);
 
@@ -59,8 +66,7 @@ export function initializeSocket(io: Server) {
           recipient: toUserId,
           isUnseen: isUnseen,
         });
-         
-      
+
         // const [fromEmailConversationList, toEmailConversationList] =
         //   await Promise.all([
         //     MessageService.getConversationLists(fromEmail),
@@ -69,7 +75,7 @@ export function initializeSocket(io: Server) {
         const toEmailConversationList =
           await MessageService.getConversationLists(toUserId);
 
-        const populatedMessage:any = await Message.findById(savedMessage._id)
+        const populatedMessage: any = await Message.findById(savedMessage._id)
           .populate({ path: "sender", select: "name email _id" })
           .populate({ path: "recipient", select: "name email _id" })
           .lean();
@@ -80,7 +86,6 @@ export function initializeSocket(io: Server) {
         // });
 
         // socket.emit("conversation-list", fromEmailConversationList);
-     
 
         if (toSocketId) {
           socket.to(toSocketId).emit("privateMessage", {
@@ -104,23 +109,24 @@ export function initializeSocket(io: Server) {
             },
             "sendNotification"
           );
+        } else {
+          handleOfflineMessage(
+            toUserId,
+            populatedMessage?.sender.name.firstName
+          );
         }
-       
-        
       } catch (error) {
         console.error("Error sending private message:", error);
       }
     });
     socket.on("image-pass", async (data: any) => {
       const { toUserId, fromUserId, media } = JSON.parse(data);
-    
 
       if (!fromUserId) {
         return socket.send(JSON.stringify({ error: "id is required" }));
       }
 
       const toSocketId = users[toUserId];
-
 
       const recipientInChatWith = userInChat.get(toUserId);
 
@@ -163,23 +169,29 @@ export function initializeSocket(io: Server) {
     });
 
     socket.on("sendOffer", async (data: any) => {
-
       const { toEmail, offer, fromEmail } = JSON.parse(data);
-      // console.log(offer,"check offer")
-;
+
       const toSocketId = users[toEmail];
- 
 
       try {
         offer.totalPrice = calculateTotalPrice(offer);
+
         const offerPDFPath = await generateOfferPDF(offer);
+
         offer.orderAgreementPDF = offerPDFPath;
         const totalOffer = {
           ...offer,
           clientEmail: toEmail,
           professionalEmail: fromEmail,
         };
+        // console.log(totalOffer)
         const newOffer = await OfferService.createOffer(totalOffer);
+        emailWorker.offerSend(toEmail.toString(), newOffer?._id.toString()!);
+
+        socket.emit("sendOfferSuccess", {
+          message: "Offer sent successfully!",
+          statusCode: 200,
+        });
 
         if (toSocketId) {
           socket.to(toSocketId).emit("sendOffer", {
@@ -187,10 +199,6 @@ export function initializeSocket(io: Server) {
             offer: newOffer,
           });
         }
-        socket.emit("sendOfferSuccess", {
-          message: "Offer sent successfully!",
-          statusCode: 200,
-        });
       } catch (error: any) {
         socket.emit("sendOfferError", {
           message: error.message || "Failed to create offer",
@@ -200,7 +208,7 @@ export function initializeSocket(io: Server) {
     });
     socket.on("createZoomMeeting", async (data: any) => {
       const { fromUserId, toUserId } = JSON.parse(data);
-  
+
       const toSocketId = users[toUserId];
 
       try {
@@ -256,7 +264,7 @@ export function initializeSocket(io: Server) {
         socket.emit("zoomMeetingError", "Failed to create Zoom meeting");
       }
     });
-   
+
     socket.on("disconnect", async (reason) => {
       let id = "";
       for (let [userId, isOnline] of onlineUsers) {
@@ -269,6 +277,7 @@ export function initializeSocket(io: Server) {
       if (id) {
         onlineUsers.set(id, false);
         delete users[id];
+        userInChat.delete(id);
       }
     });
 

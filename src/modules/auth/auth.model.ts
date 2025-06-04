@@ -4,6 +4,7 @@ import { ENUM_USER_ROLE, IS_ACTIVATE } from "../../enums/user";
 import config from "../../config";
 import bcrypt from "bcrypt";
 
+
 const userSchema = new mongoose.Schema<IUser>(
   {
     name: {
@@ -57,6 +58,16 @@ const userSchema = new mongoose.Schema<IUser>(
     isActivated: {
       type: String,
       enum: IS_ACTIVATE,
+    },
+    isRecieveEmail: {
+      date: {
+        type: Date,
+        default: new Date(),
+      },
+      isRecieve: {
+        type: Boolean,
+        default: false,
+      },
     },
   },
   { timestamps: true, versionKey: false }

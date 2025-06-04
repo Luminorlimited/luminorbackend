@@ -370,7 +370,7 @@ const updateUserStatus = async (id: string, status: string) => {
 
     let onboardingUrl = result.stripe?.onboardingUrl;
     let isOnboardingCompleted = result.stripe?.isOnboardingSucess;
-    console.log(isOnboardingCompleted, "check is onbaording complete");
+
     if (!accountId) {
       const account = await stripe.accounts.create({
         type: "express",

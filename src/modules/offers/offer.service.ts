@@ -22,6 +22,7 @@ const createOffer = async (offer: IOffer) => {
 
   const professional = await User.findById(offer.professionalEmail);
 
+
   let stripeAccount;
   if (!professional?.isActivated) {
     throw new ApiError(

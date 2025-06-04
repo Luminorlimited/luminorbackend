@@ -1,5 +1,6 @@
 import axios from "axios";
 import config from "../config";
+import { tryCatch } from "bullmq";
 
 // const emailSender = async (subject: string, email: string, html: string) => {
 //   const transporter = nodemailer.createTransport({
@@ -48,12 +49,16 @@ subject: string, email: string, html: string
     htmlContent: html,
 
   };
-  await axios.post("https://api.brevo.com/v3/smtp/email", payload, {
+   try {
+      await axios.post("https://api.brevo.com/v3/smtp/email", payload, {
     headers: {
       "api-key": config.brevo.brevo_api_key,
       "Content-Type": "application/json",
     },
   });
+   } catch (error) {
+    console.log(error,'check error form email sender')
+   }
 };
 
 export default emailSender;
