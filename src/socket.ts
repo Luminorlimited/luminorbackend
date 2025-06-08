@@ -11,8 +11,6 @@ import {
   ENUM_NOTIFICATION_TYPE,
 } from "./enums/notificationStatus";
 import { emailWorker } from "./email/emailWorker";
-import ApiError from "./errors/handleApiError";
-import { StatusCodes } from "http-status-codes";
 import { emailNotificationQueue } from "./utilitis/redis";
 import { handleOfflineMessage } from "./helpers/handleOfflineMessage";
 
@@ -23,55 +21,52 @@ export const userInChat = new Map<string, string | null>();
 export function initializeSocket(io: Server) {
   io.on("connection", (socket) => {
     socket.on("register", async (data: any) => {
-      // const { email } = JSON.parse(data);
-
-      const { id } = JSON.parse(data);
-      // console.log(JSON.parse(data));
-      // console.log(id, "check id from register");
-      users[id] = socket.id;
-
-      onlineUsers.set(id, true);
-
-      const conversationList = await MessageService.getConversationLists(id);
-
-      socket.emit("conversation-list", conversationList);
-    });
-    socket.on("userInChat", (data: any) => {
-      const { userId, chattingWith } = JSON.parse(data);
-
-      if (chattingWith) {
-        userInChat.set(userId, chattingWith);
-      } else {
-        userInChat.delete(userId);
-      }
-    });
-    socket.on("privateMessage", async (data: any) => {
-      const { toUserId, message, fromUserId, media, mediaUrl } =
-        JSON.parse(data);
-
-      if (!fromUserId) {
-        return socket.send(JSON.stringify({ error: "id is required" }));
-      }
-
-      const toSocketId = users[toUserId];
-
-      const recipientInChatWith = userInChat.get(toUserId);
-
       try {
-        const isUnseen = recipientInChatWith === fromUserId ? false : true;
+        const { id } = JSON.parse(data);
+        users[id] = socket.id;
+        onlineUsers.set(id, true);
+
+        const conversationList = await MessageService.getConversationLists(id);
+        socket.emit("conversation-list", conversationList);
+      } catch (error) {
+        console.error("Error in register:", error);
+        socket.emit("register-error", { message: "Failed to register user." });
+      }
+    });
+
+    socket.on("userInChat", (data: any) => {
+      try {
+        const { userId, chattingWith } = JSON.parse(data);
+        if (chattingWith) {
+          userInChat.set(userId, chattingWith);
+        } else {
+          userInChat.delete(userId);
+        }
+      } catch (error) {
+        console.error("Error in userInChat:", error);
+      }
+    });
+
+    socket.on("privateMessage", async (data: any) => {
+      try {
+        const { toUserId, message, fromUserId, media, mediaUrl } =
+          JSON.parse(data);
+        if (!fromUserId) {
+          return socket.emit("error", { message: "Sender ID is required" });
+        }
+
+        const toSocketId = users[toUserId];
+        const recipientInChatWith = userInChat.get(toUserId);
+        const isUnseen = recipientInChatWith !== fromUserId;
+
         const savedMessage = await MessageService.createMessage({
           sender: fromUserId,
           message: message || null,
           media: mediaUrl || null,
           recipient: toUserId,
-          isUnseen: isUnseen,
+          isUnseen,
         });
 
-        // const [fromEmailConversationList, toEmailConversationList] =
-        //   await Promise.all([
-        //     MessageService.getConversationLists(fromEmail),
-        //     toEmail ? MessageService.getConversationLists(toEmail) : null,
-        //   ]);
         const toEmailConversationList =
           await MessageService.getConversationLists(toUserId);
 
@@ -80,25 +75,17 @@ export function initializeSocket(io: Server) {
           .populate({ path: "recipient", select: "name email _id" })
           .lean();
 
-        // socket.emit("privateMessage", {
-        //   message: populatedMessage,
-        //   fromEmail: fromEmail,
-        // });
-
-        // socket.emit("conversation-list", fromEmailConversationList);
-
         if (toSocketId) {
           socket.to(toSocketId).emit("privateMessage", {
             message: populatedMessage,
-            fromUserId: fromUserId,
-            toUserId: toUserId,
+            fromUserId,
+            toUserId,
           });
 
           if (toEmailConversationList) {
-            socket
-              .to(toSocketId)
-              .emit("conversation-list", toEmailConversationList);
+            socket.to(toSocketId).emit("conversation-list", toEmailConversationList);
           }
+
           await NotificationService.createNotification(
             {
               recipient: toUserId,
@@ -110,81 +97,73 @@ export function initializeSocket(io: Server) {
             "sendNotification"
           );
         } else {
-          handleOfflineMessage(
-            toUserId,
-            populatedMessage?.sender.name.firstName
-          );
+          handleOfflineMessage(toUserId, populatedMessage?.sender.name.firstName);
         }
       } catch (error) {
-        console.error("Error sending private message:", error);
+        console.error("Error in privateMessage:", error);
+        socket.emit("privateMessage-error", { message: "Failed to send message." });
       }
     });
+
     socket.on("image-pass", async (data: any) => {
-      const { toUserId, fromUserId, media } = JSON.parse(data);
-
-      if (!fromUserId) {
-        return socket.send(JSON.stringify({ error: "id is required" }));
-      }
-
-      const toSocketId = users[toUserId];
-
-      const recipientInChatWith = userInChat.get(toUserId);
-
       try {
-        const isUnseen = recipientInChatWith === fromUserId ? false : true;
+        const { toUserId, fromUserId, media } = JSON.parse(data);
+        if (!fromUserId) {
+          return socket.emit("error", { message: "Sender ID is required" });
+        }
+
+        const toSocketId = users[toUserId];
+        const recipientInChatWith = userInChat.get(toUserId);
+        const isUnseen = recipientInChatWith !== fromUserId;
+
         const savedMessage = await MessageService.createMessage({
           sender: fromUserId,
           message: "",
           media: media || null,
           recipient: toUserId,
-          isUnseen: isUnseen,
+          isUnseen,
         });
-
-        const toEmailConversationList =
-          await MessageService.getConversationLists(toUserId);
 
         const populatedMessage = await Message.findById(savedMessage._id)
           .populate({ path: "sender", select: "name email _id" })
           .populate({ path: "recipient", select: "name email _id" })
           .lean();
 
+        const toEmailConversationList =
+          await MessageService.getConversationLists(toUserId);
+
         if (toSocketId) {
           socket.to(toSocketId).emit("image-pass", {
             message: populatedMessage,
             media: populatedMessage,
-            fromUserId: fromUserId,
-            toUserId: toUserId,
+            fromUserId,
+            toUserId,
           });
 
           if (toEmailConversationList) {
-            socket
-              .to(toSocketId)
-              .emit("conversation-list", toEmailConversationList);
+            socket.to(toSocketId).emit("conversation-list", toEmailConversationList);
           }
         }
-        // socket.emit("image-pass", populatedMessage);
       } catch (error) {
-        console.error("Error sending private message:", error);
+        console.error("Error in image-pass:", error);
+        socket.emit("image-pass-error", { message: "Failed to send image." });
       }
     });
 
     socket.on("sendOffer", async (data: any) => {
-      const { toEmail, offer, fromEmail } = JSON.parse(data);
-
-      const toSocketId = users[toEmail];
-
       try {
+        const { toEmail, offer, fromEmail } = JSON.parse(data);
+        const toSocketId = users[toEmail];
+
         offer.totalPrice = calculateTotalPrice(offer);
+        offer.orderAgreementPDF = await generateOfferPDF(offer);
 
-        const offerPDFPath = await generateOfferPDF(offer);
-
-        offer.orderAgreementPDF = offerPDFPath;
         const totalOffer = {
           ...offer,
           clientEmail: toEmail,
           professionalEmail: fromEmail,
         };
-        // console.log(totalOffer)
+
         const newOffer = await OfferService.createOffer(totalOffer);
         emailWorker.offerSend(toEmail.toString(), newOffer?._id.toString()!);
 
@@ -200,24 +179,25 @@ export function initializeSocket(io: Server) {
           });
         }
       } catch (error: any) {
+        console.error("Error in sendOffer:", error);
         socket.emit("sendOfferError", {
           message: error.message || "Failed to create offer",
           statusCode: error.statusCode || 500,
         });
       }
     });
+
     socket.on("createZoomMeeting", async (data: any) => {
-      const { fromUserId, toUserId } = JSON.parse(data);
-
-      const toSocketId = users[toUserId];
-
       try {
+        const { fromUserId, toUserId } = JSON.parse(data);
+        const toSocketId = users[toUserId];
+
         const meeting = await zoomService.createZoomMeeting();
         if (!meeting || !meeting.start_url || !meeting.join_url) {
           throw new Error("Invalid Zoom meeting data");
         }
-        const { start_url, join_url } = meeting;
 
+        const { start_url, join_url } = meeting;
         const savedMessage = await MessageService.createMessage({
           sender: fromUserId,
           recipient: toUserId,
@@ -228,46 +208,45 @@ export function initializeSocket(io: Server) {
         });
 
         const populateMessage = {
-          sender: {
-            _id: savedMessage.sender,
-          },
-          recipient: {
-            _id: savedMessage.recipient,
-          },
+          sender: { _id: savedMessage.sender },
+          recipient: { _id: savedMessage.recipient },
           meetingLink: start_url,
           isUnseen: false,
           message: join_url,
           createdAt: savedMessage.createdAt,
         };
+
         const toEmailConversationList =
           await MessageService.getConversationLists(toUserId);
         const fromEmailConversationList =
           await MessageService.getConversationLists(fromUserId);
+
         socket.emit("createZoomMeeting", {
           from: fromUserId,
           populateMessage,
         });
+
         socket.emit("conversation-list", fromEmailConversationList);
+
         if (toSocketId) {
           socket.to(toSocketId).emit("createZoomMeeting", {
             from: fromUserId,
             populateMessage,
           });
+
           if (toEmailConversationList) {
-            socket
-              .to(toSocketId)
-              .emit("conversation-list", toEmailConversationList);
+            socket.to(toSocketId).emit("conversation-list", toEmailConversationList);
           }
         }
       } catch (error) {
-        console.error("Error creating Zoom meeting:", error);
-        socket.emit("zoomMeetingError", "Failed to create Zoom meeting");
+        console.error("Error in createZoomMeeting:", error);
+        socket.emit("zoomMeetingError", { message: "Failed to create Zoom meeting" });
       }
     });
 
-    socket.on("disconnect", async (reason) => {
+    socket.on("disconnect", () => {
       let id = "";
-      for (let [userId, isOnline] of onlineUsers) {
+      for (let [userId] of onlineUsers) {
         if (socket.id === users[userId]) {
           id = userId;
           break;
@@ -281,6 +260,8 @@ export function initializeSocket(io: Server) {
       }
     });
 
-    socket.on("error", (error) => {});
+    socket.on("error", (error) => {
+      console.error("Socket level error:", error);
+    });
   });
 }
