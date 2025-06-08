@@ -1,7 +1,7 @@
 import { emailNotificationQueue } from "../utilitis/redis";
 
 export async function scheduleEmailNotifications() {
-  console.log("i am here to scedule email notifications")
+  // console.log("i am here to scedule email notifications")
   await emailNotificationQueue.add(
     "email-notification",
     {},
