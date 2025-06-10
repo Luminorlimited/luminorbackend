@@ -1,7 +1,7 @@
 import { Worker, Queue } from "bullmq";
 import Redis, { RedisOptions } from "ioredis";
 import { User } from "../modules/auth/auth.model";
-import emailSender from "./emailSender";
+
 import { emailWorker } from "../email/emailWorker";
 
 // Redis Configuration
