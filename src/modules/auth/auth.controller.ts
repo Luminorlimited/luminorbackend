@@ -17,16 +17,7 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
-const enterOtp = catchAsync(async (req: Request, res: Response) => {
-  const result = await AuthService.enterOtp(req.body);
-  AuthService;
-  sendResponse(res, {
-    statusCode: StatusCodes.OK,
-    success: true,
-    message: "User logged in successfully",
-    data: result,
-  });
-});
+
 const getProfile = catchAsync(async (req: Request, res: Response) => {
   const user = req.user as any;
   const result = await AuthService.getProfile(user.id);
@@ -165,9 +156,9 @@ const updateUserStatus = catchAsync(async (req: Request, res: Response) => {
   });
 });
 const forgotPassword = catchAsync(async (req: Request, res: Response) => {
-  const user = req.user as any;
+  const email = req.body.email;
 
-  const result = await AuthService.forgotPassword(user?.id as string);
+  const result = await AuthService.forgotPassword(email as string);
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
@@ -202,6 +193,27 @@ const searchService = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+const enterOtp = catchAsync(async (req: Request, res: Response) => {
+  const result = await AuthService.enterOtp(req.body);
+  AuthService;
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "User logged in successfully",
+    data: result,
+  });
+});
+const verfiyForgetOtp = catchAsync(async (req: Request, res: Response) => {
+  const result = await AuthService.verfiyForgetOtp(req.body);
+  AuthService;
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "forget password otp verfiy successfully",
+    data: result,
+  });
+});
+
 export const AuthController = {
   loginUser,
   enterOtp,
@@ -219,4 +231,5 @@ export const AuthController = {
   forgotPassword,
   resetPassword,
   searchService,
+  verfiyForgetOtp,
 };

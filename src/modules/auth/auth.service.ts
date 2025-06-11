@@ -36,7 +36,7 @@ const loginUser = async (payload: ILoginUser) => {
   }
 
   const { _id: userId, email: userEmail, role } = isUserExist;
-  
+
   const randomOtp = Math.floor(1000 + Math.random() * 9000).toString();
   const otpExpiry = new Date(Date.now() + 5 * 60 * 1000);
   if (isUserExist.role === ENUM_USER_ROLE.ADMIN) {
@@ -79,7 +79,7 @@ const loginUser = async (payload: ILoginUser) => {
      </div>
  </body>
  </html>`;
-   emailSender("Luminor OTP", userEmail, html);
+  emailSender("Luminor OTP", userEmail, html);
   const result = await User.updateOne(
     { _id: userId },
     {
@@ -96,57 +96,6 @@ const loginUser = async (payload: ILoginUser) => {
     );
   }
   return randomOtp;
-};
-const enterOtp = async (payload: any) => {
-  const userData = await User.findOne({
-    otp: payload.otp,
-    email: payload.email.toLowerCase(),
-  });
-
-  if (!userData) {
-    throw new ApiError(404, "Your OTP is incorrect");
-  }
-
-  if (userData.otpExpiry && userData.otpExpiry < new Date()) {
-    throw new ApiError(400, "Your OTP has expired");
-  }
-
-  let redirectTo = "/";
-  if (userData.isFirstLogin) {
-    redirectTo = `/user/editProfile/${userData.role}/${userData._id}`;
-
-    await User.updateOne(
-      { _id: userData.id },
-      { $set: { isFirstLogin: false, otp: null, otpExpiry: null } }
-    );
-  } else {
-    await User.updateOne(
-      { _id: userData.id },
-      { $set: { otp: null, otpExpiry: null } }
-    );
-  }
-
-  // Generate JWT Token
-  const accessToken = jwtHelpers.createToken(
-    {
-      id: userData.id,
-      email: userData.email,
-      role: userData.role,
-    },
-    config.jwt.secret as Secret,
-    config.jwt.expires_in as string
-  );
-
-  return {
-    accessToken,
-    redirectTo,
-    user: {
-      email: userData.email,
-      role: userData.role,
-      userId: userData._id,
-      name: userData.name,
-    },
-  };
 };
 
 const getProfile = async (id: string) => {
@@ -285,8 +234,8 @@ const updateAdminProfilePic = async (id: string, profileImage: string) => {
   }
 };
 
-const forgotPassword = async (userId: string) => {
-  const userData = await User.findById(userId);
+const forgotPassword = async (email: string) => {
+  const userData = await User.findOne({ email: email });
 
   if (!userData?.isActivated) {
     throw new ApiError(
@@ -330,7 +279,7 @@ const forgotPassword = async (userId: string) => {
   // Send the OTP email
   await emailSender("Luminor OTP", userData.email, html);
   const result = await User.updateOne(
-    { _id: userId },
+    { _id: userData._id },
     {
       $set: {
         otp: randomOtp,
@@ -344,7 +293,8 @@ const forgotPassword = async (userId: string) => {
       "Failed to update OTP"
     );
   }
-  return randomOtp;
+
+return randomOtp
 };
 const updateUserStatus = async (id: string, status: string) => {
   const result = await User.findOne({ _id: id });
@@ -520,7 +470,82 @@ const searchService = async (
 
   return result;
 };
+const enterOtp = async (payload: any) => {
+  const userData = await User.findOne({
+    otp: payload.otp,
+    email: payload.email.toLowerCase(),
+  });
 
+  if (!userData) {
+    throw new ApiError(404, "Your OTP is incorrect");
+  }
+
+  if (userData.otpExpiry && userData.otpExpiry < new Date()) {
+    throw new ApiError(400, "Your OTP has expired");
+  }
+
+  let redirectTo = "/";
+  if (userData.isFirstLogin) {
+    redirectTo = `/user/editProfile/${userData.role}/${userData._id}`;
+
+    await User.updateOne(
+      { _id: userData.id },
+      { $set: { isFirstLogin: false, otp: null, otpExpiry: null } }
+    );
+  } else {
+    await User.updateOne(
+      { _id: userData.id },
+      { $set: { otp: null, otpExpiry: null } }
+    );
+  }
+
+  // Generate JWT Token
+  const accessToken = jwtHelpers.createToken(
+    {
+      id: userData.id,
+      email: userData.email,
+      role: userData.role,
+    },
+    config.jwt.secret as Secret,
+    config.jwt.expires_in as string
+  );
+
+  return {
+    accessToken,
+    redirectTo,
+    user: {
+      email: userData.email,
+      role: userData.role,
+      userId: userData._id,
+      name: userData.name,
+    },
+  };
+};
+const verfiyForgetOtp = async (payload: any) => {
+  const userData = await User.findOne({
+    otp: payload.otp,
+    email: payload.email.toLowerCase(),
+  });
+
+  if (!userData) {
+    throw new ApiError(404, "Your OTP is incorrect");
+  }
+
+  if (userData.otpExpiry && userData.otpExpiry < new Date()) {
+    throw new ApiError(400, "Your OTP has expired");
+  }
+   const otpToken = jwtHelpers.createToken(
+    {
+      userId: userData._id,
+      role: userData.role,
+      email: userData.email,
+      id:userData._id
+    },
+    config.otp_secret.forget_password_secret as string,
+    "30m"
+  );
+  return otpToken
+};
 export const AuthService = {
   loginUser,
   enterOtp,
@@ -538,4 +563,5 @@ export const AuthService = {
   forgotPassword,
   resetPassword,
   searchService,
+  verfiyForgetOtp,
 };
