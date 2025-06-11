@@ -31,7 +31,7 @@ const loginUser = async (payload: ILoginUser) => {
   if (isUserExist.isActivated !== IS_ACTIVATE.ACTIVE) {
     throw new ApiError(
       StatusCodes.UNAUTHORIZED,
-      "your account is not activate yet.please contect with support"
+      "Your account is not activated yet. It should be completed within the next 3-5 days. Please contact luminorlimited@gmail.com for any queries"
     );
   }
 
