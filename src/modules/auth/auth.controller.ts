@@ -162,7 +162,7 @@ const forgotPassword = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
-    message: ` otp has been send to your gmail account.please verify it`,
+    message: `The OTP has been sent to your email`,
     data: result,
   });
 });
