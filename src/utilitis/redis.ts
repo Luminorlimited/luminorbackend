@@ -1,7 +1,7 @@
 import { Worker, Queue } from "bullmq";
 import Redis, { RedisOptions } from "ioredis";
 import { User } from "../modules/auth/auth.model";
-import emailSender from "./emailSender";
+
 import { emailWorker } from "../email/emailWorker";
 
 // Redis Configuration
@@ -49,7 +49,7 @@ const emailNotificationWorker = new Worker(
   async () => {
     // Get all offline user keys
     const keys = await redis.keys("offline:*");
-   
+    // console.log(keys,"check keys from worker")
 
     for (const key of keys) {
       const recipientId = key.split(":")[1];
@@ -82,7 +82,7 @@ const emailNotificationWorker = new Worker(
 );
 
 emailNotificationWorker.on("completed", (job) => {
-  console.log(`Email notification sent for job ${job.id}`);
+  // console.log(`Email notification sent for job ${job.id}`);
 });
 
 emailNotificationWorker.on("failed", (job: any, err) => {

@@ -10,7 +10,7 @@ const offerSend = async (userId: string, offerId: string) => {
     .populate("clientEmail")
     .populate("professionalEmail");
 
-  const client = offer?.clientEmail as any;
+
   const professional=offer?.professionalEmail as any
 
   if (!user || !offer) {
