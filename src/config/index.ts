@@ -42,29 +42,32 @@ export default {
     paypalClientId: process.env.PAYPAL_CLIENT_ID,
     paypalSecretId: process.env.PAYPAL_SECRET_ID,
   },
-  zoom:{
-    zoomClientId:process.env.ZOOM_CLIENT_ID,
-    zoomClientSecret:process.env.ZOOM_CLIENT_SECRET,
-    zoomAccountId:process.env.ZOOM_ACCOUNT_ID,
-    zooomDevelopmentClientId:process.env.ZOOM_DEVELOPMENT_CLIENT_ID,
-    zoomDevelopmentClientSecret:process.env.ZOOM_DEVELOPMENT_CLIENT_SECRET
+  zoom: {
+    zoomClientId: process.env.ZOOM_CLIENT_ID,
+    zoomClientSecret: process.env.ZOOM_CLIENT_SECRET,
+    zoomAccountId: process.env.ZOOM_ACCOUNT_ID,
+    zooomDevelopmentClientId: process.env.ZOOM_DEVELOPMENT_CLIENT_ID,
+    zoomDevelopmentClientSecret: process.env.ZOOM_DEVELOPMENT_CLIENT_SECRET,
   },
-  stripe:{
-    secretKey:process.env.STRIPE_SECRET_KEY,
-    publishableKey:process.env.STRIPE_PUBLISHABLE_KEY,
-    webhookSecret:process.env.STRIPE_WEBHOOK_SECRET_KEY,
-    accountId:process.env.STRIPE_ACCOUNT_ID
+  stripe: {
+    secretKey: process.env.STRIPE_SECRET_KEY,
+    publishableKey: process.env.STRIPE_PUBLISHABLE_KEY,
+    webhookSecret: process.env.STRIPE_WEBHOOK_SECRET_KEY,
+    accountId: process.env.STRIPE_ACCOUNT_ID,
   },
-  braintree:{
-    merchantId:process.env.BRAINTREE_MERCHANT_ID,
-    publicKey:process.env.BRAINTREE_PUBLIC_KEY,
-    privateKey:process.env.BRAITREE_PRIVATE_KEY
+  braintree: {
+    merchantId: process.env.BRAINTREE_MERCHANT_ID,
+    publicKey: process.env.BRAINTREE_PUBLIC_KEY,
+    privateKey: process.env.BRAITREE_PRIVATE_KEY,
   },
   emailSender: {
     email: process.env.EMAIL,
     app_pass: process.env.APP_PASS,
   },
-   brevo: {
+  brevo: {
     brevo_api_key: process.env.BREVO_API_KEY,
+  },
+  otp_secret: {
+    forget_password_secret: process.env.FORGET_PASSWORD_SECRET,
   },
 };

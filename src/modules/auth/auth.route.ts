@@ -4,6 +4,7 @@ import { AuthController } from "./auth.controller";
 import auth from "../../middlewares/auth";
 import { ENUM_USER_ROLE } from "../../enums/user";
 import { multerUpload } from "../../middlewares/multer";
+import forgetVerify from "../../middlewares/forgetVerify";
 
 const router = express.Router();
 export const AuthRoute = router;
@@ -47,10 +48,17 @@ router.patch(
   AuthController.updateCoverPhoto
 );
 router.get("/get-single-user/:id", AuthController.getSingleUserById);
-router.patch("/delete-user/:id",auth(ENUM_USER_ROLE.ADMIN),
-AuthController.delteUser);
-router.patch("/update-status/:id",auth(ENUM_USER_ROLE.ADMIN),
-AuthController.updateUserStatus);
-router.post("/forget-password", auth(), AuthController.forgotPassword);
-router.patch("/reset-password", auth(), AuthController.resetPassword);
+router.patch(
+  "/delete-user/:id",
+  auth(ENUM_USER_ROLE.ADMIN),
+  AuthController.delteUser
+);
+router.patch(
+  "/update-status/:id",
+  auth(ENUM_USER_ROLE.ADMIN),
+  AuthController.updateUserStatus
+);
+router.post("/forget-password", AuthController.forgotPassword);
+router.patch("/reset-password",forgetVerify(),  AuthController.resetPassword);
 router.get("/search-service", auth(), AuthController.searchService);
+router.post("/forget-password-verify", AuthController.verfiyForgetOtp);

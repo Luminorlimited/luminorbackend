@@ -49,7 +49,7 @@ const emailNotificationWorker = new Worker(
   async () => {
     // Get all offline user keys
     const keys = await redis.keys("offline:*");
-    console.log(keys,"check keys from worker")
+   
 
     for (const key of keys) {
       const recipientId = key.split(":")[1];
