@@ -64,14 +64,14 @@ const createProfessional = async (
       cvOrCoverLetter: fileUrl,
     };
 
-    // Create Professional Data
+
     await RetireProfessional.create([newProfessionalData], { session });
 
     // Commit Transaction
     await session.commitTransaction();
     session.endSession();
 
-    // Send onboarding email **only after a successful transaction**
+   
     const html = `<!DOCTYPE html>
     <html lang="en">
     <head>
