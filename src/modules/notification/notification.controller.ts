@@ -51,79 +51,51 @@ const updateMessageNotification = catchAsync(
   }
 );
 const messageCount = catchAsync(async (req: Request, res: Response) => {
-  console.log("✅ [SSE] /message-count route hit");
-
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
-
-  // Flush headers immediately so the client gets them
   res.flushHeaders();
 
   const user: any = req.user;
-  console.log("✅ [SSE] Authenticated User ID:", user?.id);
-
-  if (!user?.id) {
-    console.log("❌ [SSE] Missing user ID. Aborting SSE.");
-    res.write(`event: error\ndata: ${JSON.stringify({ message: "Unauthorized" })}\n\n`);
-    res.end();
-    return;
-  }
-
   if (!sseConnections[user.id]) {
     sseConnections[user.id] = [];
   }
-
   sseConnections[user.id].push(res);
-  console.log("✅ [SSE] Current SSE Connections:", Object.keys(sseConnections));
 
-  // Initial response
-  res.write(`event: connected\ndata: "SSE connected for user ${user.id}"\n\n`);
-
+  res.write(`event: connected\ndata: "SSE connected"\n\n`);
   try {
     const sendData = async () => {
-      try {
-        const count = await NotificationService.messageCount(user.id);
-        console.log("✅ [SSE] Sending message count:", count);
-        res.write(`event:message-count\ndata: ${JSON.stringify({ count })}\n\n`);
-      } catch (err) {
-        console.log("❌ [SSE] Error while sending count:", err);
-      }
+      const count = await NotificationService.messageCount(user.id);
+      res.write(`event:message-count\ndata: ${JSON.stringify({ count })}\n\n`);
     };
-
-    const eventHandler = async ({ userId: targetUserId }: { userId: string }) => {
-      console.log("ℹ️ [SSE] Event triggered for user:", targetUserId);
+    const eventHandler = async ({
+      userId: targetUserId,
+    }: {
+      userId: string;
+    }) => {
       if (targetUserId === user.id) {
         await sendData();
       }
     };
 
-    // Send initial data
     await sendData();
-
-    // Subscribe to future events
     eventEmitter.on("event:message-count", eventHandler);
 
-    // Heartbeat
     const heartbeat = setInterval(() => {
       res.write(`:\n\n`);
-      console.log("🔁 [SSE] Heartbeat sent for user:", user.id);
-    }, 300 * 1000); // 5 minutes
+    }, 300 * 1000);
 
     req.on("close", () => {
       clearInterval(heartbeat);
       eventEmitter.off("event:message-count", eventHandler);
-      sseConnections[user.id] = sseConnections[user.id].filter((r) => r !== res);
-      console.log("🛑 [SSE] Connection closed for user:", user.id);
       res.end();
     });
-
   } catch (error) {
-    console.log("❌ [SSE] Unexpected error:", error);
     res.write(
-      `event: error\ndata: ${JSON.stringify({ message: "Unexpected SSE error" })}\n\n`
+      `event: error\ndata: ${JSON.stringify({
+        message: "Unexpected SSE error",
+      })}\n\n`
     );
-    res.end();
   }
 });
 
