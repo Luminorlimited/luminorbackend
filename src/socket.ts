@@ -35,15 +35,37 @@ export function initializeSocket(io: Server) {
     });
 
     socket.on("userInChat", (data: any) => {
+      
       try {
         const { userId, chattingWith } = JSON.parse(data);
+    
+
         if (chattingWith) {
           userInChat.set(userId, chattingWith);
+         
+
+          // ✅ Emit confirmation to the current socket
+          socket.emit("chat-joined", {
+            success: true,
+            message: `Chat joined with user ID: ${chattingWith}`,
+            chattingWith,
+          });
         } else {
           userInChat.delete(userId);
+
+          // ✅ Optional: notify user they exited chat
+          socket.emit("chat-left", {
+            success: true,
+            message: `Chat context cleared for user ID: ${userId}`,
+          });
         }
       } catch (error) {
         console.error("Error in userInChat:", error);
+
+        socket.emit("chat-join-error", {
+          success: false,
+          message: "Failed to update active chat user.",
+        });
       }
     });
 
@@ -51,14 +73,16 @@ export function initializeSocket(io: Server) {
       try {
         const { toUserId, message, fromUserId, media, mediaUrl } =
           JSON.parse(data);
+
         if (!fromUserId) {
           return socket.emit("error", { message: "Sender ID is required" });
         }
 
-        const toSocketId = users[toUserId];
+        const toSocketId = users[toUserId]; // Check if user is online
         const recipientInChatWith = userInChat.get(toUserId);
         const isUnseen = recipientInChatWith !== fromUserId;
 
+        // Save the message
         const savedMessage = await MessageService.createMessage({
           sender: fromUserId,
           message: message || null,
@@ -67,14 +91,13 @@ export function initializeSocket(io: Server) {
           isUnseen,
         });
 
-        const toEmailConversationList =
-          await MessageService.getConversationLists(toUserId);
-
+        // Populate for frontend
         const populatedMessage: any = await Message.findById(savedMessage._id)
           .populate({ path: "sender", select: "name email _id" })
           .populate({ path: "recipient", select: "name email _id" })
           .lean();
 
+        // Emit to recipient if online
         if (toSocketId) {
           socket.to(toSocketId).emit("privateMessage", {
             message: populatedMessage,
@@ -82,10 +105,24 @@ export function initializeSocket(io: Server) {
             toUserId,
           });
 
+          // Update recipient's conversation list
+          const toEmailConversationList =
+            await MessageService.getConversationLists(toUserId);
           if (toEmailConversationList) {
-            socket.to(toSocketId).emit("conversation-list", toEmailConversationList);
+            socket
+              .to(toSocketId)
+              .emit("conversation-list", toEmailConversationList);
           }
+        } else {
+          // Handle offline fallback
+          handleOfflineMessage(
+            toUserId,
+            populatedMessage?.sender.name.firstName
+          );
+        }
 
+        // Only create notification if recipient is not actively chatting with sender
+        if (isUnseen) {
           await NotificationService.createNotification(
             {
               recipient: toUserId,
@@ -96,12 +133,12 @@ export function initializeSocket(io: Server) {
             },
             "sendNotification"
           );
-        } else {
-          handleOfflineMessage(toUserId, populatedMessage?.sender.name.firstName);
         }
       } catch (error) {
         console.error("Error in privateMessage:", error);
-        socket.emit("privateMessage-error", { message: "Failed to send message." });
+        socket.emit("privateMessage-error", {
+          message: "Failed to send message.",
+        });
       }
     });
 
@@ -141,7 +178,9 @@ export function initializeSocket(io: Server) {
           });
 
           if (toEmailConversationList) {
-            socket.to(toSocketId).emit("conversation-list", toEmailConversationList);
+            socket
+              .to(toSocketId)
+              .emit("conversation-list", toEmailConversationList);
           }
         }
       } catch (error) {
@@ -235,12 +274,16 @@ export function initializeSocket(io: Server) {
           });
 
           if (toEmailConversationList) {
-            socket.to(toSocketId).emit("conversation-list", toEmailConversationList);
+            socket
+              .to(toSocketId)
+              .emit("conversation-list", toEmailConversationList);
           }
         }
       } catch (error) {
         console.error("Error in createZoomMeeting:", error);
-        socket.emit("zoomMeetingError", { message: "Failed to create Zoom meeting" });
+        socket.emit("zoomMeetingError", {
+          message: "Failed to create Zoom meeting",
+        });
       }
     });
 

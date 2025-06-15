@@ -65,7 +65,7 @@ const emailNotificationWorker = new Worker(
       }
 
       const senderList = senders.join(", ");
-      console.log(senderList,"check sender list")
+     
 
       emailWorker.messageSend(
         senderList,
