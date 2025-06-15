@@ -24,7 +24,7 @@ redis.on("connect", () => console.log("✅ Redis connected successfully"));
 redis.on("error", (err: any) => console.error("❌ Redis error:", err));
 redis.on("close", () => console.warn("⚠️ Redis connection closed"));
 redis.on("reconnecting", (delay: any) =>
-  console.log(`♻️ Redis reconnecting in ${delay}ms`)
+  console.log(`♻️ Redis reconnecting in ${delay}ms to check`)
 );
 redis.on("end", () => console.error("❌ Redis connection ended"));
 
