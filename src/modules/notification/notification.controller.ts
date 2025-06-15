@@ -62,94 +62,96 @@ const messageCount = catchAsync(async (req: Request, res: Response) => {
   }
   sseConnections[user.id].push(res);
 
+  // Send initial connection event
   res.write(`event: connected\ndata: "SSE connected"\n\n`);
-  try {
-    const sendData = async () => {
+
+  const sendData = async () => {
+    try {
       const count = await NotificationService.messageCount(user.id);
       res.write(`event:message-count\ndata: ${JSON.stringify({ count })}\n\n`);
-    };
-    const eventHandler = async ({
-      userId: targetUserId,
-    }: {
-      userId: string;
-    }) => {
-      if (targetUserId === user.id) {
-        await sendData();
-      }
-    };
+    } catch (err) {
+      // Optional: Log or handle error on sendData
+    }
+  };
 
-    await sendData();
-    eventEmitter.on("event:message-count", eventHandler);
+  const eventHandler = async ({ userId: targetUserId }: { userId: string }) => {
+    if (targetUserId === user.id) {
+      await sendData();
+    }
+  };
 
-    const heartbeat = setInterval(() => {
-      res.write(`:\n\n`);
-    }, 300 * 1000);
+  await sendData();
+  eventEmitter.on("event:message-count", eventHandler);
 
-    req.on("close", () => {
+  // Heartbeat to keep connection alive every 5 minutes
+  const heartbeat = setInterval(() => {
+    try {
+      res.write(":\n\n"); // SSE comment to keep connection alive
+    } catch {
+      // Client disconnected
       clearInterval(heartbeat);
-      eventEmitter.off("event:message-count", eventHandler);
-      res.end();
-    });
-  } catch (error) {
-    res.write(
-      `event: error\ndata: ${JSON.stringify({
-        message: "Unexpected SSE error",
-      })}\n\n`
-    );
-  }
+    }
+  }, 300000);
+
+  req.on("close", () => {
+    clearInterval(heartbeat);
+    eventEmitter.off("event:message-count", eventHandler);
+
+    // Remove this response from sseConnections[user.id] to avoid memory leaks
+    sseConnections[user.id] = sseConnections[user.id].filter(r => r !== res);
+
+    res.end();
+  });
 });
 
-const otherNotificationCount = catchAsync(
-  async (req: Request, res: Response) => {
-    res.setHeader("Content-Type", "text/event-stream");
-    res.setHeader("Cache-Control", "no-cache");
-    res.setHeader("Connection", "keep-alive");
-    res.flushHeaders();
+const otherNotificationCount = catchAsync(async (req: Request, res: Response) => {
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+  res.flushHeaders();
 
-    const user: any = req.user;
-    if (!sseConnections[user.id]) {
-      sseConnections[user.id] = [];
-    }
-    sseConnections[user.id].push(res);
-    res.write(`event: connected\ndata: "SSE connected"\n\n`);
-    try {
-      const sendData = async () => {
-        const count = await NotificationService.otherNotificationCount(user.id);
-        res.write(
-          `event:notification-count\ndata: ${JSON.stringify({ count })}\n\n`
-        );
-      };
-      await sendData()
-      const eventHandler = async ({
-        userId: targetUserId,
-      }: {
-        userId: string;
-      }) => {
-        if (targetUserId === user.id) {
-          await sendData();
-        }
-      };
-
-      eventEmitter.on("event:notification-count", eventHandler);
-
-      const heartbeat = setInterval(() => {
-        res.write(`:\n\n`);
-      }, 300 * 1000);
-
-      req.on("close", () => {
-        clearInterval(heartbeat);
-        eventEmitter.off("event:notification-count", eventHandler);
-        res.end();
-      });
-    } catch (error) {
-      res.write(
-        `event: error\ndata: ${JSON.stringify({
-          message: "Unexpected SSE error",
-        })}\n\n`
-      );
-    }
+  const user: any = req.user;
+  if (!sseConnections[user.id]) {
+    sseConnections[user.id] = [];
   }
-);
+  sseConnections[user.id].push(res);
+
+  res.write(`event: connected\ndata: "SSE connected"\n\n`);
+
+  const sendData = async () => {
+    try {
+      const count = await NotificationService.otherNotificationCount(user.id);
+      res.write(`event:notification-count\ndata: ${JSON.stringify({ count })}\n\n`);
+    } catch (err) {
+      // Optional: Log or handle error
+    }
+  };
+
+  const eventHandler = async ({ userId: targetUserId }: { userId: string }) => {
+    if (targetUserId === user.id) {
+      await sendData();
+    }
+  };
+
+  await sendData();
+  eventEmitter.on("event:notification-count", eventHandler);
+
+  const heartbeat = setInterval(() => {
+    try {
+      res.write(":\n\n");
+    } catch {
+      clearInterval(heartbeat);
+    }
+  }, 300000);
+
+  req.on("close", () => {
+    clearInterval(heartbeat);
+    eventEmitter.off("event:notification-count", eventHandler);
+    sseConnections[user.id] = sseConnections[user.id].filter(r => r !== res);
+    res.end();
+  });
+});
+
 export const NotificationController = {
   getUserNotification,
   updateNotification,
