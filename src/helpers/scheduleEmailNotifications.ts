@@ -7,7 +7,7 @@ export async function scheduleEmailNotifications() {
     {
       jobId: "emailNotificationRepeatJob",
       repeat: {
-        every: 1000 * 60 * 60 * 6,
+        every: 1000 * 60 * 60 * 12,
          
       },
       removeOnComplete: true,
