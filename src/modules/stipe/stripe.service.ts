@@ -197,28 +197,38 @@ const createPaymentIntentService = async (payload: any) => {
     const toSocketId = users[recipientId._id.toString()];
     if (toSocketId) {
       io.to(toSocketId).emit("privateMessage", {
-        _id: messageId,
-        sender: {
-          _id: senderId._id,
-          name: senderId.name,
-          email: senderId.email,
+        message: {
+          _id: messageId,
+          sender: {
+            _id: senderId._id,
+            name: {
+              firstName: senderId.name.firstName,
+              lastName: senderId.name.lastName,
+            },
+            email: senderId.email,
+          },
+          recipient: {
+            _id: recipientId._id,
+            name: {
+              firstName: recipientId.name.firstName,
+              lastName: recipientId.name.lastName,
+            },
+            email: recipientId.email,
+          },
+          message: messageContent,
+          timestamp,
+          isUnseen: true,
+          status: "pending",
         },
-        recipient: {
-          _id: recipientId._id,
-          name: recipientId.name,
-          email: recipientId.email,
-        },
-        message: messageContent,
-        timestamp,
-        status: "pending",
+        fromUserId: senderId._id,
+        toUserId: recipientId._id,
       });
     }
 
     (async () => {
       try {
-    
         const payload = {
-          _id:messageId,
+          _id: messageId,
           sender: senderId._id,
           recipient: recipientId._id,
 
@@ -228,9 +238,7 @@ const createPaymentIntentService = async (payload: any) => {
           createdAt: timestamp,
           updatedAt: timestamp,
         };
-      await MessageService.createMessage(
-          payload as IMessage
-        );
+        await MessageService.createMessage(payload as IMessage);
 
         const senderSocketId = users[senderId._id.toString()];
         if (senderSocketId) {
@@ -304,7 +312,6 @@ const deliverRequest = async (orderId: string) => {
     recipient: recipientId._id,
     isUnseen: true,
   });
-
 
   const populatedMessage = await Message.findById(savedMessage._id)
     .populate({ path: "sender", select: "name email _id" })
@@ -403,7 +410,7 @@ const deliverProject = async (orderId: string) => {
   return { transfer, updateTransaction };
 };
 const revision = async (orderId: string, clientId: string, payload: any) => {
-  console.log(payload,"check revision")
+  console.log(payload, "check revision");
   const order: any = await Order.findById(orderId)
     .populate("orderFrom")
     .populate("orderReciver");
