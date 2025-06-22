@@ -191,13 +191,15 @@ const getSingleOffer = async (id: string) => {
   };
 };
 const deleteSingleOffer = async (id: string) => {
-  // Delete the offer and populate client info
+  // Delete the offer and populate client and professional info
   const offer: any = await Offer.findByIdAndDelete(id)
     .populate("clientEmail")
     .populate("professionalEmail");
+
   if (!offer) throw new ApiError(StatusCodes.NOT_FOUND, "Offer not found");
 
   const messageContent = `Your offer has been declined, please speak to the retired professional`;
+
   const sender = offer.clientEmail;
   const recipient = offer.professionalEmail;
 
@@ -207,24 +209,33 @@ const deleteSingleOffer = async (id: string) => {
   const tempMessageId = new mongoose.Types.ObjectId();
   const toSocketId = users[recipientId.toString()];
 
-
-
- 
-   await MessageService.createMessage({
+  // Emit private message with the correct structure
+  await MessageService.createMessage({
     _id: tempMessageId,
     sender: senderId,
     recipient: recipientId,
     message: messageContent,
     isUnseen: true,
   });
- if (toSocketId) {
+
+  if (toSocketId) {
     io.to(toSocketId).emit("privateMessage", {
       message: {
         _id: tempMessageId,
-        sender: { _id: senderId, name: sender.name, email: sender.email },
+        sender: {
+          _id: senderId,
+          name: {
+            firstName: sender.name.firstName,
+            lastName: sender.name.lastName,
+          },
+          email: sender.email,
+        },
         recipient: {
           _id: recipientId,
-          name: recipient.name,
+          name: {
+            firstName: recipient.name.firstName,
+            lastName: recipient.name.lastName,
+          },
           email: recipient.email,
         },
         message: messageContent,
@@ -237,7 +248,7 @@ const deleteSingleOffer = async (id: string) => {
     });
   }
 
-  // ✅ Create a notification
+  // Create a notification
   const notificationData: INotification = {
     recipient: recipientId,
     sender: senderId,
@@ -253,6 +264,7 @@ const deleteSingleOffer = async (id: string) => {
 
   return offer;
 };
+
 const countOffer = async (email: string) => {
   const totalUnseen = await Offer.find({
     clientEmail: email,
