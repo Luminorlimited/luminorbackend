@@ -54,15 +54,22 @@ const messageCount = catchAsync(async (req: Request, res: Response) => {
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
+  res.setHeader("X-Accel-Buffering", "no");
   res.flushHeaders();
 
   const user: any = req.user;
+  if (!user || !user.id) {
+   res.status(401).end();
+   return
+
+}
   // if (!sseConnections[user.id]) {
   //   sseConnections[user.id] = [];
   // }
   // sseConnections[user.id].push(res);
 
   // Send initial connection event
+  
   console.log("SSE connected from user", user.id);
   res.write(`event: connected\ndata: "SSE connected"\n\n`);
 
@@ -92,7 +99,7 @@ const messageCount = catchAsync(async (req: Request, res: Response) => {
       // Client disconnected
       clearInterval(heartbeat);
     }
-  }, 300000);
+  }, 10000);
 
   req.on("close", () => {
     clearInterval(heartbeat);
@@ -109,9 +116,15 @@ const otherNotificationCount = catchAsync(async (req: Request, res: Response) =>
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
+  res.setHeader("X-Accel-Buffering", "no");
   res.flushHeaders();
 
   const user: any = req.user;
+    if (!user || !user.id) {
+   res.status(401).end();
+   return
+
+}
   // if (!sseConnections[user.id]) {
   //   sseConnections[user.id] = [];
   // }
@@ -144,7 +157,7 @@ const otherNotificationCount = catchAsync(async (req: Request, res: Response) =>
     } catch {
       clearInterval(heartbeat);
     }
-  }, 300000);
+  }, 10000);
 
   req.on("close", () => {
     clearInterval(heartbeat);
