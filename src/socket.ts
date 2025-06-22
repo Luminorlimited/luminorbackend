@@ -13,6 +13,7 @@ import {
 import { emailWorker } from "./email/emailWorker";
 import { emailNotificationQueue } from "./utilitis/redis";
 import { handleOfflineMessage } from "./helpers/handleOfflineMessage";
+import mongoose from "mongoose";
 
 export const users: { [key: string]: string } = {};
 export const onlineUsers = new Map<string, boolean>();
@@ -204,6 +205,7 @@ export function initializeSocket(io: Server) {
         };
 
         const newOffer = await OfferService.createOffer(totalOffer);
+        
         emailWorker.offerSend(toEmail.toString(), newOffer?._id.toString()!);
 
         socket.emit("sendOfferSuccess", {

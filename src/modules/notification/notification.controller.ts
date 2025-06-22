@@ -70,7 +70,7 @@ const messageCount = catchAsync(async (req: Request, res: Response) => {
 
   // Send initial connection event
   
-  console.log("SSE connected from user", user.id);
+
   res.write(`event: connected\ndata: "SSE connected"\n\n`);
 
   const sendData = async () => {
@@ -125,11 +125,7 @@ const otherNotificationCount = catchAsync(async (req: Request, res: Response) =>
    return
 
 }
-  // if (!sseConnections[user.id]) {
-  //   sseConnections[user.id] = [];
-  // }
-  // sseConnections[user.id].push(res);
-  console.log("SSE connected from user", user.id);
+
 
   res.write(`event: connected\ndata: "SSE connected"\n\n`);
 
