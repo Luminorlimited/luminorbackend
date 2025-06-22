@@ -63,6 +63,7 @@ const messageCount = catchAsync(async (req: Request, res: Response) => {
   // sseConnections[user.id].push(res);
 
   // Send initial connection event
+  console.log("SSE connected from user", user.id);
   res.write(`event: connected\ndata: "SSE connected"\n\n`);
 
   const sendData = async () => {
@@ -100,7 +101,7 @@ const messageCount = catchAsync(async (req: Request, res: Response) => {
     // Remove this response from sseConnections[user.id] to avoid memory leaks
  
 
-    res.end();
+
   });
 });
 
@@ -115,6 +116,7 @@ const otherNotificationCount = catchAsync(async (req: Request, res: Response) =>
   //   sseConnections[user.id] = [];
   // }
   // sseConnections[user.id].push(res);
+  console.log("SSE connected from user", user.id);
 
   res.write(`event: connected\ndata: "SSE connected"\n\n`);
 
@@ -148,7 +150,7 @@ const otherNotificationCount = catchAsync(async (req: Request, res: Response) =>
     clearInterval(heartbeat);
     eventEmitter.off("event:notification-count", eventHandler);
     
-    res.end();
+
   });
 });
 
