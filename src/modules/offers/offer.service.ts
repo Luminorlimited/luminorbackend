@@ -23,18 +23,25 @@ const stripe = new Stripe(config.stripe.secretKey as string, {
 });
 const createOffer = async (offer: IOffer) => {
   const professional = await User.findById(offer.professionalEmail);
+  const client = await User.findById(offer.clientEmail);
 
-  let stripeAccount;
-  if (!professional?.isActivated) {
+  if (!professional || !professional.isActivated) {
     throw new ApiError(
       StatusCodes.BAD_REQUEST,
-      "your account is not activate yet"
+      "Your account is not activated yet"
     );
   }
-  if (professional?.stripe?.customerId) {
-    stripeAccount = await stripe.accounts.retrieve(
-      professional.stripe.customerId
+
+  if (!client) {
+    throw new ApiError(
+      StatusCodes.BAD_REQUEST,
+      "Client not found"
     );
+  }
+
+  let stripeAccount;
+  if (professional.stripe?.customerId) {
+    stripeAccount = await stripe.accounts.retrieve(professional.stripe.customerId);
 
     if (!stripeAccount.details_submitted || !stripeAccount.charges_enabled) {
       await StripeServices.generateNewAccountLink(professional);
@@ -43,36 +50,35 @@ const createOffer = async (offer: IOffer) => {
         "We sent you an onboarding URL. Please check your email."
       );
     }
+
+    await RetireProfessionalService.updateProfessionalStripeAccount(stripeAccount);
   }
 
-  await RetireProfessionalService.updateProfessionalStripeAccount(
-    stripeAccount
-  );
+  // Calculate pricing
   offer.serviceFee = parseFloat(offer.totalPrice.toString()) * 0.2;
   offer.totalReceive = parseFloat(offer.totalPrice.toString());
-  offer.totalPrice =
-    parseFloat(offer.totalPrice.toString()) +
-    parseFloat(offer.serviceFee.toString());
+  offer.totalPrice = offer.totalReceive + offer.serviceFee;
 
+  // Calculate delivery time
   if (offer.agreementType === AgreementType.FlatFee) {
     offer.totalDeliveryTime = offer.flatFee?.delivery
       ? parseFloat(offer.flatFee.delivery.toString())
       : 0;
   } else if (offer.agreementType === AgreementType.HourlyFee) {
-    offer.totalDeliveryTime = offer.hourlyFee
-      ? parseFloat(offer.hourlyFee.delivery.toString()) || 0
+    offer.totalDeliveryTime = offer.hourlyFee?.delivery
+      ? parseFloat(offer.hourlyFee.delivery.toString())
       : 0;
   } else if (
     offer.agreementType === AgreementType.Milestone &&
     offer.milestones
   ) {
-    offer.totalDeliveryTime = offer?.milestones.reduce(
-      (total, milestone) =>
-        parseFloat(total.toString()) +
-        (parseFloat(milestone.delivery.toString()) || 0),
+    offer.totalDeliveryTime = offer.milestones.reduce(
+      (total, milestone) => total + parseFloat(milestone.delivery.toString() || '0'),
       0
     );
   }
+
+  // Create and update offer
   const newOffer = await Offer.create(offer);
   const unseenCount = await Offer.countDocuments({
     clientEmail: offer.clientEmail,
@@ -85,23 +91,61 @@ const createOffer = async (offer: IOffer) => {
     { new: true }
   );
 
-  const notificationData: INotification = {
-    recipient: offer.clientEmail as mongoose.Types.ObjectId,
-    sender: offer.professionalEmail as mongoose.Types.ObjectId,
-    message: `You have received a new offer from ${
-      professional.name.firstName + " " + professional.name.lastName
-    }`,
-    type: ENUM_NOTIFICATION_TYPE.OFFER,
-    status: ENUM_NOTIFICATION_STATUS.UNSEEN,
-  };
+  // Prepare notification and socket message
+  const notificationMessage = `You have received a new offer from ${professional.name.firstName} ${professional.name.lastName}`;
 
+  const senderId = offer.professionalEmail as mongoose.Types.ObjectId;
+  const recipientId = offer.clientEmail as mongoose.Types.ObjectId;
+
+  const tempMessageId = new mongoose.Types.ObjectId();
+
+  const toSocketId = users[recipientId.toString()];
+ 
+
+  await MessageService.createMessage({
+    _id: tempMessageId,
+    sender: senderId,
+    recipient: recipientId,
+    message: notificationMessage,
+    isUnseen: true,
+  });
+ if (toSocketId) {
+    io.to(toSocketId).emit("privateMessage", {
+      message: {
+        _id: tempMessageId,
+        sender: {
+          _id: senderId,
+          name: professional.name,
+          email: professional.email,
+        },
+        recipient: {
+          _id: recipientId,
+          name: client.name,
+          email: client.email,
+        },
+        message: notificationMessage,
+        timestamp: new Date(),
+        isUnseen: true,
+        status: "pending",
+      },
+      fromUserId: senderId,
+      toUserId: recipientId,
+    });
+  }
   await NotificationService.createNotification(
-    notificationData,
+    {
+      recipient: recipientId,
+      sender: senderId,
+      message: notificationMessage,
+      type: ENUM_NOTIFICATION_TYPE.OFFER,
+      status: ENUM_NOTIFICATION_STATUS.UNSEEN,
+    },
     "sendNotification"
   );
 
   return result;
 };
+
 
 const getOffersByProfessional = async (email: string) => {
   // Fetch offers sorted by latest createdAt (descending order)
@@ -164,7 +208,16 @@ const deleteSingleOffer = async (id: string) => {
   const toSocketId = users[recipientId.toString()];
 
 
-  if (toSocketId) {
+
+ 
+   await MessageService.createMessage({
+    _id: tempMessageId,
+    sender: senderId,
+    recipient: recipientId,
+    message: messageContent,
+    isUnseen: true,
+  });
+ if (toSocketId) {
     io.to(toSocketId).emit("privateMessage", {
       message: {
         _id: tempMessageId,
@@ -183,14 +236,6 @@ const deleteSingleOffer = async (id: string) => {
       toUserId: recipientId,
     });
   }
-
-  const savedMessage = await MessageService.createMessage({
-    _id: tempMessageId,
-    sender: senderId,
-    recipient: recipientId,
-    message: messageContent,
-    isUnseen: true,
-  });
 
   // ✅ Create a notification
   const notificationData: INotification = {
