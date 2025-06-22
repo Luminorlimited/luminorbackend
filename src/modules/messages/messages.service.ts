@@ -40,7 +40,7 @@ const createMessage = async (payload: IMessage) => {
   }
 
   // Prepare message data
-  const data = {
+  const data:any = {
     sender: payload.sender,
     recipient: payload.recipient,
     message: payload.message || null,
@@ -49,7 +49,10 @@ const createMessage = async (payload: IMessage) => {
     room: checkRoom._id,
   };
 
-  // Create message
+ if (payload._id) {
+    data._id = payload._id;
+  }
+
   const message = await Message.create(data);
 
   // Generate last message content safely

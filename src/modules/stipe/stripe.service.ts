@@ -24,6 +24,7 @@ import {
 import { NotificationService } from "../notification/notification.service";
 import { off } from "pdfkit";
 import moment from "moment";
+import { IMessage } from "../messages/messages.interface";
 const stripe = new Stripe(config.stripe_key as string, {
   apiVersion: "2025-01-27.acacia",
 });
@@ -181,54 +182,86 @@ const createPaymentIntentService = async (payload: any) => {
       { session }
     );
 
-    await session.commitTransaction(); // Commit the transaction after all operations are successful
+    await session.commitTransaction();
 
-    const messageContent = `Your offer has been accepted By ${
-      offer.clientEmail?.name.firstName + offer.clientEmail.name.lastName
-    }.`;
     const senderId = offer.clientEmail;
     const recipientId = offer.professionalEmail;
+    const messageId = new mongoose.Types.ObjectId();
+    const messageContent = `Your offer has been accepted By ${
+      offer.clientEmail?.name.firstName + offer.clientEmail.name.lastName
+    }.\nView details: https://www.luminor-ltd.com/clientOrder/${
+      orderResult[0]._id
+    }`;
+    const timestamp = new Date();
 
-    const savedMessage = await MessageService.createMessage({
-      sender: senderId,
-      message: messageContent,
-      recipient: recipientId,
-      isUnseen: true,
-    });
+    const toSocketId = users[recipientId._id.toString()];
+    if (toSocketId) {
+      io.to(toSocketId).emit("privateMessage", {
+        _id: messageId,
+        sender: {
+          _id: senderId._id,
+          name: senderId.name,
+          email: senderId.email,
+        },
+        recipient: {
+          _id: recipientId._id,
+          name: recipientId.name,
+          email: recipientId.email,
+        },
+        message: messageContent,
+        timestamp,
+        status: "pending",
+      });
+    }
 
-    const populatedMessage = await Message.findById(savedMessage._id)
-      .populate({ path: "sender", select: "name email _id" })
-      .populate({ path: "recipient", select: "name email _id" })
-      .lean();
+    (async () => {
+      try {
+    
+        const payload = {
+          _id:messageId,
+          sender: senderId._id,
+          recipient: recipientId._id,
+
+          message: messageContent,
+
+          isUnseen: true,
+          createdAt: timestamp,
+          updatedAt: timestamp,
+        };
+      await MessageService.createMessage(
+          payload as IMessage
+        );
+
+        const senderSocketId = users[senderId._id.toString()];
+        if (senderSocketId) {
+          io.to(senderSocketId).emit("messageSaved", {
+            _id: messageId,
+            status: "delivered",
+          });
+        }
+      } catch (err) {
+        console.error("Message save failed:", err);
+      }
+    })();
 
     const notificationData: INotification = {
       recipient: recipientId._id as mongoose.Types.ObjectId,
       sender: senderId._id as mongoose.Types.ObjectId,
-      message: `Your offer has been accepted By ${
-        offer.clientEmail?.name.firstName + offer.clientEmail.name.lastName
-      }.`,
+      message: messageContent,
       type: ENUM_NOTIFICATION_TYPE.OFFER,
       status: ENUM_NOTIFICATION_STATUS.UNSEEN,
       orderId: orderResult[0]._id,
     };
 
-    const notification = await NotificationService.createNotification(
+    await NotificationService.createNotification(
       notificationData,
       "sendNotification"
     );
-    const toSocketId = users[recipientId._id.toString()];
-    if (toSocketId) {
-      io.to(toSocketId).emit("privateMessage", {
-        message: populatedMessage,
-        fromUserId: senderId._id,
-        toUserId: recipientId._id,
-      });
-    }
   } catch (error) {
-    await session.abortTransaction(); // Rollback the transaction in case of any error
+    await session.abortTransaction();
     throw error;
   } finally {
-    session.endSession(); // Ensure the session ends
+    session.endSession();
   }
 
   return orderResult[0];
@@ -272,7 +305,7 @@ const deliverRequest = async (orderId: string) => {
     isUnseen: true,
   });
 
-  // Populate the message before sending
+
   const populatedMessage = await Message.findById(savedMessage._id)
     .populate({ path: "sender", select: "name email _id" })
     .populate({ path: "recipient", select: "name email _id" })
@@ -440,7 +473,7 @@ const revision = async (orderId: string, clientId: string, payload: any) => {
 
   return { updatedOrder, updateTransaction };
 };
-const generateNewAccountLink = async (user:any) => {
+const generateNewAccountLink = async (user: any) => {
   const accountLink = await stripe.accountLinks.create({
     account: user.stripe?.customerId as string,
     refresh_url: `https://www.luminor-ltd.com/user/editProfile/retireProfessional/${user._id}`,
