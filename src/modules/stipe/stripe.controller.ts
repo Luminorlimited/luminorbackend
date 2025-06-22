@@ -194,7 +194,7 @@ const revesion = catchAsync(async (req: any, res: any) => {
   sendResponse(res, {
     statusCode: 200,
     success: true,
-    message: "project deliver successfully",
+    message: "revision request send successfully",
     data: result,
   });
 });
