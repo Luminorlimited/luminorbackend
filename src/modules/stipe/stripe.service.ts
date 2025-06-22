@@ -195,6 +195,7 @@ const createPaymentIntentService = async (payload: any) => {
     const messageContent = `Your offer has been accepted By ${sender.name.firstName}${sender.name.lastName}.\nView details: https://www.luminor-ltd.com/clientOrder/${orderResult[0]._id}`;
 
     const toSocketId = users[recipient._id.toString()];
+   
     if (toSocketId) {
       io.to(toSocketId).emit("privateMessage", {
         message: {

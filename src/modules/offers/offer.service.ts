@@ -178,8 +178,8 @@ const getOffersByProfessional = async (email: string) => {
 
 const getSingleOffer = async (id: string) => {
   const offer = await Offer.findByIdAndUpdate(id, { isSeen: true })
-    .populate("clientEmail", "name")
-    .populate("professionalEmail", "name");
+    .populate("clientEmail", "name email")
+    .populate("professionalEmail", "name email");
   if (!offer) {
     throw new ApiError(StatusCodes.UNAUTHORIZED, "offer not found");
   }

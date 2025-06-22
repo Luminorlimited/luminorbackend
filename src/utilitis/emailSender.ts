@@ -57,7 +57,7 @@ subject: string, email: string, html: string
     },
   });
    } catch (error) {
-    console.log(error,'check error form email sender')
+    // console.log(error,'check error form email sender')
    }
 };
 
