@@ -119,6 +119,7 @@ const createPaymentIntentService = async (payload: any) => {
   const paymentMethodDetails = await stripe.paymentMethods.retrieve(
     payload.paymentMethodId
   );
+
   if (paymentMethodDetails.customer !== payload.customerId) {
     throw new Error("PaymentMethod does not belong to this customer.");
   }
@@ -184,77 +185,64 @@ const createPaymentIntentService = async (payload: any) => {
 
     await session.commitTransaction();
 
-    const senderId = offer.clientEmail;
-    const recipientId = offer.professionalEmail;
+    // ✅ Messaging section
+    const sender = offer.clientEmail;
+    const recipient = offer.professionalEmail;
+
     const messageId = new mongoose.Types.ObjectId();
-    const messageContent = `Your offer has been accepted By ${
-      offer.clientEmail?.name.firstName + offer.clientEmail.name.lastName
-    }.\nView details: https://www.luminor-ltd.com/clientOrder/${
-      orderResult[0]._id
-    }`;
     const timestamp = new Date();
 
-    const toSocketId = users[recipientId._id.toString()];
+    const messageContent = `Your offer has been accepted By ${sender.name.firstName}${sender.name.lastName}.\nView details: https://www.luminor-ltd.com/clientOrder/${orderResult[0]._id}`;
+
+    const toSocketId = users[recipient._id.toString()];
     if (toSocketId) {
       io.to(toSocketId).emit("privateMessage", {
         message: {
           _id: messageId,
           sender: {
-            _id: senderId._id,
+            _id: sender._id,
             name: {
-              firstName: senderId.name.firstName,
-              lastName: senderId.name.lastName,
+              firstName: sender.name.firstName,
+              lastName: sender.name.lastName,
             },
-            email: senderId.email,
+            email: sender.email,
           },
           recipient: {
-            _id: recipientId._id,
+            _id: recipient._id,
             name: {
-              firstName: recipientId.name.firstName,
-              lastName: recipientId.name.lastName,
+              firstName: recipient.name.firstName,
+              lastName: recipient.name.lastName,
             },
-            email: recipientId.email,
+            email: recipient.email,
           },
           message: messageContent,
           timestamp,
           isUnseen: true,
           status: "pending",
         },
-        fromUserId: senderId._id,
-        toUserId: recipientId._id,
+        fromUserId: sender._id,
+        toUserId: recipient._id,
       });
     }
 
-    (async () => {
-      try {
-        const payload = {
-          _id: messageId,
-          sender: senderId._id,
-          recipient: recipientId._id,
+    // ✅ Save message
+    await MessageService.createMessage({
+      _id: messageId,
+      sender: sender._id,
+      recipient: recipient._id,
+      message: messageContent,
+      isUnseen: true,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    } as IMessage);
 
-          message: messageContent,
+    // Optional: emit to sender that message was saved
+    
 
-          isUnseen: true,
-          createdAt: timestamp,
-          updatedAt: timestamp,
-        };
-        await MessageService.createMessage(payload as IMessage);
-
-        const senderSocketId = users[senderId._id.toString()];
-        if (senderSocketId) {
-          io.to(senderSocketId).emit("messageSaved", {
-            _id: messageId,
-            status: "delivered",
-          });
-        }
-      } catch (err) {
-        console.error("Message save failed:", err);
-      }
-    })();
-
+    // ✅ Notification
     const notificationData: INotification = {
-      recipient: recipientId._id as mongoose.Types.ObjectId,
-      sender: senderId._id as mongoose.Types.ObjectId,
+      recipient: recipient._id,
+      sender: sender._id,
       message: messageContent,
       type: ENUM_NOTIFICATION_TYPE.OFFER,
       status: ENUM_NOTIFICATION_STATUS.UNSEEN,
@@ -274,6 +262,7 @@ const createPaymentIntentService = async (payload: any) => {
 
   return orderResult[0];
 };
+
 
 const deliverRequest = async (orderId: string) => {
   const order = await OrderService.getOrderById(orderId);
