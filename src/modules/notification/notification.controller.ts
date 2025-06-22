@@ -57,10 +57,10 @@ const messageCount = catchAsync(async (req: Request, res: Response) => {
   res.flushHeaders();
 
   const user: any = req.user;
-  if (!sseConnections[user.id]) {
-    sseConnections[user.id] = [];
-  }
-  sseConnections[user.id].push(res);
+  // if (!sseConnections[user.id]) {
+  //   sseConnections[user.id] = [];
+  // }
+  // sseConnections[user.id].push(res);
 
   // Send initial connection event
   res.write(`event: connected\ndata: "SSE connected"\n\n`);
@@ -98,7 +98,7 @@ const messageCount = catchAsync(async (req: Request, res: Response) => {
     eventEmitter.off("event:message-count", eventHandler);
 
     // Remove this response from sseConnections[user.id] to avoid memory leaks
-    sseConnections[user.id] = sseConnections[user.id].filter(r => r !== res);
+ 
 
     res.end();
   });
@@ -111,10 +111,10 @@ const otherNotificationCount = catchAsync(async (req: Request, res: Response) =>
   res.flushHeaders();
 
   const user: any = req.user;
-  if (!sseConnections[user.id]) {
-    sseConnections[user.id] = [];
-  }
-  sseConnections[user.id].push(res);
+  // if (!sseConnections[user.id]) {
+  //   sseConnections[user.id] = [];
+  // }
+  // sseConnections[user.id].push(res);
 
   res.write(`event: connected\ndata: "SSE connected"\n\n`);
 
@@ -147,7 +147,7 @@ const otherNotificationCount = catchAsync(async (req: Request, res: Response) =>
   req.on("close", () => {
     clearInterval(heartbeat);
     eventEmitter.off("event:notification-count", eventHandler);
-    sseConnections[user.id] = sseConnections[user.id].filter(r => r !== res);
+    
     res.end();
   });
 });
