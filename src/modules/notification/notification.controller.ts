@@ -57,25 +57,24 @@ const messageCount = catchAsync(async (req: Request, res: Response) => {
   res.setHeader("X-Accel-Buffering", "no");
   res.flushHeaders();
 
-  const user: any = req.user;
-  if (!user || !user.id) {
-   res.status(401).end();
-   return
+  //   const user: any = req.user;
+  //   if (!user || !user.id) {
+  //    res.status(401).end();
+  //    return
 
-}
+  // }
   // if (!sseConnections[user.id]) {
   //   sseConnections[user.id] = [];
   // }
   // sseConnections[user.id].push(res);
 
   // Send initial connection event
-  
 
   res.write(`event: connected\ndata: "SSE connected"\n\n`);
 
   const sendData = async () => {
     try {
-      const count = await NotificationService.messageCount(user.id);
+      const count = await NotificationService.messageCount(req.params.id);
       res.write(`event:message-count\ndata: ${JSON.stringify({ count })}\n\n`);
     } catch (err) {
       // Optional: Log or handle error on sendData
@@ -83,7 +82,7 @@ const messageCount = catchAsync(async (req: Request, res: Response) => {
   };
 
   const eventHandler = async ({ userId: targetUserId }: { userId: string }) => {
-    if (targetUserId === user.id) {
+    if (targetUserId === req.params.id) {
       await sendData();
     }
   };
@@ -106,62 +105,66 @@ const messageCount = catchAsync(async (req: Request, res: Response) => {
     eventEmitter.off("event:message-count", eventHandler);
 
     // Remove this response from sseConnections[user.id] to avoid memory leaks
- 
-
-
   });
 });
 
-const otherNotificationCount = catchAsync(async (req: Request, res: Response) => {
-  res.setHeader("Content-Type", "text/event-stream");
-  res.setHeader("Cache-Control", "no-cache");
-  res.setHeader("Connection", "keep-alive");
-  res.setHeader("X-Accel-Buffering", "no");
-  res.flushHeaders();
+const otherNotificationCount = catchAsync(
+  async (req: Request, res: Response) => {
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.setHeader("X-Accel-Buffering", "no");
+    res.flushHeaders();
 
-  const user: any = req.user;
-    if (!user || !user.id) {
-   res.status(401).end();
-   return
+    //   const user: any = req.user;
+    //     if (!user || !user.id) {
+    //    res.status(401).end();
+    //    return
 
-}
+    // }
 
+    res.write(`event: connected\ndata: "SSE connected"\n\n`);
 
-  res.write(`event: connected\ndata: "SSE connected"\n\n`);
+    const sendData = async () => {
+      try {
+        const count = await NotificationService.otherNotificationCount(
+          req.params.id
+        );
+        res.write(
+          `event:notification-count\ndata: ${JSON.stringify({ count })}\n\n`
+        );
+      } catch (err) {
+        // Optional: Log or handle error
+      }
+    };
 
-  const sendData = async () => {
-    try {
-      const count = await NotificationService.otherNotificationCount(user.id);
-      res.write(`event:notification-count\ndata: ${JSON.stringify({ count })}\n\n`);
-    } catch (err) {
-      // Optional: Log or handle error
-    }
-  };
+    const eventHandler = async ({
+      userId: targetUserId,
+    }: {
+      userId: string;
+    }) => {
+      if (targetUserId === req.params.id) {
+        await sendData();
+      }
+    };
 
-  const eventHandler = async ({ userId: targetUserId }: { userId: string }) => {
-    if (targetUserId === user.id) {
-      await sendData();
-    }
-  };
+    await sendData();
+    eventEmitter.on("event:notification-count", eventHandler);
 
-  await sendData();
-  eventEmitter.on("event:notification-count", eventHandler);
+    const heartbeat = setInterval(() => {
+      try {
+        res.write(":\n\n");
+      } catch {
+        clearInterval(heartbeat);
+      }
+    }, 10000);
 
-  const heartbeat = setInterval(() => {
-    try {
-      res.write(":\n\n");
-    } catch {
+    req.on("close", () => {
       clearInterval(heartbeat);
-    }
-  }, 10000);
-
-  req.on("close", () => {
-    clearInterval(heartbeat);
-    eventEmitter.off("event:notification-count", eventHandler);
-    
-
-  });
-});
+      eventEmitter.off("event:notification-count", eventHandler);
+    });
+  }
+);
 
 export const NotificationController = {
   getUserNotification,

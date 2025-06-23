@@ -15,7 +15,7 @@ export const NotificationRoutes = router;
 // );
 
 router.get("/", auth(), NotificationController.getUserNotification);
-router.get("/message-count",auth(), NotificationController.messageCount);
-router.get("/notification-count",auth(),NotificationController.otherNotificationCount)
+router.get("/message-count/:id", NotificationController.messageCount);
+router.get("/notification-count/:id",NotificationController.otherNotificationCount)
 router.patch("/update-many", NotificationController.updateMessageNotification);
 router.patch("/:id", auth(), NotificationController.updateNotification);
