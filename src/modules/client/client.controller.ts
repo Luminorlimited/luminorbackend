@@ -19,7 +19,7 @@ const createClient = catchAsync(async (req: Request, res: Response) => {
       role,
       stripe: { onboardingUrl: "", customerId: "", isOnboardingSucess: false },
       password,
-      isActivated:IS_ACTIVATE.ACTIVE
+      isActivated: IS_ACTIVATE.ACTIVE,
     },
     others
   );
@@ -62,6 +62,7 @@ const updateSingleClient = catchAsync(async (req: Request, res: Response) => {
   const { name, ...clientProfile } = data;
   const { workSample, profileImage, ...others } = clientProfile;
   let updatedProfile = { ...others };
+  let auth:any = { name };
   const files = req.files as Express.Multer.File[];
   const fileMap: { [key: string]: Express.Multer.File } = {};
   if (files.length) {
@@ -84,8 +85,9 @@ const updateSingleClient = catchAsync(async (req: Request, res: Response) => {
       ...others,
       profileUrl: profileImageUrl,
     };
+    auth.profileUrl = profileImageUrl;
   }
-  const auth = { name };
+
   const result = await ClientService.updateSingleClient(
     id,
     auth,

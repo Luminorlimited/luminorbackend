@@ -45,7 +45,7 @@ const updateSingleRetireProfessional = catchAsync(
     let profileImageUrl;
 
     const { name, availability, ...retireProfessionalProfile } = req.body;
-    const auth = { name };
+    let auth:any = { name };
 
     let updatedProfile = { ...retireProfessionalProfile };
 
@@ -70,6 +70,7 @@ const updateSingleRetireProfessional = catchAsync(
         workSample: workSampleUrl,
         profileUrl: profileImageUrl,
       };
+      auth.profileUrl = profileImageUrl
     }
 
     if (availability) {
