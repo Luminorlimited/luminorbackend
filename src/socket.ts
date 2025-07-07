@@ -45,7 +45,7 @@ export function initializeSocket(io: Server) {
           userInChat.set(userId, chattingWith);
          
 
-          // ✅ Emit confirmation to the current socket
+          //  Emit confirmation to the current socket
           socket.emit("chat-joined", {
             success: true,
             message: `Chat joined with user ID: ${chattingWith}`,
@@ -54,7 +54,7 @@ export function initializeSocket(io: Server) {
         } else {
           userInChat.delete(userId);
 
-          // ✅ Optional: notify user they exited chat
+          //  Optional: notify user they exited chat
           socket.emit("chat-left", {
             success: true,
             message: `Chat context cleared for user ID: ${userId}`,
