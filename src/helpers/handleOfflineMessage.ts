@@ -5,5 +5,5 @@ export async function handleOfflineMessage(userId: string, senderName: string) {
 
   await redis.sadd(key, senderName);
 
-  await redis.expire(key, 60 * 60 * 24);
+  await redis.expire(key, 60 * 60 );
 }
