@@ -284,7 +284,7 @@ const deliverRequest = async (orderId: string) => {
   const recipientId = order.result.orderReciver;
 
   const toSocketId = users[order.result?.orderFrom._id.toString()];
-
+ 
   const notificationData: INotification = {
     recipient: order.result?.orderFrom._id as mongoose.Types.ObjectId,
     sender: order.result.orderReciver._id as mongoose.Types.ObjectId,
@@ -297,9 +297,9 @@ const deliverRequest = async (orderId: string) => {
   };
 
   const savedMessage = await MessageService.createMessage({
-    sender: senderId._id,
+    sender: order.result.orderReciver._id,
     message: `You received  a delivery request.\nView details: https://luminor-ltd.com/project/${orderId}`,
-    recipient: recipientId._id,
+    recipient:order.result?.orderFrom._id,
     isUnseen: true,
   });
 
@@ -310,8 +310,8 @@ const deliverRequest = async (orderId: string) => {
   if (toSocketId) {
     io.to(toSocketId).emit("privateMessage", {
       message: populatedMessage,
-      fromUserId: senderId._id,
-      toUserId: recipientId._id,
+      fromUserId:  order.result.orderReciver._id,
+      toUserId:order.result?.orderFrom._id,
     });
   }
 
