@@ -25,6 +25,7 @@ import { NotificationService } from "../notification/notification.service";
 import { off } from "pdfkit";
 import moment from "moment";
 import { IMessage } from "../messages/messages.interface";
+import { HttpRequest } from "aws-sdk";
 const stripe = new Stripe(config.stripe_key as string, {
   apiVersion: "2025-01-27.acacia",
 });
@@ -47,21 +48,27 @@ const deleteCardFromCustomer = async (paymentMethodId: string) => {
     throw new ApiError(StatusCodes.BAD_REQUEST, error.message);
   }
 };
-const refundPaymentToCustomer = async (orderId: string) => {
+const refundPaymentToCustomer = async (orderId: string, userId: string) => {
   try {
-    const order: any = await Order.findById(orderId)
-      .populate("orderFrom")
-      .populate("orderReciver");
-
+    // const order: any = await Order.findById(orderId)
+    //   .populate("orderFrom")
+    //   .populate("orderReciver");
+    const order: any = await OrderService.getOrderById(orderId);
+    if (!order || !order.result) {
+      throw new ApiError(StatusCodes.NOT_FOUND, "order not found");
+    }
+    if (order.result.orderFrom._id.toString() !== userId) {
+      throw new ApiError(
+        StatusCodes.NOT_ACCEPTABLE,
+        "you are not the client to refund the money"
+      );
+    }
     const messageContent = `Your order has been cancelled. Please speak to the client. `;
-    const senderId = order?.orderFrom._id as mongoose.Types.ObjectId;
-
-    const recipientId = order?.orderReciver._id as mongoose.Types.ObjectId;
 
     const savedMessage = await MessageService.createMessage({
-      sender: senderId,
+      sender: order.result.orderFrom._id,
       message: messageContent,
-      recipient: recipientId,
+      recipient: order.result.orderReciver._id,
       isUnseen: true,
     });
 
@@ -71,29 +78,29 @@ const refundPaymentToCustomer = async (orderId: string) => {
       .lean();
 
     const notificationData: INotification = {
-      recipient: recipientId._id as mongoose.Types.ObjectId,
-      sender: senderId._id as mongoose.Types.ObjectId,
+      recipient: order.result.orderReciver._id as mongoose.Types.ObjectId,
+      sender: order.result.orderFrom._id as mongoose.Types.ObjectId,
       message: `Your order has been cancelled. Please speak to the client.`,
-      type: ENUM_NOTIFICATION_TYPE.OFFER,
+      type: ENUM_NOTIFICATION_TYPE.ORDER,
       status: ENUM_NOTIFICATION_STATUS.UNSEEN,
       orderId: order._id,
     };
 
-    const notification = await NotificationService.createNotification(
+    await NotificationService.createNotification(
       notificationData,
       "sendNotification"
     );
-    const toSocketId = users[recipientId._id.toString()];
+    const toSocketId = users[order.result.orderReciver._id.toString()];
     if (toSocketId) {
       io.to(toSocketId).emit("privateMessage", {
         message: populatedMessage,
-        fromUserId: senderId._id,
-        toUserId: recipientId._id,
+        fromUserId: order.result.orderFrom._id,
+        toUserId: order.result.orderReciver._id,
       });
     }
 
     const refund = await stripe.refunds.create({
-      payment_intent: order?.paymentIntentId,
+      payment_intent: order?.result.paymentIntentId,
     });
 
     await Transaction.updateOne(
@@ -264,30 +271,26 @@ const createPaymentIntentService = async (payload: any) => {
 };
 
 const deliverRequest = async (orderId: string, userId: string) => {
-  const order = await OrderService.getOrderById(orderId);
+  const order: any = await OrderService.getOrderById(orderId);
 
   if (!order || !order.result) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "order not found");
   }
-  const retireProfessional = await User.findOne({
-    _id: order?.result.orderReciver,
+  const client = await User.findOne({
+    _id: order?.result.orderFrom._id,
   });
-  if (!retireProfessional) {
+  if (!client) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "user not found");
   }
   if (!order) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "order not found");
   }
-  if (userId !== retireProfessional.id) {
+  if (userId !== order.result.orderReciver._id.toString()) {
     throw new ApiError(
       StatusCodes.NOT_ACCEPTABLE,
       "you are not the person who got the order"
     );
   }
-  // const senderId = order.result.orderFrom;
-  // const recipientId = order.result.orderReciver;
-  // console.log(order.result.orderFrom._id,"check client")
-  // console.log(order.result.orderReciver._id,"check retireProfession id")
 
   const toSocketId = users[order.result?.orderFrom._id.toString()];
 
@@ -295,7 +298,9 @@ const deliverRequest = async (orderId: string, userId: string) => {
     recipient: order.result?.orderFrom._id as mongoose.Types.ObjectId,
     sender: order.result.orderReciver._id as mongoose.Types.ObjectId,
     message: ` ${
-      retireProfessional.name.firstName + "" + retireProfessional.name.lastName
+      order.result.orderReciver.name.firstName +
+      "" +
+      order.result.orderReciver.name.lastName
     } sent  you a delivery request.`,
     type: ENUM_NOTIFICATION_TYPE.DELIVERY,
     status: ENUM_NOTIFICATION_STATUS.UNSEEN,
@@ -328,7 +333,7 @@ const deliverRequest = async (orderId: string, userId: string) => {
   return notification;
 };
 
-const deliverProject = async (orderId: string) => {
+const acceptProject = async (orderId: string, userId: string) => {
   const order: any = await OrderService.getOrderById(orderId);
   if (!order || !order.result) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "order not found");
@@ -339,9 +344,16 @@ const deliverProject = async (orderId: string) => {
   if (!retireProfessional) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "user not found");
   }
-  if (!order) {
+  if (!order || !order.result) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "order not found");
   }
+  if (userId !== order.result.orderFrom._id.toString()) {
+    throw new ApiError(
+      StatusCodes.NOT_ACCEPTABLE,
+      "you are not the client who will accept this order"
+    );
+  }
+
   const totalAmount = Math.round(parseFloat(order?.result.totalPrice) * 100);
   const platformFee =
     Math.round((parseFloat(order.result.totalPrice) * 20) / 100) * 100;
@@ -359,32 +371,31 @@ const deliverProject = async (orderId: string) => {
     { new: true }
   );
   const messageContent = `Your project has been successfully accepted by ${
-    order.client.name.firstName + order.client.name.lastName
+    order.result.orderFrom.name.firstName + order.result.orderFrom.name.lastName
   }`;
-  const senderId = order.result.orderFrom;
-  const recipientId = order.result.orderReciver;
+  // const senderId = order.result.orderFrom;
+  // const recipientId = order.result.orderReciver;
 
-  // Save the message to the database
   const savedMessage = await MessageService.createMessage({
-    sender: senderId._id,
+    sender: order.result.orderFrom._id,
     message: messageContent,
-    recipient: recipientId._id,
+    recipient: order.result.orderReciver._id,
     isUnseen: true,
   });
 
-  // Populate the message before sending
   const populatedMessage = await Message.findById(savedMessage._id)
     .populate({ path: "sender", select: "name email _id" })
     .populate({ path: "recipient", select: "name email _id" })
     .lean();
 
-  const toSocketId = users[recipientId._id.toString()];
+  const toSocketId = users[order.result.orderReciver._id.toString()];
 
   const notificationData: INotification = {
-    recipient: recipientId._id as mongoose.Types.ObjectId,
-    sender: senderId._id as mongoose.Types.ObjectId,
+    recipient: order.result.orderReciver._id as mongoose.Types.ObjectId,
+    sender: order.result.orderFrom._id as mongoose.Types.ObjectId,
     message: `Your project has been successfully accepted by ${
-      order.client.name.firstName + order.client.name.lastName
+      order.result.orderFrom.name.firstName +
+      order.result.orderFrom.name.lastName
     }.`,
     type: ENUM_NOTIFICATION_TYPE.OFFER,
     status: ENUM_NOTIFICATION_STATUS.UNSEEN,
@@ -398,8 +409,8 @@ const deliverProject = async (orderId: string) => {
   if (toSocketId) {
     io.to(toSocketId).emit("privateMessage", {
       message: populatedMessage,
-      fromUserId: senderId,
-      toUserId: recipientId._id,
+      fromUserId: order.result.orderFrom._id,
+      toUserId: order.result.orderReciver._id,
     });
   }
 
@@ -438,7 +449,7 @@ const revision = async (orderId: string, clientId: string, payload: any) => {
     status: ENUM_NOTIFICATION_STATUS.UNSEEN,
     orderId: order._id as mongoose.Types.ObjectId,
   };
- await NotificationService.createNotification(
+  await NotificationService.createNotification(
     notificationData,
     "sendNotification"
   );
@@ -604,7 +615,7 @@ export const StripeServices = {
   refundPaymentToCustomer,
   createPaymentIntentService,
 
-  deliverProject,
+  acceptProject,
   generateNewAccountLink,
   getStripeCardLists,
   createStripeCard,

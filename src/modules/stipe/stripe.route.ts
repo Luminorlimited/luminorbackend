@@ -32,7 +32,11 @@ router.post(
   parseBodyData,
   StripeController.createPaymentIntent
 );
-router.patch("/deliver-project/:id", StripeController.deliverProject);
+router.patch(
+  "/deliver-project/:id",
+  auth(ENUM_USER_ROLE.CLIENT),
+  StripeController.acceptProject
+);
 router.post(
   "/generate-onboarding-url",
   auth(),
@@ -43,7 +47,7 @@ router.get(
   auth(ENUM_USER_ROLE.RETIREPROFESSIONAL),
   StripeController.deliverRequest
 );
-router.post("/refund-payment/:id", StripeController.refundPaymentToCustomer);
+router.post("/refund-payment/:id",auth(ENUM_USER_ROLE.CLIENT), StripeController.refundPaymentToCustomer);
 router.patch(
   "/revision-request/:id",
   auth(ENUM_USER_ROLE.CLIENT),
