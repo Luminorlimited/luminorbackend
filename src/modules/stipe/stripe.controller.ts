@@ -40,7 +40,7 @@ const deleteCardFromCustomer = catchAsync(async (req: any, res: any) => {
 });
 
 const refundPaymentToCustomer = catchAsync(async (req: any, res: any) => {
-  const result = await StripeServices.refundPaymentToCustomer(req.params.id);
+  const result = await StripeServices.refundPaymentToCustomer(req.params.id,req.user.id);
 
   sendResponse(res, {
     statusCode: 200,
@@ -178,12 +178,12 @@ const handleWebHook = catchAsync(async (req: any, res: any) => {
   }
   res.status(200).send("Event received");
 });
-const deliverProject = catchAsync(async (req: any, res: any) => {
-  const result = await StripeServices.deliverProject(req.params.id);
+const acceptProject = catchAsync(async (req: any, res: any) => {
+  const result = await StripeServices.acceptProject(req.params.id,req.user.id);
   sendResponse(res, {
     statusCode: 200,
     success: true,
-    message: "project deliver successfully",
+    message: "project accept successfully",
     data: result,
   });
 });
@@ -258,7 +258,7 @@ export const StripeController = {
   refundPaymentToCustomer,
   createPaymentIntent,
   handleWebHook,
-  deliverProject,
+  acceptProject,
   getStripeCardLists,
   createStripeCard,
   generateAccountLink,
