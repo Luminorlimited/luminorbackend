@@ -195,7 +195,7 @@ const createPaymentIntentService = async (payload: any) => {
     const messageContent = `Your offer has been accepted By ${sender.name.firstName}${sender.name.lastName}.\nView details: https://www.luminor-ltd.com/clientOrder/${orderResult[0]._id}`;
 
     const toSocketId = users[recipient._id.toString()];
-   
+
     if (toSocketId) {
       io.to(toSocketId).emit("privateMessage", {
         message: {
@@ -238,7 +238,6 @@ const createPaymentIntentService = async (payload: any) => {
     } as IMessage);
 
     // Optional: emit to sender that message was saved
-    
 
     // ✅ Notification
     const notificationData: INotification = {
@@ -264,8 +263,7 @@ const createPaymentIntentService = async (payload: any) => {
   return orderResult[0];
 };
 
-
-const deliverRequest = async (orderId: string) => {
+const deliverRequest = async (orderId: string, userId: string) => {
   const order = await OrderService.getOrderById(orderId);
 
   if (!order || !order.result) {
@@ -280,11 +278,19 @@ const deliverRequest = async (orderId: string) => {
   if (!order) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "order not found");
   }
-  const senderId = order.result.orderFrom;
-  const recipientId = order.result.orderReciver;
+  if (userId !== retireProfessional.id) {
+    throw new ApiError(
+      StatusCodes.NOT_ACCEPTABLE,
+      "you are not the person who got the order"
+    );
+  }
+  // const senderId = order.result.orderFrom;
+  // const recipientId = order.result.orderReciver;
+  // console.log(order.result.orderFrom._id,"check client")
+  // console.log(order.result.orderReciver._id,"check retireProfession id")
 
   const toSocketId = users[order.result?.orderFrom._id.toString()];
- 
+
   const notificationData: INotification = {
     recipient: order.result?.orderFrom._id as mongoose.Types.ObjectId,
     sender: order.result.orderReciver._id as mongoose.Types.ObjectId,
@@ -299,7 +305,7 @@ const deliverRequest = async (orderId: string) => {
   const savedMessage = await MessageService.createMessage({
     sender: order.result.orderReciver._id,
     message: `You received  a delivery request.\nView details: https://luminor-ltd.com/project/${orderId}`,
-    recipient:order.result?.orderFrom._id,
+    recipient: order.result?.orderFrom._id,
     isUnseen: true,
   });
 
@@ -310,8 +316,8 @@ const deliverRequest = async (orderId: string) => {
   if (toSocketId) {
     io.to(toSocketId).emit("privateMessage", {
       message: populatedMessage,
-      fromUserId:  order.result.orderReciver._id,
-      toUserId:order.result?.orderFrom._id,
+      fromUserId: order.result.orderReciver._id,
+      toUserId: order.result?.orderFrom._id,
     });
   }
 

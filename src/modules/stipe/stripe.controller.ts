@@ -243,8 +243,8 @@ const generateAccountLink=catchAsync(async (req: any, res: any) => {
 const deliverRequest=catchAsync(async (req: any, res: any) => {
 
 
-  
-  const result = await StripeServices.deliverRequest(req.params.id);
+   const userid=req.user.id
+  const result = await StripeServices.deliverRequest(req.params.id,userid);
   sendResponse(res, {
     statusCode: 200,
     success: true,

@@ -6,6 +6,7 @@ import { multerUpload } from "../../middlewares/multer";
 import { parseBodyData } from "../../middlewares/parseJson";
 import auth from "../../middlewares/auth";
 import { OrderController } from "../order/order.controller";
+import { ENUM_USER_ROLE } from "../../enums/user";
 
 const router = express.Router();
 
@@ -33,7 +34,7 @@ router.post(
 );
 router.patch("/deliver-project/:id", StripeController.deliverProject);
 router.post("/generate-onboarding-url",auth(),StripeController.generateAccountLink)
-router.get("/delivery-request/:id",StripeController.deliverRequest)
+router.get("/delivery-request/:id",auth(ENUM_USER_ROLE.RETIREPROFESSIONAL),StripeController.deliverRequest)
 router.post("/refund-payment/:id",StripeController.refundPaymentToCustomer)
 router.patch("/revision-request/:id",auth(),StripeController.revesion)
 
