@@ -198,7 +198,7 @@ const deleteSingleOffer = async (id: string) => {
 
   if (!offer) throw new ApiError(StatusCodes.NOT_FOUND, "Offer not found");
 
-  const messageContent = `Your offer has been declined, please speak to the retired professional`;
+  const messageContent = `Your offer has been declined, please speak to the Client`;
 
   const sender = offer.clientEmail;
   const recipient = offer.professionalEmail;
