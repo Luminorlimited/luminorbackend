@@ -10,9 +10,9 @@ import { ENUM_USER_ROLE } from "../../enums/user";
 
 const router = express.Router();
 
- router.get("/stripe-card-lists",auth(),StripeController.getStripeCardLists)
+router.get("/stripe-card-lists", auth(), StripeController.getStripeCardLists);
 router.get("/get-cards/:customerId", StripeController.getCustomerSavedCards);
-router.post("/create-card",auth(),StripeController.createStripeCard)
+router.post("/create-card", auth(), StripeController.createStripeCard);
 // Delete card from customer
 router.delete(
   "/delete-card/:paymentMethodId",
@@ -33,9 +33,21 @@ router.post(
   StripeController.createPaymentIntent
 );
 router.patch("/deliver-project/:id", StripeController.deliverProject);
-router.post("/generate-onboarding-url",auth(),StripeController.generateAccountLink)
-router.get("/delivery-request/:id",auth(ENUM_USER_ROLE.RETIREPROFESSIONAL),StripeController.deliverRequest)
-router.post("/refund-payment/:id",StripeController.refundPaymentToCustomer)
-router.patch("/revision-request/:id",auth(),StripeController.revesion)
+router.post(
+  "/generate-onboarding-url",
+  auth(),
+  StripeController.generateAccountLink
+);
+router.get(
+  "/delivery-request/:id",
+  auth(ENUM_USER_ROLE.RETIREPROFESSIONAL),
+  StripeController.deliverRequest
+);
+router.post("/refund-payment/:id", StripeController.refundPaymentToCustomer);
+router.patch(
+  "/revision-request/:id",
+  auth(ENUM_USER_ROLE.CLIENT),
+  StripeController.revesion
+);
 
 export const StripeRoutes = router;

@@ -406,27 +406,24 @@ const deliverProject = async (orderId: string) => {
   return { transfer, updateTransaction };
 };
 const revision = async (orderId: string, clientId: string, payload: any) => {
-  console.log(payload, "check revision");
-  const order: any = await Order.findById(orderId)
-    .populate("orderFrom")
-    .populate("orderReciver");
-  if (!order) {
+  const order: any = await OrderService.getOrderById(orderId);
+  if (!order || !order.result) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "order  not found");
   }
-  if (order.orderFrom._id.toString() !== clientId) {
+  if (order.result.orderFrom._id.toString() !== clientId) {
     throw new ApiError(
       StatusCodes.BAD_REQUEST,
       "only this order client have the authrothy to give revesion request."
     );
   }
-  const senderId = order?.orderFrom._id as mongoose.Types.ObjectId;
-  const messageContent = `You have a revision request from ${order?.orderFrom.name.firstName} ${order?.orderFrom.name.lastName}.\nView details: https://luminor-ltd.com/deliver-details/${orderId}`;
-  const notifcationContent = `You have a revision request from ${order?.orderFrom.name.firstName} ${order?.orderFrom.name.lastName}.`;
-  const recipientId = order?.orderReciver._id as mongoose.Types.ObjectId;
+
+  const messageContent = `You have a revision request from ${order?.result.orderFrom.name.firstName} ${order?.result.orderFrom.name.lastName}.\nView details: https://luminor-ltd.com/deliver-details/${orderId}`;
+  const notifcationContent = `You have a revision request from ${order?.result.orderFrom.name.firstName} ${order?.result.orderFrom.name.lastName}.`;
+
   const savedMessage = await MessageService.createMessage({
-    sender: senderId,
+    sender: order.result.orderFrom._id,
     message: messageContent,
-    recipient: recipientId,
+    recipient: order.result.orderReciver._id,
     isUnseen: true,
   });
   const populatedMessage = await Message.findById(savedMessage._id)
@@ -434,23 +431,23 @@ const revision = async (orderId: string, clientId: string, payload: any) => {
     .populate({ path: "recipient", select: "name email _id" })
     .lean();
   const notificationData: INotification = {
-    recipient: recipientId._id as mongoose.Types.ObjectId,
-    sender: senderId._id as mongoose.Types.ObjectId,
+    recipient: order.result.orderReciver._id as mongoose.Types.ObjectId,
+    sender: order.result.orderFrom._id as mongoose.Types.ObjectId,
     message: notifcationContent,
     type: ENUM_NOTIFICATION_TYPE.REVISION,
     status: ENUM_NOTIFICATION_STATUS.UNSEEN,
     orderId: order._id as mongoose.Types.ObjectId,
   };
-  const notification = await NotificationService.createNotification(
+ await NotificationService.createNotification(
     notificationData,
     "sendNotification"
   );
-  const toSocketId = users[recipientId._id.toString()];
+  const toSocketId = users[order.result.orderReciver._id.toString()];
   if (toSocketId) {
     io.to(toSocketId).emit("privateMessage", {
       message: populatedMessage,
-      fromUserId: senderId._id,
-      toUserId: recipientId._id,
+      fromUserId: order.result.orderFrom._id,
+      toUserId: order.result.orderReciver._id,
     });
   }
 
