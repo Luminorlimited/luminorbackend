@@ -22,6 +22,21 @@ const getUserNotification = catchAsync(async (req: Request, res: Response) => {
     data: messages,
   });
 });
+
+const getMessageNotification=catchAsync(async (req: Request, res: Response) => {
+  const user: any = req.user;
+  const messages = await NotificationService.getMessageNotification(
+    user.id as string
+  );
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+
+    message: "user message notification  get   successfully",
+    data: messages,
+  });
+});
 const updateNotification = catchAsync(async (req: Request, res: Response) => {
   const id = req.params.id;
 
@@ -172,4 +187,5 @@ export const NotificationController = {
   updateMessageNotification,
   messageCount,
   otherNotificationCount,
+  getMessageNotification
 };
