@@ -1,3 +1,4 @@
+import { restore } from "pdfkit";
 import {
   ENUM_NOTIFICATION_STATUS,
   ENUM_NOTIFICATION_TYPE,
@@ -61,16 +62,16 @@ const createNotification = async (payload: INotification, event: string) => {
 const getUserNotification = async (recipient: string) => {
   const result = await Notification.find({
     recipient: recipient,
-    // type: { $ne: ENUM_NOTIFICATION_TYPE.PRIVATEMESSAGE },
+    type: { $ne: ENUM_NOTIFICATION_TYPE.PRIVATEMESSAGE },
   }).sort({
     createdAt: -1,
   });
-  const count = await Notification.countDocuments({
-    recipient: recipient,
-    status: ENUM_NOTIFICATION_STATUS.UNSEEN,
-    // type: { $ne: ENUM_NOTIFICATION_TYPE.PRIVATEMESSAGE },
-  });
-  return { result, count };
+  // const count = await Notification.countDocuments({
+  //   recipient: recipient,
+  //   status: ENUM_NOTIFICATION_STATUS.UNSEEN,
+  //   type: { $ne: ENUM_NOTIFICATION_TYPE.PRIVATEMESSAGE },
+  // });
+  return result;
 };
 const getMessageNotification = async (recipient: string) => {
   const result = await Notification.find({
@@ -79,12 +80,12 @@ const getMessageNotification = async (recipient: string) => {
   }).sort({
     createdAt: -1,
   });
-  const count = await Notification.countDocuments({
-    recipient: recipient,
-    status: ENUM_NOTIFICATION_STATUS.UNSEEN,
-    type: ENUM_NOTIFICATION_TYPE.PRIVATEMESSAGE,
-  });
-  return { result, count };
+  return result;
+  // const count = await Notification.countDocuments({
+  //   recipient: recipient,
+  //   status: ENUM_NOTIFICATION_STATUS.UNSEEN,
+  //   type: ENUM_NOTIFICATION_TYPE.PRIVATEMESSAGE,
+  // });
 };
 const updateNotification = async (id: string) => {
   const result = await Notification.findOneAndUpdate(

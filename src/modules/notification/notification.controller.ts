@@ -23,20 +23,22 @@ const getUserNotification = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const getMessageNotification=catchAsync(async (req: Request, res: Response) => {
-  const user: any = req.user;
-  const messages = await NotificationService.getMessageNotification(
-    user.id as string
-  );
+const getMessageNotification = catchAsync(
+  async (req: Request, res: Response) => {
+    const user: any = req.user;
+    const messages = await NotificationService.getMessageNotification(
+      user.id as string
+    );
 
-  sendResponse(res, {
-    success: true,
-    statusCode: StatusCodes.OK,
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
 
-    message: "user message notification  get   successfully",
-    data: messages,
-  });
-});
+      message: "user message notification  get   successfully",
+      data: messages,
+    });
+  }
+);
 const updateNotification = catchAsync(async (req: Request, res: Response) => {
   const id = req.params.id;
 
@@ -90,7 +92,17 @@ const messageCount = catchAsync(async (req: Request, res: Response) => {
   const sendData = async () => {
     try {
       const count = await NotificationService.messageCount(req.params.id);
-      res.write(`event:message-count\ndata: ${JSON.stringify({ count })}\n\n`);
+     
+      const notifications = await NotificationService.getMessageNotification(
+      req.params.id
+      );
+     
+      res.write(
+        `event:message-count\ndata: ${JSON.stringify({
+          count,
+          notifications,
+        })}\n\n`
+      );
     } catch (err) {
       // Optional: Log or handle error on sendData
     }
@@ -145,8 +157,12 @@ const otherNotificationCount = catchAsync(
         const count = await NotificationService.otherNotificationCount(
           req.params.id
         );
+     const notifications = await NotificationService.getUserNotification(
+      req.params.id
+      );
+     
         res.write(
-          `event:notification-count\ndata: ${JSON.stringify({ count })}\n\n`
+          `event:notification-count\ndata: ${JSON.stringify({ count ,notifications})}\n\n`
         );
       } catch (err) {
         // Optional: Log or handle error
@@ -187,5 +203,5 @@ export const NotificationController = {
   updateMessageNotification,
   messageCount,
   otherNotificationCount,
-  getMessageNotification
+  getMessageNotification,
 };
