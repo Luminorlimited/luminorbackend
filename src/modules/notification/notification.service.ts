@@ -7,6 +7,7 @@ import { io } from "../../server";
 import { userInChat, users } from "../../socket";
 import { MessageService } from "../messages/messages.service";
 import eventEmitter from "../sse/eventEmitter";
+import { NotificationType } from "./notfication.const";
 import { INotification } from "./notification.interface";
 import { Notification } from "./notification.model";
 
@@ -22,7 +23,6 @@ const createNotification = async (payload: INotification, event: string) => {
 
   const result = await Notification.create(payload);
   if (ENUM_NOTIFICATION_TYPE.PRIVATEMESSAGE === payload.type) {
-
     eventEmitter.emit("event:message-count", {
       userId: payload.recipient.toString(),
     });
@@ -59,12 +59,30 @@ const createNotification = async (payload: INotification, event: string) => {
 };
 
 const getUserNotification = async (recipient: string) => {
-  const result = await Notification.find({ recipient: recipient }).sort({
+  const result = await Notification.find({
+    recipient: recipient,
+    type: { $ne: ENUM_NOTIFICATION_TYPE.PRIVATEMESSAGE },
+  }).sort({
     createdAt: -1,
   });
   const count = await Notification.countDocuments({
     recipient: recipient,
     status: ENUM_NOTIFICATION_STATUS.UNSEEN,
+    type: { $ne: ENUM_NOTIFICATION_TYPE.PRIVATEMESSAGE },
+  });
+  return { result, count };
+};
+const getMessageNotification = async (recipient: string) => {
+  const result = await Notification.find({
+    recipient: recipient,
+    type: ENUM_NOTIFICATION_TYPE.PRIVATEMESSAGE,
+  }).sort({
+    createdAt: -1,
+  });
+  const count = await Notification.countDocuments({
+    recipient: recipient,
+    status: ENUM_NOTIFICATION_STATUS.UNSEEN,
+    type: ENUM_NOTIFICATION_TYPE.PRIVATEMESSAGE,
   });
   return { result, count };
 };
@@ -133,4 +151,5 @@ export const NotificationService = {
   updateSingleUserMessageNotification,
   messageCount,
   otherNotificationCount,
+  getMessageNotification,
 };
