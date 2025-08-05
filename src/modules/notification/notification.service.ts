@@ -14,7 +14,7 @@ import { Notification } from "./notification.model";
 
 const createNotification = async (payload: INotification, event: string) => {
   const recipientInChatWith = userInChat.get(payload.recipient.toString());
-
+ 
   if (
     payload.type === ENUM_NOTIFICATION_TYPE.PRIVATEMESSAGE &&
     recipientInChatWith === payload.sender.toString()

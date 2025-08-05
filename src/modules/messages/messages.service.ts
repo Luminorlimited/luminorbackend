@@ -18,7 +18,7 @@ import { onlineUsers, userInChat } from "../../socket";
 const createMessage = async (payload: IMessage) => {
 
 
-  // Corrected query to find a conversation between two specific users
+
   let checkRoom = await Convirsation.findOne({
     $or: [
       { user1: payload.sender, user2: payload.recipient },
@@ -26,7 +26,7 @@ const createMessage = async (payload: IMessage) => {
     ]
   });
 
-  // Create conversation if not found, with correct field initialization
+
   if (!checkRoom) {
     checkRoom = await Convirsation.create({
       user1: payload.sender,
@@ -39,7 +39,7 @@ const createMessage = async (payload: IMessage) => {
     });
   }
 
-  // Prepare message data
+
   const data:any = {
     sender: payload.sender,
     recipient: payload.recipient,
@@ -55,20 +55,20 @@ const createMessage = async (payload: IMessage) => {
 
   const message = await Message.create(data);
 
-  // Generate last message content safely
+ 
   let lastMessageContent = payload.meetingLink
     ? "🔗 Meeting Link"
     : payload.media
     ? getFileType(payload.media) || "📁 Media"
     : payload.message || "";
 
-  // Prepare update fields
+  
   let updateFields: any = {
     lastMessageTimestamp: message.createdAt,
     lastMessage: lastMessageContent,
   };
 
-  // Update unseen counts correctly
+
   const recipientInChat = userInChat.get(payload.recipient.toString());
 
   if (payload.sender.toString() === checkRoom.user1.toString()) {
@@ -83,7 +83,7 @@ const createMessage = async (payload: IMessage) => {
     }
   }
 
-  // Update conversation with new last message and unseen count
+
   await Convirsation.findByIdAndUpdate(checkRoom._id, updateFields, { new: true });
 
   return message;

@@ -83,7 +83,7 @@ const refundPaymentToCustomer = async (orderId: string, userId: string) => {
       message: `Your order has been cancelled. Please speak to the client.`,
       type: ENUM_NOTIFICATION_TYPE.ORDER,
       status: ENUM_NOTIFICATION_STATUS.UNSEEN,
-      orderId: order._id,
+      orderId: orderId as any,
     };
 
     await NotificationService.createNotification(
@@ -304,7 +304,7 @@ const deliverRequest = async (orderId: string, userId: string) => {
     } sent  you a delivery request.`,
     type: ENUM_NOTIFICATION_TYPE.DELIVERY,
     status: ENUM_NOTIFICATION_STATUS.UNSEEN,
-    orderId: order.result._id,
+    orderId: orderId as any,
   };
 
   const savedMessage = await MessageService.createMessage({
@@ -447,7 +447,7 @@ const revision = async (orderId: string, clientId: string, payload: any) => {
     message: notifcationContent,
     type: ENUM_NOTIFICATION_TYPE.REVISION,
     status: ENUM_NOTIFICATION_STATUS.UNSEEN,
-    orderId: order._id as mongoose.Types.ObjectId,
+    orderId: orderId  as any,
   };
   await NotificationService.createNotification(
     notificationData,
