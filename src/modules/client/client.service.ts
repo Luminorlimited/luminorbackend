@@ -20,7 +20,7 @@ const stripe = new Stripe(config.stripe.secretKey as string, {
 });
 const createClient = async (user: IUser, clientData: IClient) => {
 
-
+  console.log("user")
   const isUserExist = await User.findOne({ email: user.email });
 
   if (isUserExist) {
